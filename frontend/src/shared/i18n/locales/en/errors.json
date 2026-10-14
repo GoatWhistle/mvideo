@@ -12,7 +12,12 @@
   "api": {
     "server_unavailable": "The server is unavailable right now. Try again in a minute.",
     "network_unavailable": "No connection to the server. Check the network and try again.",
+    "stand_unavailable": "Stand data is not built yet. Run the stand-pack command and restart the backend.",
+    "unknown_category": "This category is not part of the stand data. Pick one from the list.",
+    "review_item_not_found": "This review item no longer exists. Refresh the queue.",
+    "review_already_resolved": "Someone has already resolved this item. Refresh the queue.",
     "invalid_correction": "Check the value and exact quote from the source.",
+    "validation_error": "Some fields are filled in incorrectly. The title is required.",
     "correction_conflict": "The correction changed or conflicts with a saved one. Run extraction again."
   },
   "boundary": {

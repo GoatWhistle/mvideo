@@ -57,5 +57,12 @@ Fine-tuned BERT/NER, images, running the whole catalog through the LLM.
 Branch `feat/automatic-catalog`: unit conversion and quote guards, full-field metrics, deterministic
 audit, background decision with bounded context recheck, streaming one-launch screen and export
 implemented. Runtime acceptance evidence and remaining gaps live in `docs/automatic-catalog.md`.
-No real dataset rerun; CatBoost/calibration remain pending data. User selected SQLite; corrections, scoped aliases, automatic rerun and revoke are implemented
+No real dataset rerun; upstream CatBoost/isotonic preserved, reevaluation remains pending data. User selected SQLite; corrections, scoped aliases, automatic rerun and revoke are implemented
 with migration/seed and real-storage integration tests. Do not close the parent spec as completed.
+
+## Upstream reconciliation, 2026-10-15
+
+После обновления main сохранены реализация CatBoost/isotonic, пакетный Jev, эксперимент twins
+и их прежние отчёты. Утверждения выше о незавершённом обучении относятся к повторному прогону
+после исправлений единиц и метрик v2: он не выполнен. Эти артефакты не подключены к новому
+автоматическому экрану; калиброванная уверенность в нём по-прежнему отсутствует.

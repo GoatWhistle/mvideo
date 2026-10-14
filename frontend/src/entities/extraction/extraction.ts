@@ -2,7 +2,8 @@ import { ApiError, api, type components, unwrap } from "@/shared/api"
 
 export type ExtractionEvent = components["schemas"]["ExtractionEventSchema"]
 export type ExtractionField = components["schemas"]["FieldSchema"]
-export type ExtractRequest = components["schemas"]["ExtractRequest"]
+export type ExtractRequest =
+  components["schemas"]["app__controller__extraction__schemas__ExtractRequest"]
 
 function parseEvent(line: string): ExtractionEvent {
   const event: ExtractionEvent = JSON.parse(line)
@@ -39,7 +40,9 @@ export async function extractCard(
   signal: AbortSignal,
   onEvent: (event: ExtractionEvent) => void,
 ): Promise<ExtractionEvent> {
-  const stream = await unwrap(api.POST("/api/v1/extract", { body, signal, parseAs: "stream" }))
+  const stream = await unwrap(
+    api.POST("/api/v1/extract/stream", { body, signal, parseAs: "stream" }),
+  )
   if (!stream) throw new ApiError(502, "unexpected")
   let latest: ExtractionEvent | undefined
   for await (const event of readEvents(stream)) {

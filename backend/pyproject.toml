@@ -4,9 +4,11 @@ version = "0.1.0"
 requires-python = ">=3.12"
 dependencies = [
     "aiosqlite>=0.22.1",
+    "catboost>=1.2.10",
     "fastapi>=0.143.1",
     "httpx>=0.28.1",
     "pyarrow>=26.0.0",
+    "scikit-learn>=1.9.1",
     "uvicorn>=0.54.0",
 ]
 
@@ -15,6 +17,10 @@ prepare-data = "app.prepare_data:main"
 baseline = "app.run_baseline:main"
 audit-catalog = "app.audit_catalog:main"
 seed-catalog = "app.seed_catalog:main"
+stand-pack = "app.build_stand_pack:main"
+ranker = "app.run_ranker:main"
+decide = "app.run_decision:main"
+twins = "app.run_twins:main"
 
 [dependency-groups]
 llm = [
@@ -52,5 +58,5 @@ mypy_path = "src"
 files = ["src", "tests"]
 
 [[tool.mypy.overrides]]
-module = ["pyarrow", "pyarrow.*"]
+module = ["pyarrow", "pyarrow.*", "catboost", "catboost.*", "sklearn", "sklearn.*", "pandas", "pandas.*", "scipy", "scipy.*"]
 ignore_missing_imports = true

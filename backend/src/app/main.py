@@ -7,17 +7,24 @@ from pathlib import Path
 from fastapi import FastAPI
 
 from app.adapter.catalog.configured import load_configuration, parse_configuration
+from app.adapter.dataset.stand_pack_file import StandPackFile
 from app.adapter.decision.lexical import LexicalDecisionModel
 from app.adapter.decision.system_one import TYPESAFE_URL, SystemOneModel
 from app.adapter.log.stdlib import StdlibLogger
+from app.adapter.system.clock import SystemClock, UuidIds
 from app.controller.errors import ErrorHandlers
 from app.controller.router import api_router_v1
+from app.domain.inference import Tier
+from app.repository.memory.review import MemoryAliasRepository, MemoryReviewRepository
 from app.repository.sqlite.uow import SqliteUow
 from app.settings import ConfigError, DecisionProvider, LanguageProvider, Settings, load_settings
+from app.usecase.extract_card import BaselineChooser, ExtractCard
 from app.usecase.feedback import FeedbackService
 from app.usecase.interface import DecisionModel, LanguageModel, Logger
 from app.usecase.process_card import ProcessCard
 from app.usecase.resolution import ResolveCandidates
+from app.usecase.review_queue import ReviewQueue
+from app.usecase.stand_catalog import StandCatalog
 
 
 @dataclass(frozen=True, slots=True)
@@ -32,15 +39,40 @@ class Providers:
         await self.decision.aclose()
 
 
-def build_decision_model(settings: Settings) -> DecisionModel:
+@dataclass(frozen=True, slots=True)
+class StandServices:
+    extract: ExtractCard
+    review: ReviewQueue
+    catalog: StandCatalog
+
+
+def build_stand(settings: Settings, logger: Logger) -> StandServices:
+    pack = StandPackFile(Path(settings.stand_pack)).load()
+    if pack is None:
+        logger.warning("stand_pack_missing", path=settings.stand_pack)
+    else:
+        logger.info("stand_pack_loaded", categories=len(pack.categories),
+                    examples=len(pack.examples))
+    reviews, aliases, clock = MemoryReviewRepository(), MemoryAliasRepository(), SystemClock()
+    return StandServices(
+        extract=ExtractCard(pack, aliases, reviews, BaselineChooser(), clock, UuidIds()),
+        review=ReviewQueue(reviews, aliases, clock),
+        catalog=StandCatalog(pack),
+    )
+
+
+def build_decision_model(settings: Settings, retries: int = 0) -> DecisionModel:
     match settings.decision_provider:
         case DecisionProvider.LEXICAL:
             return LexicalDecisionModel()
         case DecisionProvider.SYSTEM_ONE:
+            name = settings.decision_model_name
             return SystemOneModel(
                 base_url=settings.decision_url,
                 api_key=settings.decision_api_key,
+                models={Tier.FAST: name, Tier.SMART: name},
                 timeout_s=settings.decision_timeout_s,
+                retries=retries,
             )
 
 
@@ -86,11 +118,12 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                 raise ConfigError("Catalog is not seeded; run python -m app.seed_catalog")
             configuration = parse_configuration(snapshot.payload)
             feedback = FeedbackService(configuration, lambda: SqliteUow(database))
+        app.state.stand = build_stand(config, logger)
         decision = build_decision_model(config)
         resolver = ResolveCandidates(
             decision, enabled=(config.decision_provider is DecisionProvider.SYSTEM_ONE
                                and bool(config.decision_api_key or config.decision_url != TYPESAFE_URL)),
-            timeout_s=config.decision_timeout_s,
+            timeout_s=config.decision_timeout_s, model_version=config.decision_model_name,
         )
         providers = Providers(
             decision=decision, language=language, logger=logger,

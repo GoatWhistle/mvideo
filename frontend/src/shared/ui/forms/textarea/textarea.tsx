@@ -14,7 +14,7 @@ export function Textarea({ label, hint, id, ...props }: TextareaProps) {
   return (
     <div className={styles.field}>
       <label className={styles.label} htmlFor={fieldId}>
-        <Icon name="document" size="sm" />
+        <Icon name="card" size="sm" />
         {label}
       </label>
       <textarea {...props} id={fieldId} aria-describedby={hintId} className={styles.input} />
@@ -25,17 +25,17 @@ export function Textarea({ label, hint, id, ...props }: TextareaProps) {
   )
 }
 
-export interface TextFieldProps extends Omit<InputHTMLAttributes<HTMLInputElement>, "type"> {
+export interface CorrectionInputProps extends Omit<InputHTMLAttributes<HTMLInputElement>, "type"> {
   readonly label: string
 }
 
-export function TextField({ label, id, ...props }: TextFieldProps) {
+export function CorrectionInput({ label, id, ...props }: CorrectionInputProps) {
   const generated = useId()
   const fieldId = id ?? generated
   return (
     <div className={styles.field}>
       <label className={styles.label} htmlFor={fieldId}>
-        <Icon name="document" size="sm" />
+        <Icon name="card" size="sm" />
         {label}
       </label>
       <input {...props} id={fieldId} type="text" className={`${styles.input} ${styles.single}`} />

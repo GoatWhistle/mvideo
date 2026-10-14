@@ -9,14 +9,12 @@
   font-weight: var(--weight-medium);
 }
 .input {
+  composes: fieldControl from "../../../styles/compose.module.css";
   width: 100%;
   min-height: var(--state-min-height);
   padding: var(--space-16);
   border: var(--hairline) solid var(--border-strong);
-  border-radius: var(--radius-md);
   background: var(--surface-base);
-  color: var(--text-primary);
-  font: inherit;
   resize: vertical;
 }
 .input:focus-visible {

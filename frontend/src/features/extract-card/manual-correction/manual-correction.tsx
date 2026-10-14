@@ -1,6 +1,6 @@
 import { useRef, useState } from "react"
 import { useTranslation } from "@/shared/i18n"
-import { Button, TextField } from "@/shared/ui"
+import { Button, CorrectionInput } from "@/shared/ui"
 import type { ReviewActionsProps } from "../review-actions/review-contract"
 import styles from "./manual-correction.module.css"
 
@@ -42,7 +42,7 @@ export function ManualCorrection({
         save(false)
       }}
     >
-      <TextField
+      <CorrectionInput
         label={t("home:feedback.value")}
         value={value}
         onChange={(event) => setValue(event.target.value)}
@@ -50,7 +50,7 @@ export function ManualCorrection({
         maxLength={200}
         disabled={pending}
       />
-      <TextField
+      <CorrectionInput
         label={t("home:feedback.quote")}
         value={quote}
         onChange={(event) => {

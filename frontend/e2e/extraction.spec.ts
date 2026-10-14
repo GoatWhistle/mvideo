@@ -74,10 +74,10 @@ test("only ambiguous category asks for selection and retry recovers from network
   await expect(page.getByRole("status")).toHaveText(en.extraction.chooseCategory)
   await page.getByRole("button", { name: fixture.category, exact: true }).click()
   await expect(page.getByRole("button", { name: en.extraction.export })).toBeVisible()
-  await page.route("**/api/v1/extract", (route) => route.abort())
+  await page.route("**/api/v1/extract/stream", (route) => route.abort())
   await page.getByRole("button", { name: en.extraction.run }).click()
   await expect(page.getByRole("alert")).toBeVisible()
-  await page.unroute("**/api/v1/extract")
+  await page.unroute("**/api/v1/extract/stream")
   await page.getByRole("button", { name: common.action.retry, exact: true }).click()
   await expect(page.getByRole("status")).toHaveText(en.extraction.chooseCategory)
 })
@@ -92,7 +92,7 @@ test("pending extraction is visible and repeated clicks do not start another req
     release = resolve
   })
   let requests = 0
-  await page.route("**/api/v1/extract", async (route) => {
+  await page.route("**/api/v1/extract/stream", async (route) => {
     requests += 1
     await gate
     await route.continue()

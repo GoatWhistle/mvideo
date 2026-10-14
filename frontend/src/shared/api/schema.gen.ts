@@ -21,7 +21,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/extract": {
+    "/api/v1/extract/stream": {
         parameters: {
             query?: never;
             header?: never;
@@ -31,7 +31,7 @@ export interface paths {
         get?: never;
         put?: never;
         /** Extract */
-        post: operations["extract_api_v1_extract_post"];
+        post: operations["extract_api_v1_extract_stream_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -72,17 +72,95 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/stand": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Stand Info */
+        get: operations["stand_info_api_v1_stand_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/examples": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Examples */
+        get: operations["examples_api_v1_examples_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/extract": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Extract */
+        post: operations["extract_api_v1_extract_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/review": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Review List */
+        get: operations["review_list_api_v1_review_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/review/{item_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Review Resolve */
+        post: operations["review_resolve_api_v1_review__item_id__post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
-        /** CategorySchema */
-        CategorySchema: {
-            /** Category Id */
-            category_id: number;
-            /** Name */
-            name: string;
-        };
         /** CorrectionRequest */
         CorrectionRequest: {
             /**
@@ -128,12 +206,60 @@ export interface components {
             /** Message */
             message: string;
         };
-        /** ExtractRequest */
-        ExtractRequest: {
+        /** ExampleSchema */
+        ExampleSchema: {
+            /** Sku Id */
+            sku_id: number;
+            /** Category Id */
+            category_id: number;
+            /** Title */
+            title: string;
+            /** Description */
+            description: string;
+            /** Seller Params */
+            seller_params: components["schemas"]["SellerParamSchema"][];
+        };
+        /** ExamplesResponse */
+        ExamplesResponse: {
+            /** Items */
+            items: components["schemas"]["ExampleSchema"][];
+        };
+        /** ExtractResponse */
+        ExtractResponse: {
             /** Text */
             text: string;
-            /** Category Id */
-            category_id?: number | null;
+            /** Threshold */
+            threshold: number;
+            /** Values */
+            values: components["schemas"]["ExtractedValueSchema"][];
+            /** Missing */
+            missing: string[];
+        };
+        /** ExtractedValueSchema */
+        ExtractedValueSchema: {
+            /** Attribute */
+            attribute: string;
+            /** Value */
+            value: string;
+            /** Confidence */
+            confidence: number;
+            /** Source */
+            source: string;
+            /** Sources */
+            sources: string[];
+            /** Evidence */
+            evidence: string;
+            /** Start */
+            start: number;
+            /** End */
+            end: number;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "accepted" | "review";
+            /** Review Id */
+            review_id: string | null;
         };
         /** ExtractionEventSchema */
         ExtractionEventSchema: {
@@ -149,7 +275,7 @@ export interface components {
             /** Fields */
             fields: components["schemas"]["FieldSchema"][];
             /** Categories */
-            categories: components["schemas"]["CategorySchema"][];
+            categories: components["schemas"]["app__controller__extraction__schemas__CategorySchema"][];
             /** Elapsed Ms */
             elapsed_ms: number;
             /** Model Calls */
@@ -231,13 +357,120 @@ export interface components {
             /** End */
             end: number;
         };
+        /** ResolveRequest */
+        ResolveRequest: {
+            action: components["schemas"]["ReviewAction"];
+            /** Value */
+            value?: string | null;
+        };
+        /**
+         * ReviewAction
+         * @enum {string}
+         */
+        ReviewAction: "accept" | "correct";
+        /** ReviewItemSchema */
+        ReviewItemSchema: {
+            /** Id */
+            id: string;
+            /** Category Id */
+            category_id: number | null;
+            /** Title */
+            title: string;
+            /** Attribute */
+            attribute: string;
+            /** Value */
+            value: string;
+            /** Confidence */
+            confidence: number;
+            /** Source */
+            source: string;
+            /** Evidence */
+            evidence: string;
+            status: components["schemas"]["ReviewStatus"];
+            /** Resolved Value */
+            resolved_value: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Resolved At */
+            resolved_at: string | null;
+        };
+        /** ReviewListResponse */
+        ReviewListResponse: {
+            /** Items */
+            items: components["schemas"]["ReviewItemSchema"][];
+        };
+        /**
+         * ReviewStatus
+         * @enum {string}
+         */
+        ReviewStatus: "pending" | "accepted" | "corrected";
         /** RevokeRequest */
         RevokeRequest: {
             /** Version */
             version: number;
         };
+        /** SellerParamSchema */
+        SellerParamSchema: {
+            /** Name */
+            name: string;
+            /** Value */
+            value: string;
+            /** Unit */
+            unit?: string | null;
+        };
         /** @enum {string} */
         Stage: "category" | "rules" | "complete";
+        /** StandInfoResponse */
+        StandInfoResponse: {
+            /** Built At */
+            built_at: string;
+            /** Threshold */
+            threshold: number;
+            /** Categories */
+            categories: components["schemas"]["app__controller__stand__schemas__CategorySchema"][];
+        };
+        /** CategorySchema */
+        app__controller__extraction__schemas__CategorySchema: {
+            /** Category Id */
+            category_id: number;
+            /** Name */
+            name: string;
+        };
+        /** ExtractRequest */
+        app__controller__extraction__schemas__ExtractRequest: {
+            /** Text */
+            text: string;
+            /** Category Id */
+            category_id?: number | null;
+        };
+        /** CategorySchema */
+        app__controller__stand__schemas__CategorySchema: {
+            /** Category Id */
+            category_id: number;
+            /** Name */
+            name: string;
+            /** Path */
+            path: string;
+            /** Attributes */
+            attributes: string[];
+        };
+        /** ExtractRequest */
+        app__controller__stand__schemas__ExtractRequest: {
+            /** Title */
+            title: string;
+            /**
+             * Description
+             * @default
+             */
+            description: string;
+            /** Seller Params */
+            seller_params?: components["schemas"]["SellerParamSchema"][];
+            /** Category Id */
+            category_id?: number | null;
+        };
     };
     responses: never;
     parameters: never;
@@ -267,7 +500,7 @@ export interface operations {
             };
         };
     };
-    extract_api_v1_extract_post: {
+    extract_api_v1_extract_stream_post: {
         parameters: {
             query?: never;
             header?: never;
@@ -276,7 +509,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["ExtractRequest"];
+                "application/json": components["schemas"]["app__controller__extraction__schemas__ExtractRequest"];
             };
         };
         responses: {
@@ -377,6 +610,298 @@ export interface operations {
             };
             /** @description Unprocessable Content */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    stand_info_api_v1_stand_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StandInfoResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    examples_api_v1_examples_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExamplesResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    extract_api_v1_extract_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["app__controller__stand__schemas__ExtractRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExtractResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    review_list_api_v1_review_get: {
+        parameters: {
+            query?: {
+                status?: components["schemas"]["ReviewStatus"] | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReviewListResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    review_resolve_api_v1_review__item_id__post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                item_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ResolveRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReviewItemSchema"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
                 headers: {
                     [name: string]: unknown;
                 };

@@ -2,7 +2,9 @@ from collections.abc import Mapping
 from dataclasses import dataclass
 from enum import StrEnum
 
-from app.adapter.decision.system_one import TYPESAFE_URL
+from app.adapter.decision.system_one import DEFAULT_MODEL_NAME, TYPESAFE_URL
+
+DEFAULT_STAND_PACK = "data/stand/pack.json.gz"
 
 
 class DecisionProvider(StrEnum):
@@ -28,7 +30,9 @@ class Settings:
     decision_url: str = TYPESAFE_URL
     decision_api_key: str | None = None
     decision_timeout_s: float = 10.0
+    decision_model_name: str = DEFAULT_MODEL_NAME
     language_provider: LanguageProvider = LanguageProvider.NONE
+    stand_pack: str = DEFAULT_STAND_PACK
 
 
 def load_settings(env: Mapping[str, str]) -> Settings:
@@ -41,7 +45,9 @@ def load_settings(env: Mapping[str, str]) -> Settings:
         decision_url=env.get("DECISION_MODEL_URL") or TYPESAFE_URL,
         decision_api_key=env.get("DECISION_MODEL_API_KEY") or None,
         decision_timeout_s=_positive(env, "DECISION_MODEL_TIMEOUT_S", 10.0),
+        decision_model_name=env.get("DECISION_MODEL_NAME") or DEFAULT_MODEL_NAME,
         language_provider=_choice(env, "LANGUAGE_MODEL", LanguageProvider, LanguageProvider.NONE),
+        stand_pack=env.get("STAND_PACK") or DEFAULT_STAND_PACK,
     )
 
 

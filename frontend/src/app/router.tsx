@@ -11,6 +11,7 @@ export const router = createBrowserRouter([
     hydrateFallbackElement: <RouteFallback />,
     children: [
       { index: true, lazy: lazyPage(() => import("@/pages/home/home-page"), "HomePage") },
+      { path: "manual", lazy: lazyPage(() => import("@/pages/stand/stand-page"), "StandPage") },
       {
         path: "*",
         lazy: lazyPage(() => import("@/pages/not-found/not-found-page"), "NotFoundPage"),

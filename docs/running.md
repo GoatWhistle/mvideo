@@ -117,6 +117,8 @@ uv run baseline --data ../data/processed --out ../data/predictions --all-cards -
 | `DECISION_MODEL` | `lexical` | `lexical` — офлайн-замена; `system_one` — HTTP-модель по контракту `/v1/systemone` |
 | `DECISION_MODEL_URL` | `https://api.typesafe.ai` | Адрес модели для `system_one`, например локальный `laya-serve` |
 | `DECISION_MODEL_API_KEY` | пусто | Ключ для `system_one`; без него заголовок `Authorization` не отправляется |
+| `DECISION_MODEL_NAME` | `jev-latest` | Идентификатор модели провайдера |
+| `STAND_PACK` | `data/stand/pack.json.gz` | Пакет только для прежнего экрана `/manual` |
 | `DECISION_MODEL_TIMEOUT_S` | `10` | Таймаут запроса к модели, секунды |
 | `LANGUAGE_MODEL` | `none` | `none`, `claude` или `codex` |
 | `BACKEND_PORT` | `8000` | Порт бэкенда на хосте в Compose |
@@ -232,3 +234,83 @@ cd frontend
 npx playwright install chromium --only-shell
 E2E_BASE_URL=http://localhost:8080 npm run e2e
 ```
+
+## Сохранённые экспериментальные команды
+
+Из main сохранены ranker (CatBoost и isotonic), decide (Jev) и twins (поиск похожих карточек).
+Их прежние отчёты не характеризуют новые единицы и метрики v2. После появления данных требуется
+повторить обучение/оценку и связать артефакты с конкретным набором кандидатов. Перенос значений
+от похожего товара не входит в основной экран: для него требуется цитата самой карточки.
+
+### Офлайн-ранжировщик и эксперимент twins
+
+Из `backend/`, после подготовки данных, для отдельного нового каталога результатов:
+
+```bash
+uv run ranker --data ../data/processed --out ../data/predictions-v2 --reports ../reports/recheck-v2
+uv run twins --data ../data/processed --out ../data/predictions-v2 --reports ../reports/recheck-v2
+```
+
+Ranker обучает CatBoost и isotonic; twins использует `ranker.predictions.jsonl`, строит индекс
+названий `train`, подбирает порог на `val` и записывает переносы с `source=catalog_twin`.
+У переноса `start/end=-1`: цитаты текущей карточки нет. Это отдельный эксперимент, не результат
+основного экрана. Раздельный каталог отчётов предотвращает сравнение с историческим `baseline.json`
+и перезапись прежних замеров. Реальное воспроизведение этих команд после правок ожидает датасет.
+
+## Как запустить прежний ручной экран?
+
+Экран `/manual` работает на том же коде извлечения, что и офлайн-базлайн, но не читает гигабайты parquet при
+старте: ему нужен пакет на ~2 МБ со справочниками, обязательными атрибутами и примерами карточек.
+После подготовки данных:
+
+```bash
+cd backend
+uv run stand-pack --data ../data/processed --out ../data/stand/pack.json.gz
+```
+
+Команда без сети и ключей, около двух минут и 1,5 ГБ памяти, берёт 30 категорий с наибольшим числом
+кликов (смартфоны и ноутбуки — всегда), строит по `train` справочники для их обязательных атрибутов и
+выбирает до 40 примеров из `test`, у которых часть значений уверенная, а часть уходит в очередь
+проверки. `--categories` и `--examples` меняют эти числа. Пакет в git не хранится, как и остальные
+данные.
+
+Через Docker пакет монтируется в бэкенд только для чтения (`./data/stand` → `/srv/data/stand`):
+
+```bash
+docker buildx bake
+docker compose up
+```
+
+Без Docker, из корня — бэкенд и фронтенд в двух терминалах:
+
+```bash
+cd backend && STAND_PACK=../data/stand/pack.json.gz uv run uvicorn app.main:create_app --factory
+cd frontend && npm run dev
+```
+
+Без пакета бэкенд стартует, но методы прежнего стенда отвечают `503 stand_unavailable`, а `/manual` показывает
+ошибку с подсказкой собрать пакет. Очередь проверки и алиасы хранятся в памяти: перезапуск бэкенда их
+сбрасывает. Основной экран `/` использует отдельный SQLite-каталог и работает без пакета.
+
+## Как прогнать ступень выбора на decision-модели?
+
+Ступень берёт кандидатов базлайна и спрашивает decision-модель, какое значение указано в карточке.
+Без ключа работает офлайн-заглушка `lexical` — это проверка пайплайна, а не качество:
+
+```bash
+cd backend
+uv run decide --provider lexical --splits val --sample 300
+```
+
+С ключом (переменные ниже, можно положить в `.env` в корне репозитория — команда его читает):
+
+```bash
+uv run decide --splits test,new_category --sample 8000 --mix-k 8 --dictionary \
+  --override 0.0 --drop 0.6 --max-cost-usd 0.7 --concurrency 5 --name decision_jev
+```
+
+Пишет `reports/<name>.md|json` (сравнение с базлайном на той же выборке, калибровка, доля слотов в
+модели, сетка порогов, стоимость) и `data/predictions/<name>.predictions.jsonl`. Ответы модели
+кэшируются в `data/decision_cache/` по хешу запроса: повторный прогон с теми же настройками не платит.
+`--max-cost-usd` останавливает платные вызовы, когда сумма `usage.cost` из ответов достигла лимита;
+оставшиеся карточки получают значения базлайна.

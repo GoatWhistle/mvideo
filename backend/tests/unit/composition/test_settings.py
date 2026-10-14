@@ -50,3 +50,9 @@ def test_blank_values_fall_back_to_defaults() -> None:
 def test_invalid_value_names_the_variable(env: dict[str, str], message: str) -> None:
     with pytest.raises(ConfigError, match=message.replace("(", r"\(")):
         load_settings(env)
+
+
+def test_decision_model_name_comes_from_environment() -> None:
+    assert Settings().decision_model_name == "jev-latest"
+    settings = load_settings({"DECISION_MODEL_NAME": "typesafe/jev-1.13"})
+    assert settings.decision_model_name == "typesafe/jev-1.13"

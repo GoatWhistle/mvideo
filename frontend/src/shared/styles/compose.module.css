@@ -43,6 +43,32 @@
   animation: var(--motion-fade-in);
 }
 
+.fieldControl {
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  font: inherit;
+}
+
+.fieldSurface {
+  composes: fieldControl;
+  min-block-size: var(--control-height);
+  padding-inline: var(--space-12);
+  background-color: var(--surface-raised);
+  box-shadow: var(--shadow-ring);
+}
+
+.truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.monoText {
+  font-family: var(--font-mono);
+  font-size: var(--font-size-body-sm);
+  line-height: var(--line-height-body-sm);
+}
+
 .wrappingText {
   white-space: normal;
   overflow-wrap: anywhere;

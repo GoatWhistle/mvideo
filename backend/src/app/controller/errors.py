@@ -7,14 +7,27 @@ from pydantic import BaseModel
 from starlette.exceptions import HTTPException
 
 from app.domain.errors import DomainError, InvalidQuestion, ModelFailure
-from app.usecase.feedback import CorrectionConflict, InvalidCorrection
+from app.domain.review import (
+    InvalidCorrection,
+    ReviewAlreadyResolved,
+    ReviewItemNotFound,
+    StandUnavailable,
+    UnknownCategory,
+)
+from app.usecase.feedback import CorrectionConflict
+from app.usecase.feedback import InvalidCorrection as InvalidFeedbackCorrection
 from app.usecase.interface import Logger
 
 STATUS_BY_ERROR: dict[type[DomainError], HTTPStatus] = {
-    InvalidCorrection: HTTPStatus.UNPROCESSABLE_ENTITY,
+    InvalidFeedbackCorrection: HTTPStatus.UNPROCESSABLE_ENTITY,
     CorrectionConflict: HTTPStatus.CONFLICT,
     InvalidQuestion: HTTPStatus.UNPROCESSABLE_ENTITY,
     ModelFailure: HTTPStatus.SERVICE_UNAVAILABLE,
+    ReviewItemNotFound: HTTPStatus.NOT_FOUND,
+    ReviewAlreadyResolved: HTTPStatus.CONFLICT,
+    InvalidCorrection: HTTPStatus.UNPROCESSABLE_ENTITY,
+    UnknownCategory: HTTPStatus.UNPROCESSABLE_ENTITY,
+    StandUnavailable: HTTPStatus.SERVICE_UNAVAILABLE,
 }
 
 

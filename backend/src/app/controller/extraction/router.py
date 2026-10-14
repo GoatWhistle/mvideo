@@ -14,7 +14,7 @@ def processor(request: Request) -> CatalogProcessor:
     return cast(CatalogProcessor, request.app.state.providers.processor)
 
 
-@router.post("/extract", responses={422: {"model": ErrorResponse}})
+@router.post("/extract/stream", responses={422: {"model": ErrorResponse}})
 async def extract(
     body: ExtractRequest, service: Annotated[CatalogProcessor, Depends(processor)],
 ) -> AsyncIterator[ExtractionEventSchema]:

@@ -1,0 +1,1899 @@
+{
+  "stage": "ranker: gradient boosting over candidates + isotonic calibration",
+  "confidence_calibrated": true,
+  "cards": 25550,
+  "lexicon_entries": 119068,
+  "profiled_attributes": 1402,
+  "groups": {
+    "all": {
+      "micro": {
+        "pairs": 191236.0,
+        "gold": 160063.0,
+        "precision": 0.8428,
+        "recall": 0.606,
+        "f1": 0.7051,
+        "ceiling": 0.6818,
+        "recall_in_text": 0.8889,
+        "coverage_before": 0.2592,
+        "coverage_after": 0.6597,
+        "gold_coverage": 0.837,
+        "extra_fills": 11061.0
+      },
+      "macro_f1": 0.5314,
+      "weighted": {
+        "pairs": 1410598.021,
+        "gold": 1317078.591,
+        "precision": 0.8239,
+        "recall": 0.7555,
+        "f1": 0.7882,
+        "ceiling": 0.8706,
+        "recall_in_text": 0.8678,
+        "coverage_before": 0.2741,
+        "coverage_after": 0.902,
+        "gold_coverage": 0.9337,
+        "extra_fills": 64645.945
+      },
+      "weighted_macro_f1": 0.4273
+    },
+    "split:test": {
+      "micro": {
+        "pairs": 179089.0,
+        "gold": 148807.0,
+        "precision": 0.8571,
+        "recall": 0.6056,
+        "f1": 0.7097,
+        "ceiling": 0.6781,
+        "recall_in_text": 0.8931,
+        "coverage_before": 0.2478,
+        "coverage_after": 0.6463,
+        "gold_coverage": 0.8309,
+        "extra_fills": 10604.0
+      },
+      "macro_f1": 0.5317,
+      "weighted": {
+        "pairs": 1268857.355,
+        "gold": 1182196.683,
+        "precision": 0.8373,
+        "recall": 0.7631,
+        "f1": 0.7985,
+        "ceiling": 0.879,
+        "recall_in_text": 0.8681,
+        "coverage_before": 0.286,
+        "coverage_after": 0.8957,
+        "gold_coverage": 0.9317,
+        "extra_fills": 59043.334
+      },
+      "weighted_macro_f1": 0.4267
+    },
+    "split:new_category": {
+      "micro": {
+        "pairs": 12147.0,
+        "gold": 11256.0,
+        "precision": 0.6918,
+        "recall": 0.6115,
+        "f1": 0.6492,
+        "ceiling": 0.7307,
+        "recall_in_text": 0.8368,
+        "coverage_before": 0.4283,
+        "coverage_after": 0.8567,
+        "gold_coverage": 0.9266,
+        "extra_fills": 457.0
+      },
+      "macro_f1": 0.5641,
+      "weighted": {
+        "pairs": 141740.666,
+        "gold": 134881.908,
+        "precision": 0.7133,
+        "recall": 0.6889,
+        "f1": 0.7009,
+        "ceiling": 0.7963,
+        "recall_in_text": 0.865,
+        "coverage_before": 0.1679,
+        "coverage_after": 0.9585,
+        "gold_coverage": 0.9516,
+        "extra_fills": 5602.611
+      },
+      "weighted_macro_f1": 0.5817
+    },
+    "categories:head": {
+      "micro": {
+        "pairs": 30280.0,
+        "gold": 28017.0,
+        "precision": 0.783,
+        "recall": 0.6627,
+        "f1": 0.7178,
+        "ceiling": 0.7693,
+        "recall_in_text": 0.8614,
+        "coverage_before": 0.4857,
+        "coverage_after": 0.8228,
+        "gold_coverage": 0.9253,
+        "extra_fills": 1205.0
+      },
+      "macro_f1": 0.5479,
+      "weighted": {
+        "pairs": 1033485.62,
+        "gold": 984953.775,
+        "precision": 0.8373,
+        "recall": 0.7727,
+        "f1": 0.8037,
+        "ceiling": 0.8908,
+        "recall_in_text": 0.8674,
+        "coverage_before": 0.325,
+        "coverage_after": 0.9145,
+        "gold_coverage": 0.953,
+        "extra_fills": 36152.466
+      },
+      "weighted_macro_f1": 0.5164
+    },
+    "categories:tail": {
+      "micro": {
+        "pairs": 160956.0,
+        "gold": 132046.0,
+        "precision": 0.8583,
+        "recall": 0.594,
+        "f1": 0.7021,
+        "ceiling": 0.6632,
+        "recall_in_text": 0.8957,
+        "coverage_before": 0.2166,
+        "coverage_after": 0.629,
+        "gold_coverage": 0.8204,
+        "extra_fills": 9856.0
+      },
+      "macro_f1": 0.5258,
+      "weighted": {
+        "pairs": 377112.401,
+        "gold": 332124.816,
+        "precision": 0.7832,
+        "recall": 0.7044,
+        "f1": 0.7417,
+        "ceiling": 0.8106,
+        "recall_in_text": 0.8691,
+        "coverage_before": 0.1345,
+        "coverage_after": 0.8677,
+        "gold_coverage": 0.8807,
+        "extra_fills": 28493.479
+      },
+      "weighted_macro_f1": 0.4232
+    },
+    "category:smartphones": {
+      "micro": {
+        "pairs": 3060.0,
+        "gold": 3017.0,
+        "precision": 0.8508,
+        "recall": 0.6367,
+        "f1": 0.7283,
+        "ceiling": 0.6937,
+        "recall_in_text": 0.9178,
+        "coverage_before": 0.6768,
+        "coverage_after": 0.748,
+        "gold_coverage": 0.9859,
+        "extra_fills": 31.0
+      },
+      "macro_f1": 0.6722,
+      "weighted": {
+        "pairs": 240229.315,
+        "gold": 235249.933,
+        "precision": 0.8407,
+        "recall": 0.7152,
+        "f1": 0.7729,
+        "ceiling": 0.8047,
+        "recall_in_text": 0.8888,
+        "coverage_before": 0.5351,
+        "coverage_after": 0.851,
+        "gold_coverage": 0.9793,
+        "extra_fills": 4308.368
+      },
+      "weighted_macro_f1": 0.6722
+    },
+    "category:laptops": {
+      "micro": {
+        "pairs": 1628.0,
+        "gold": 1517.0,
+        "precision": 0.88,
+        "recall": 0.7732,
+        "f1": 0.8232,
+        "ceiling": 0.8682,
+        "recall_in_text": 0.8907,
+        "coverage_before": 0.551,
+        "coverage_after": 0.8686,
+        "gold_coverage": 0.9318,
+        "extra_fills": 81.0
+      },
+      "macro_f1": 0.7877,
+      "weighted": {
+        "pairs": 43769.952,
+        "gold": 39132.292,
+        "precision": 0.8733,
+        "recall": 0.8011,
+        "f1": 0.8356,
+        "ceiling": 0.9048,
+        "recall_in_text": 0.8854,
+        "coverage_before": 0.3979,
+        "coverage_after": 0.8918,
+        "gold_coverage": 0.894,
+        "extra_fills": 3133.578
+      },
+      "weighted_macro_f1": 0.7877
+    },
+    "sellers:large": {
+      "micro": {
+        "pairs": 154483.0,
+        "gold": 129318.0,
+        "precision": 0.8547,
+        "recall": 0.6036,
+        "f1": 0.7075,
+        "ceiling": 0.6718,
+        "recall_in_text": 0.8984,
+        "coverage_before": 0.2469,
+        "coverage_after": 0.6457,
+        "gold_coverage": 0.8371,
+        "extra_fills": 8431.0
+      },
+      "macro_f1": 0.5324,
+      "weighted": {
+        "pairs": 1046936.373,
+        "gold": 981456.838,
+        "precision": 0.8319,
+        "recall": 0.7622,
+        "f1": 0.7955,
+        "ceiling": 0.8728,
+        "recall_in_text": 0.8732,
+        "coverage_before": 0.2997,
+        "coverage_after": 0.9027,
+        "gold_coverage": 0.9375,
+        "extra_fills": 45866.704
+      },
+      "weighted_macro_f1": 0.4313
+    },
+    "sellers:medium": {
+      "micro": {
+        "pairs": 27184.0,
+        "gold": 22771.0,
+        "precision": 0.8034,
+        "recall": 0.6297,
+        "f1": 0.706,
+        "ceiling": 0.7328,
+        "recall_in_text": 0.8593,
+        "coverage_before": 0.3178,
+        "coverage_after": 0.7309,
+        "gold_coverage": 0.8377,
+        "extra_fills": 2023.0
+      },
+      "macro_f1": 0.552,
+      "weighted": {
+        "pairs": 243122.232,
+        "gold": 226156.199,
+        "precision": 0.7919,
+        "recall": 0.725,
+        "f1": 0.757,
+        "ceiling": 0.8441,
+        "recall_in_text": 0.8589,
+        "coverage_before": 0.2306,
+        "coverage_after": 0.9,
+        "gold_coverage": 0.9302,
+        "extra_fills": 11759.186
+      },
+      "weighted_macro_f1": 0.4459
+    },
+    "sellers:small": {
+      "micro": {
+        "pairs": 9569.0,
+        "gold": 7974.0,
+        "precision": 0.7779,
+        "recall": 0.578,
+        "f1": 0.6632,
+        "ceiling": 0.697,
+        "recall_in_text": 0.8293,
+        "coverage_before": 0.2926,
+        "coverage_after": 0.6826,
+        "gold_coverage": 0.8333,
+        "extra_fills": 607.0
+      },
+      "macro_f1": 0.6159,
+      "weighted": {
+        "pairs": 120539.415,
+        "gold": 109465.554,
+        "precision": 0.8182,
+        "recall": 0.7589,
+        "f1": 0.7874,
+        "ceiling": 0.905,
+        "recall_in_text": 0.8385,
+        "coverage_before": 0.1396,
+        "coverage_after": 0.9005,
+        "gold_coverage": 0.9081,
+        "extra_fills": 7020.056
+      },
+      "weighted_macro_f1": 0.4245
+    }
+  },
+  "attributes": {
+    "category:smartphones": {
+      "Бренд": {
+        "pairs": 306.0,
+        "gold": 306.0,
+        "precision": 0.9902,
+        "recall": 0.9902,
+        "f1": 0.9902,
+        "ceiling": 0.9902,
+        "recall_in_text": 1.0,
+        "coverage_before": 0.0,
+        "coverage_after": 1.0,
+        "gold_coverage": 1.0,
+        "extra_fills": 0.0
+      },
+      "Модель": {
+        "pairs": 306.0,
+        "gold": 306.0,
+        "precision": 0.8328,
+        "recall": 0.8301,
+        "f1": 0.8314,
+        "ceiling": 0.9935,
+        "recall_in_text": 0.8355,
+        "coverage_before": 0.0,
+        "coverage_after": 0.9967,
+        "gold_coverage": 1.0,
+        "extra_fills": 0.0
+      },
+      "Встроенная память (ROM)": {
+        "pairs": 306.0,
+        "gold": 305.0,
+        "precision": 0.9803,
+        "recall": 0.977,
+        "f1": 0.9787,
+        "ceiling": 0.9803,
+        "recall_in_text": 0.9967,
+        "coverage_before": 0.9967,
+        "coverage_after": 0.9935,
+        "gold_coverage": 0.9967,
+        "extra_fills": 0.0
+      },
+      "Производитель процессора": {
+        "pairs": 306.0,
+        "gold": 304.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "ceiling": 1.0,
+        "recall_in_text": 1.0,
+        "coverage_before": 0.9935,
+        "coverage_after": 0.9967,
+        "gold_coverage": 0.9935,
+        "extra_fills": 1.0
+      },
+      "Емкость аккумулятора": {
+        "pairs": 306.0,
+        "gold": 304.0,
+        "precision": 0.975,
+        "recall": 0.5132,
+        "f1": 0.6724,
+        "ceiling": 0.5132,
+        "recall_in_text": 1.0,
+        "coverage_before": 0.9935,
+        "coverage_after": 0.5261,
+        "gold_coverage": 0.9935,
+        "extra_fills": 1.0
+      },
+      "Процессор": {
+        "pairs": 306.0,
+        "gold": 303.0,
+        "precision": 0.0833,
+        "recall": 0.0297,
+        "f1": 0.0438,
+        "ceiling": 0.0297,
+        "recall_in_text": 1.0,
+        "coverage_before": 0.9673,
+        "coverage_after": 0.3562,
+        "gold_coverage": 0.9902,
+        "extra_fills": 1.0
+      },
+      "Диагональ": {
+        "pairs": 306.0,
+        "gold": 303.0,
+        "precision": 0.9688,
+        "recall": 0.5116,
+        "f1": 0.6695,
+        "ceiling": 0.5116,
+        "recall_in_text": 1.0,
+        "coverage_before": 0.9902,
+        "coverage_after": 0.5261,
+        "gold_coverage": 0.9902,
+        "extra_fills": 1.0
+      },
+      "Поддержка стандартов": {
+        "pairs": 306.0,
+        "gold": 303.0,
+        "precision": 0.175,
+        "recall": 0.0231,
+        "f1": 0.0408,
+        "ceiling": 0.0297,
+        "recall_in_text": 0.7778,
+        "coverage_before": 0.5817,
+        "coverage_after": 0.1307,
+        "gold_coverage": 0.9902,
+        "extra_fills": 0.0
+      },
+      "Цвет": {
+        "pairs": 306.0,
+        "gold": 302.0,
+        "precision": 0.9356,
+        "recall": 0.9139,
+        "f1": 0.9246,
+        "ceiling": 0.9238,
+        "recall_in_text": 0.9892,
+        "coverage_before": 0.9869,
+        "coverage_after": 0.9739,
+        "gold_coverage": 0.9869,
+        "extra_fills": 3.0
+      },
+      "Серия": {
+        "pairs": 306.0,
+        "gold": 281.0,
+        "precision": 0.5761,
+        "recall": 0.5658,
+        "f1": 0.5709,
+        "ceiling": 0.9786,
+        "recall_in_text": 0.5782,
+        "coverage_before": 0.2582,
+        "coverage_after": 0.9804,
+        "gold_coverage": 0.9183,
+        "extra_fills": 24.0
+      }
+    },
+    "category:laptops": {
+      "Бренд": {
+        "pairs": 148.0,
+        "gold": 148.0,
+        "precision": 0.9864,
+        "recall": 0.9797,
+        "f1": 0.9831,
+        "ceiling": 0.9932,
+        "recall_in_text": 0.9864,
+        "coverage_before": 0.0,
+        "coverage_after": 0.9932,
+        "gold_coverage": 1.0,
+        "extra_fills": 0.0
+      },
+      "Модель": {
+        "pairs": 148.0,
+        "gold": 148.0,
+        "precision": 0.8899,
+        "recall": 0.6554,
+        "f1": 0.7549,
+        "ceiling": 0.9797,
+        "recall_in_text": 0.669,
+        "coverage_before": 0.0,
+        "coverage_after": 0.7365,
+        "gold_coverage": 1.0,
+        "extra_fills": 0.0
+      },
+      "Процессор": {
+        "pairs": 148.0,
+        "gold": 147.0,
+        "precision": 0.4138,
+        "recall": 0.0816,
+        "f1": 0.1364,
+        "ceiling": 0.0884,
+        "recall_in_text": 0.9231,
+        "coverage_before": 0.8716,
+        "coverage_after": 0.2027,
+        "gold_coverage": 0.9932,
+        "extra_fills": 1.0
+      },
+      "Модель процессора": {
+        "pairs": 148.0,
+        "gold": 147.0,
+        "precision": 0.8944,
+        "recall": 0.8639,
+        "f1": 0.8789,
+        "ceiling": 0.966,
+        "recall_in_text": 0.8944,
+        "coverage_before": 0.0,
+        "coverage_after": 0.9595,
+        "gold_coverage": 0.9932,
+        "extra_fills": 0.0
+      },
+      "Оперативная память (RAM)": {
+        "pairs": 148.0,
+        "gold": 147.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "ceiling": 1.0,
+        "recall_in_text": 1.0,
+        "coverage_before": 0.9932,
+        "coverage_after": 0.9932,
+        "gold_coverage": 0.9932,
+        "extra_fills": 0.0
+      },
+      "Производитель процессора": {
+        "pairs": 148.0,
+        "gold": 146.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "ceiling": 1.0,
+        "recall_in_text": 1.0,
+        "coverage_before": 0.9865,
+        "coverage_after": 1.0,
+        "gold_coverage": 0.9865,
+        "extra_fills": 2.0
+      },
+      "Диагональ экрана": {
+        "pairs": 148.0,
+        "gold": 146.0,
+        "precision": 0.9242,
+        "recall": 0.8356,
+        "f1": 0.8777,
+        "ceiling": 0.8767,
+        "recall_in_text": 0.9531,
+        "coverage_before": 0.9865,
+        "coverage_after": 0.8986,
+        "gold_coverage": 0.9865,
+        "extra_fills": 1.0
+      },
+      "Общий объем накопителя": {
+        "pairs": 148.0,
+        "gold": 143.0,
+        "precision": 0.986,
+        "recall": 0.986,
+        "f1": 0.986,
+        "ceiling": 0.986,
+        "recall_in_text": 1.0,
+        "coverage_before": 0.0,
+        "coverage_after": 0.973,
+        "gold_coverage": 0.9662,
+        "extra_fills": 1.0
+      },
+      "Цвет": {
+        "pairs": 148.0,
+        "gold": 141.0,
+        "precision": 0.7122,
+        "recall": 0.7021,
+        "f1": 0.7071,
+        "ceiling": 0.8227,
+        "recall_in_text": 0.8534,
+        "coverage_before": 0.9189,
+        "coverage_after": 0.9595,
+        "gold_coverage": 0.9527,
+        "extra_fills": 3.0
+      },
+      "Производитель видеопроцессора": {
+        "pairs": 148.0,
+        "gold": 108.0,
+        "precision": 0.8056,
+        "recall": 0.8056,
+        "f1": 0.8056,
+        "ceiling": 0.9352,
+        "recall_in_text": 0.8614,
+        "coverage_before": 0.8581,
+        "coverage_after": 1.0,
+        "gold_coverage": 0.7297,
+        "extra_fills": 40.0
+      },
+      "Серия": {
+        "pairs": 148.0,
+        "gold": 96.0,
+        "precision": 0.5495,
+        "recall": 0.5208,
+        "f1": 0.5348,
+        "ceiling": 0.9479,
+        "recall_in_text": 0.5495,
+        "coverage_before": 0.4459,
+        "coverage_after": 0.8378,
+        "gold_coverage": 0.6486,
+        "extra_fills": 33.0
+      }
+    },
+    "split:new_category": {
+      "Бренд": {
+        "pairs": 1821.0,
+        "gold": 1821.0,
+        "precision": 0.9228,
+        "recall": 0.9061,
+        "f1": 0.9144,
+        "ceiling": 1.0,
+        "recall_in_text": 0.9061,
+        "coverage_before": 0.0,
+        "coverage_after": 0.9819,
+        "gold_coverage": 1.0,
+        "extra_fills": 0.0
+      },
+      "Модель": {
+        "pairs": 1821.0,
+        "gold": 1821.0,
+        "precision": 0.8441,
+        "recall": 0.8298,
+        "f1": 0.8369,
+        "ceiling": 0.994,
+        "recall_in_text": 0.8348,
+        "coverage_before": 0.0,
+        "coverage_after": 0.983,
+        "gold_coverage": 1.0,
+        "extra_fills": 0.0
+      },
+      "Цвет": {
+        "pairs": 1163.0,
+        "gold": 1114.0,
+        "precision": 0.6523,
+        "recall": 0.6517,
+        "f1": 0.652,
+        "ceiling": 0.7056,
+        "recall_in_text": 0.9237,
+        "coverage_before": 0.957,
+        "coverage_after": 0.969,
+        "gold_coverage": 0.9579,
+        "extra_fills": 14.0
+      },
+      "Комплектация": {
+        "pairs": 801.0,
+        "gold": 718.0,
+        "precision": 0.0213,
+        "recall": 0.0209,
+        "f1": 0.0211,
+        "ceiling": 0.0877,
+        "recall_in_text": 0.2381,
+        "coverage_before": 0.0,
+        "coverage_after": 0.9625,
+        "gold_coverage": 0.8964,
+        "extra_fills": 67.0
+      },
+      "Серия": {
+        "pairs": 584.0,
+        "gold": 372.0,
+        "precision": 0.1033,
+        "recall": 0.1022,
+        "f1": 0.1027,
+        "ceiling": 0.6398,
+        "recall_in_text": 0.1597,
+        "coverage_before": 0.0,
+        "coverage_after": 0.976,
+        "gold_coverage": 0.637,
+        "extra_fills": 202.0
+      },
+      "Класс энергоэффективности": {
+        "pairs": 362.0,
+        "gold": 362.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "ceiling": 1.0,
+        "recall_in_text": 1.0,
+        "coverage_before": 1.0,
+        "coverage_after": 1.0,
+        "gold_coverage": 1.0,
+        "extra_fills": 0.0
+      },
+      "Климатический класс": {
+        "pairs": 362.0,
+        "gold": 362.0,
+        "precision": 0.1077,
+        "recall": 0.1077,
+        "f1": 0.1077,
+        "ceiling": 0.4862,
+        "recall_in_text": 0.2216,
+        "coverage_before": 1.0,
+        "coverage_after": 1.0,
+        "gold_coverage": 1.0,
+        "extra_fills": 0.0
+      },
+      "Размораживание морозильной камеры": {
+        "pairs": 362.0,
+        "gold": 359.0,
+        "precision": 0.922,
+        "recall": 0.922,
+        "f1": 0.922,
+        "ceiling": 0.9248,
+        "recall_in_text": 0.997,
+        "coverage_before": 0.9917,
+        "coverage_after": 0.9917,
+        "gold_coverage": 0.9917,
+        "extra_fills": 0.0
+      },
+      "Общий объем": {
+        "pairs": 362.0,
+        "gold": 356.0,
+        "precision": 0.7599,
+        "recall": 0.7022,
+        "f1": 0.7299,
+        "ceiling": 0.7612,
+        "recall_in_text": 0.9225,
+        "coverage_before": 0.9834,
+        "coverage_after": 0.9254,
+        "gold_coverage": 0.9834,
+        "extra_fills": 6.0
+      },
+      "Объем морозильной камеры": {
+        "pairs": 362.0,
+        "gold": 346.0,
+        "precision": 0.6304,
+        "recall": 0.5867,
+        "f1": 0.6078,
+        "ceiling": 0.6503,
+        "recall_in_text": 0.9022,
+        "coverage_before": 0.9558,
+        "coverage_after": 0.9254,
+        "gold_coverage": 0.9558,
+        "extra_fills": 13.0
+      },
+      "Тип челнока": {
+        "pairs": 327.0,
+        "gold": 323.0,
+        "precision": 0.7307,
+        "recall": 0.7307,
+        "f1": 0.7307,
+        "ceiling": 0.7554,
+        "recall_in_text": 0.9672,
+        "coverage_before": 0.9878,
+        "coverage_after": 0.9878,
+        "gold_coverage": 0.9878,
+        "extra_fills": 0.0
+      },
+      "Потребляемая мощность": {
+        "pairs": 327.0,
+        "gold": 319.0,
+        "precision": 0.9277,
+        "recall": 0.4828,
+        "f1": 0.6351,
+        "ceiling": 0.4859,
+        "recall_in_text": 0.9935,
+        "coverage_before": 0.9755,
+        "coverage_after": 0.5138,
+        "gold_coverage": 0.9755,
+        "extra_fills": 2.0
+      },
+      "Тип используемых игл": {
+        "pairs": 327.0,
+        "gold": 295.0,
+        "precision": 0.9583,
+        "recall": 0.1559,
+        "f1": 0.2682,
+        "ceiling": 0.1864,
+        "recall_in_text": 0.8364,
+        "coverage_before": 0.0,
+        "coverage_after": 0.1468,
+        "gold_coverage": 0.9021,
+        "extra_fills": 0.0
+      },
+      "Тип памяти": {
+        "pairs": 255.0,
+        "gold": 255.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "ceiling": 1.0,
+        "recall_in_text": 1.0,
+        "coverage_before": 1.0,
+        "coverage_after": 1.0,
+        "gold_coverage": 1.0,
+        "extra_fills": 0.0
+      },
+      "Форм-фактор": {
+        "pairs": 255.0,
+        "gold": 255.0,
+        "precision": 0.9098,
+        "recall": 0.9098,
+        "f1": 0.9098,
+        "ceiling": 1.0,
+        "recall_in_text": 0.9098,
+        "coverage_before": 1.0,
+        "coverage_after": 1.0,
+        "gold_coverage": 1.0,
+        "extra_fills": 0.0
+      },
+      "Частота памяти": {
+        "pairs": 255.0,
+        "gold": 255.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "ceiling": 1.0,
+        "recall_in_text": 1.0,
+        "coverage_before": 1.0,
+        "coverage_after": 1.0,
+        "gold_coverage": 1.0,
+        "extra_fills": 0.0
+      },
+      "Назначение": {
+        "pairs": 255.0,
+        "gold": 236.0,
+        "precision": 0.0354,
+        "recall": 0.0339,
+        "f1": 0.0346,
+        "ceiling": 0.0339,
+        "recall_in_text": 1.0,
+        "coverage_before": 0.0,
+        "coverage_after": 0.9451,
+        "gold_coverage": 0.9255,
+        "extra_fills": 15.0
+      },
+      "Материал корпуса": {
+        "pairs": 241.0,
+        "gold": 225.0,
+        "precision": 0.2308,
+        "recall": 0.0133,
+        "f1": 0.0252,
+        "ceiling": 0.0133,
+        "recall_in_text": 1.0,
+        "coverage_before": 0.0,
+        "coverage_after": 0.0581,
+        "gold_coverage": 0.9336,
+        "extra_fills": 1.0
+      },
+      "Покрытие пластин щипцов": {
+        "pairs": 241.0,
+        "gold": 218.0,
+        "precision": 0.3272,
+        "recall": 0.3257,
+        "f1": 0.3264,
+        "ceiling": 0.3349,
+        "recall_in_text": 0.9726,
+        "coverage_before": 0.8963,
+        "coverage_after": 0.9461,
+        "gold_coverage": 0.9046,
+        "extra_fills": 11.0
+      },
+      "Материал рабочей поверхности щипцов": {
+        "pairs": 241.0,
+        "gold": 215.0,
+        "precision": 0.375,
+        "recall": 0.014,
+        "f1": 0.0269,
+        "ceiling": 0.0233,
+        "recall_in_text": 0.6,
+        "coverage_before": 0.0,
+        "coverage_after": 0.0332,
+        "gold_coverage": 0.8921,
+        "extra_fills": 0.0
+      },
+      "Тип бритвы": {
+        "pairs": 233.0,
+        "gold": 204.0,
+        "precision": 0.9951,
+        "recall": 0.9951,
+        "f1": 0.9951,
+        "ceiling": 0.9951,
+        "recall_in_text": 1.0,
+        "coverage_before": 0.8755,
+        "coverage_after": 0.8755,
+        "gold_coverage": 0.8755,
+        "extra_fills": 0.0
+      },
+      "Водоустойчивый корпус": {
+        "pairs": 233.0,
+        "gold": 190.0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "ceiling": 0.9737,
+        "recall_in_text": 0.0,
+        "coverage_before": 0.0,
+        "coverage_after": 0.0,
+        "gold_coverage": 0.8155,
+        "extra_fills": 0.0
+      },
+      "Насадки": {
+        "pairs": 233.0,
+        "gold": 184.0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "ceiling": 0.6087,
+        "recall_in_text": 0.0,
+        "coverage_before": 0.867,
+        "coverage_after": 0.794,
+        "gold_coverage": 0.7897,
+        "extra_fills": 26.0
+      },
+      "Защитное стекло для смартфона": {
+        "pairs": 110.0,
+        "gold": 102.0,
+        "precision": 0.7941,
+        "recall": 0.7941,
+        "f1": 0.7941,
+        "ceiling": 1.0,
+        "recall_in_text": 0.7941,
+        "coverage_before": 0.9273,
+        "coverage_after": 0.9364,
+        "gold_coverage": 0.9273,
+        "extra_fills": 1.0
+      },
+      "Вид стекла": {
+        "pairs": 110.0,
+        "gold": 72.0,
+        "precision": 0.9545,
+        "recall": 0.5833,
+        "f1": 0.7241,
+        "ceiling": 0.5833,
+        "recall_in_text": 1.0,
+        "coverage_before": 0.0,
+        "coverage_after": 0.4273,
+        "gold_coverage": 0.6545,
+        "extra_fills": 3.0
+      },
+      "Применение защитного стекла": {
+        "pairs": 110.0,
+        "gold": 65.0,
+        "precision": 1.0,
+        "recall": 0.3692,
+        "f1": 0.5393,
+        "ceiling": 0.3692,
+        "recall_in_text": 1.0,
+        "coverage_before": 0.0,
+        "coverage_after": 0.5273,
+        "gold_coverage": 0.5909,
+        "extra_fills": 34.0
+      },
+      "Для моделей с диагональю экрана": {
+        "pairs": 110.0,
+        "gold": 57.0,
+        "precision": 1.0,
+        "recall": 0.193,
+        "f1": 0.3235,
+        "ceiling": 0.193,
+        "recall_in_text": 1.0,
+        "coverage_before": 0.1727,
+        "coverage_after": 0.3545,
+        "gold_coverage": 0.5182,
+        "extra_fills": 28.0
+      },
+      "Покрытие стекла": {
+        "pairs": 110.0,
+        "gold": 56.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "ceiling": 1.0,
+        "recall_in_text": 1.0,
+        "coverage_before": 0.5091,
+        "coverage_after": 0.7818,
+        "gold_coverage": 0.5091,
+        "extra_fills": 30.0
+      },
+      "Объем ресивера": {
+        "pairs": 58.0,
+        "gold": 54.0,
+        "precision": 0.8049,
+        "recall": 0.6111,
+        "f1": 0.6947,
+        "ceiling": 0.9815,
+        "recall_in_text": 0.6226,
+        "coverage_before": 0.931,
+        "coverage_after": 0.7586,
+        "gold_coverage": 0.931,
+        "extra_fills": 3.0
+      },
+      "Рабочее напряжение": {
+        "pairs": 58.0,
+        "gold": 34.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "ceiling": 1.0,
+        "recall_in_text": 1.0,
+        "coverage_before": 0.5862,
+        "coverage_after": 0.5862,
+        "gold_coverage": 0.5862,
+        "extra_fills": 0.0
+      }
+    },
+    "all": {
+      "Бренд": {
+        "pairs": 25550.0,
+        "gold": 25550.0,
+        "precision": 0.9847,
+        "recall": 0.9692,
+        "f1": 0.9769,
+        "ceiling": 0.9834,
+        "recall_in_text": 0.9855,
+        "coverage_before": 0.0,
+        "coverage_after": 0.9843,
+        "gold_coverage": 1.0,
+        "extra_fills": 0.0
+      },
+      "Модель": {
+        "pairs": 24757.0,
+        "gold": 24756.0,
+        "precision": 0.8957,
+        "recall": 0.8568,
+        "f1": 0.8758,
+        "ceiling": 0.9722,
+        "recall_in_text": 0.8813,
+        "coverage_before": 0.0358,
+        "coverage_after": 0.9565,
+        "gold_coverage": 1.0,
+        "extra_fills": 0.0
+      },
+      "Цвет": {
+        "pairs": 12292.0,
+        "gold": 10238.0,
+        "precision": 0.7455,
+        "recall": 0.6219,
+        "f1": 0.6781,
+        "ceiling": 0.6724,
+        "recall_in_text": 0.9249,
+        "coverage_before": 0.6904,
+        "coverage_after": 0.7707,
+        "gold_coverage": 0.8329,
+        "extra_fills": 932.0
+      },
+      "Высота": {
+        "pairs": 7162.0,
+        "gold": 6195.0,
+        "precision": 0.8955,
+        "recall": 0.6707,
+        "f1": 0.767,
+        "ceiling": 0.7417,
+        "recall_in_text": 0.9042,
+        "coverage_before": 0.5204,
+        "coverage_after": 0.6649,
+        "gold_coverage": 0.865,
+        "extra_fills": 122.0
+      },
+      "Серия": {
+        "pairs": 7821.0,
+        "gold": 5336.0,
+        "precision": 0.548,
+        "recall": 0.3501,
+        "f1": 0.4272,
+        "ceiling": 0.688,
+        "recall_in_text": 0.5089,
+        "coverage_before": 0.0652,
+        "coverage_after": 0.5869,
+        "gold_coverage": 0.6823,
+        "extra_fills": 1181.0
+      },
+      "Ширина": {
+        "pairs": 5217.0,
+        "gold": 4634.0,
+        "precision": 0.8905,
+        "recall": 0.6476,
+        "f1": 0.7499,
+        "ceiling": 0.7562,
+        "recall_in_text": 0.8564,
+        "coverage_before": 0.2517,
+        "coverage_after": 0.6724,
+        "gold_coverage": 0.8882,
+        "extra_fills": 138.0
+      },
+      "Вес": {
+        "pairs": 5120.0,
+        "gold": 4529.0,
+        "precision": 0.6693,
+        "recall": 0.0188,
+        "f1": 0.0365,
+        "ceiling": 0.0347,
+        "recall_in_text": 0.5414,
+        "coverage_before": 0.0238,
+        "coverage_after": 0.0268,
+        "gold_coverage": 0.8846,
+        "extra_fills": 10.0
+      },
+      "Тип": {
+        "pairs": 3073.0,
+        "gold": 2755.0,
+        "precision": 0.6742,
+        "recall": 0.0323,
+        "f1": 0.0617,
+        "ceiling": 0.0377,
+        "recall_in_text": 0.8558,
+        "coverage_before": 0.0,
+        "coverage_after": 0.1116,
+        "gold_coverage": 0.8965,
+        "extra_fills": 211.0
+      },
+      "Вид выпуска товара": {
+        "pairs": 2736.0,
+        "gold": 2725.0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "ceiling": 0.0,
+        "recall_in_text": 0.0,
+        "coverage_before": 0.0,
+        "coverage_after": 0.0,
+        "gold_coverage": 0.996,
+        "extra_fills": 0.0
+      },
+      "Вид занавески, штор": {
+        "pairs": 2618.0,
+        "gold": 2607.0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "ceiling": 0.0,
+        "recall_in_text": 0.0,
+        "coverage_before": 0.0,
+        "coverage_after": 0.0,
+        "gold_coverage": 0.9958,
+        "extra_fills": 0.0
+      },
+      "Вид крепления штор": {
+        "pairs": 2618.0,
+        "gold": 2607.0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "ceiling": 0.0,
+        "recall_in_text": 0.0,
+        "coverage_before": 0.0,
+        "coverage_after": 0.0,
+        "gold_coverage": 0.9958,
+        "extra_fills": 0.0
+      },
+      "Вид принта": {
+        "pairs": 2618.0,
+        "gold": 2607.0,
+        "precision": 0.9946,
+        "recall": 0.9946,
+        "f1": 0.9946,
+        "ceiling": 1.0,
+        "recall_in_text": 0.9946,
+        "coverage_before": 0.0,
+        "coverage_after": 1.0,
+        "gold_coverage": 0.9958,
+        "extra_fills": 11.0
+      },
+      "Материал": {
+        "pairs": 3852.0,
+        "gold": 2213.0,
+        "precision": 0.7969,
+        "recall": 0.2978,
+        "f1": 0.4336,
+        "ceiling": 0.3141,
+        "recall_in_text": 0.9482,
+        "coverage_before": 0.1783,
+        "coverage_after": 0.513,
+        "gold_coverage": 0.5745,
+        "extra_fills": 1149.0
+      },
+      "Глубина": {
+        "pairs": 2405.0,
+        "gold": 1901.0,
+        "precision": 0.7386,
+        "recall": 0.2972,
+        "f1": 0.4239,
+        "ceiling": 0.4661,
+        "recall_in_text": 0.6377,
+        "coverage_before": 0.4894,
+        "coverage_after": 0.3834,
+        "gold_coverage": 0.7904,
+        "extra_fills": 157.0
+      },
+      "Назначение": {
+        "pairs": 3850.0,
+        "gold": 1848.0,
+        "precision": 0.63,
+        "recall": 0.5141,
+        "f1": 0.5662,
+        "ceiling": 0.5541,
+        "recall_in_text": 0.9277,
+        "coverage_before": 0.0275,
+        "coverage_after": 0.5055,
+        "gold_coverage": 0.48,
+        "extra_fills": 438.0
+      },
+      "Комплектация": {
+        "pairs": 2003.0,
+        "gold": 1432.0,
+        "precision": 0.0935,
+        "recall": 0.0712,
+        "f1": 0.0809,
+        "ceiling": 0.1138,
+        "recall_in_text": 0.6258,
+        "coverage_before": 0.03,
+        "coverage_after": 0.7499,
+        "gold_coverage": 0.7149,
+        "extra_fills": 411.0
+      },
+      "Потребляемая мощность": {
+        "pairs": 1572.0,
+        "gold": 1388.0,
+        "precision": 0.8867,
+        "recall": 0.5303,
+        "f1": 0.6637,
+        "ceiling": 0.5569,
+        "recall_in_text": 0.9521,
+        "coverage_before": 0.7144,
+        "coverage_after": 0.5929,
+        "gold_coverage": 0.883,
+        "extra_fills": 102.0
+      },
+      "Материал корпуса": {
+        "pairs": 1868.0,
+        "gold": 1271.0,
+        "precision": 0.7082,
+        "recall": 0.4563,
+        "f1": 0.555,
+        "ceiling": 0.4784,
+        "recall_in_text": 0.9539,
+        "coverage_before": 0.3362,
+        "coverage_after": 0.5926,
+        "gold_coverage": 0.6804,
+        "extra_fills": 288.0
+      },
+      "Подушка": {
+        "pairs": 1270.0,
+        "gold": 1265.0,
+        "precision": 1.0,
+        "recall": 0.0008,
+        "f1": 0.0016,
+        "ceiling": 0.0008,
+        "recall_in_text": 1.0,
+        "coverage_before": 0.9961,
+        "coverage_after": 0.0008,
+        "gold_coverage": 0.9961,
+        "extra_fills": 0.0
+      },
+      "Вид пружинного блока": {
+        "pairs": 1252.0,
+        "gold": 1224.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "ceiling": 1.0,
+        "recall_in_text": 1.0,
+        "coverage_before": 0.9776,
+        "coverage_after": 0.9896,
+        "gold_coverage": 0.9776,
+        "extra_fills": 15.0
+      },
+      "Жесткость стороны 1": {
+        "pairs": 1252.0,
+        "gold": 1222.0,
+        "precision": 0.9828,
+        "recall": 0.9828,
+        "f1": 0.9828,
+        "ceiling": 1.0,
+        "recall_in_text": 0.9828,
+        "coverage_before": 0.9776,
+        "coverage_after": 0.9896,
+        "gold_coverage": 0.976,
+        "extra_fills": 17.0
+      },
+      "Жесткость стороны 2": {
+        "pairs": 1252.0,
+        "gold": 1165.0,
+        "precision": 0.9691,
+        "recall": 0.9691,
+        "f1": 0.9691,
+        "ceiling": 1.0,
+        "recall_in_text": 0.9691,
+        "coverage_before": 0.9776,
+        "coverage_after": 0.9896,
+        "gold_coverage": 0.9305,
+        "extra_fills": 74.0
+      },
+      "Основные характеристики": {
+        "pairs": 1145.0,
+        "gold": 1116.0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "ceiling": 0.0009,
+        "recall_in_text": 0.0,
+        "coverage_before": 0.0,
+        "coverage_after": 0.0017,
+        "gold_coverage": 0.9747,
+        "extra_fills": 0.0
+      },
+      "Габаритные размеры (В*Ш)": {
+        "pairs": 1027.0,
+        "gold": 1019.0,
+        "precision": 1.0,
+        "recall": 0.9676,
+        "f1": 0.9835,
+        "ceiling": 0.9676,
+        "recall_in_text": 1.0,
+        "coverage_before": 0.0,
+        "coverage_after": 0.9611,
+        "gold_coverage": 0.9922,
+        "extra_fills": 1.0
+      },
+      "Целевая аудитория": {
+        "pairs": 1580.0,
+        "gold": 977.0,
+        "precision": 0.0328,
+        "recall": 0.0082,
+        "f1": 0.0131,
+        "ceiling": 0.0082,
+        "recall_in_text": 1.0,
+        "coverage_before": 0.1614,
+        "coverage_after": 0.1557,
+        "gold_coverage": 0.6184,
+        "extra_fills": 2.0
+      },
+      "Класс энергоэффективности": {
+        "pairs": 967.0,
+        "gold": 928.0,
+        "precision": 0.9989,
+        "recall": 0.9612,
+        "f1": 0.9797,
+        "ceiling": 0.9752,
+        "recall_in_text": 0.9856,
+        "coverage_before": 0.9235,
+        "coverage_after": 0.9235,
+        "gold_coverage": 0.9597,
+        "extra_fills": 0.0
+      },
+      "Модель ТС": {
+        "pairs": 910.0,
+        "gold": 883.0,
+        "precision": 0.9989,
+        "recall": 0.9989,
+        "f1": 0.9989,
+        "ceiling": 1.0,
+        "recall_in_text": 0.9989,
+        "coverage_before": 0.9703,
+        "coverage_after": 0.989,
+        "gold_coverage": 0.9703,
+        "extra_fills": 17.0
+      },
+      "Марка ТС": {
+        "pairs": 881.0,
+        "gold": 879.0,
+        "precision": 0.2309,
+        "recall": 0.2241,
+        "f1": 0.2275,
+        "ceiling": 0.2344,
+        "recall_in_text": 0.9563,
+        "coverage_before": 0.1986,
+        "coverage_after": 0.9694,
+        "gold_coverage": 0.9977,
+        "extra_fills": 1.0
+      },
+      "Производитель процессора": {
+        "pairs": 675.0,
+        "gold": 652.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "ceiling": 1.0,
+        "recall_in_text": 1.0,
+        "coverage_before": 0.9911,
+        "coverage_after": 0.9985,
+        "gold_coverage": 0.9659,
+        "extra_fills": 22.0
+      },
+      "Основной продукт": {
+        "pairs": 660.0,
+        "gold": 646.0,
+        "precision": 0.4271,
+        "recall": 0.195,
+        "f1": 0.2678,
+        "ceiling": 0.9025,
+        "recall_in_text": 0.2161,
+        "coverage_before": 0.0,
+        "coverage_after": 0.4591,
+        "gold_coverage": 0.9788,
+        "extra_fills": 8.0
+      }
+    }
+  },
+  "model": {
+    "train_rows": 668369,
+    "positive_share": 0.2856,
+    "importances": {
+      "prior_max": 25.41475392299372,
+      "prior_known": 25.124669728007444,
+      "attribute": 11.583625088672742,
+      "heuristic_rank": 6.867899162892499,
+      "zone_title": 4.797800591355116,
+      "first_position": 4.45135415154509,
+      "heuristic_gap": 3.963863720790084,
+      "heuristic": 3.8867648289686114,
+      "agreement": 3.062281392417498,
+      "key_chars": 1.4146651920916213,
+      "candidate_share": 1.3050575619582705,
+      "kind_categorical": 1.2525126545889695,
+      "top_zone": 1.1413036752258927,
+      "evidence_chars": 0.9758273453706587,
+      "top_source": 0.9106380195011
+    }
+  },
+  "threshold": {
+    "value": 0.3,
+    "rule": "порог максимизирует micro F1 на val по откалиброванной уверенности, сетка 0,05–0,95 с шагом 0,05; при равенстве — меньший порог",
+    "curve_val": [
+      {
+        "threshold": 0.05,
+        "precision": 0.8221,
+        "recall": 0.6058,
+        "f1": 0.6976,
+        "coverage": 0.6817
+      },
+      {
+        "threshold": 0.1,
+        "precision": 0.8305,
+        "recall": 0.6051,
+        "f1": 0.7001,
+        "coverage": 0.6726
+      },
+      {
+        "threshold": 0.15,
+        "precision": 0.8332,
+        "recall": 0.6047,
+        "f1": 0.7008,
+        "coverage": 0.6696
+      },
+      {
+        "threshold": 0.2,
+        "precision": 0.8341,
+        "recall": 0.6045,
+        "f1": 0.701,
+        "coverage": 0.6686
+      },
+      {
+        "threshold": 0.25,
+        "precision": 0.8341,
+        "recall": 0.6045,
+        "f1": 0.701,
+        "coverage": 0.6686
+      },
+      {
+        "threshold": 0.3,
+        "precision": 0.8364,
+        "recall": 0.6037,
+        "f1": 0.7013,
+        "coverage": 0.6656
+      },
+      {
+        "threshold": 0.35,
+        "precision": 0.8364,
+        "recall": 0.6037,
+        "f1": 0.7013,
+        "coverage": 0.6656
+      },
+      {
+        "threshold": 0.4,
+        "precision": 0.8441,
+        "recall": 0.5995,
+        "f1": 0.7011,
+        "coverage": 0.6551
+      },
+      {
+        "threshold": 0.45,
+        "precision": 0.8441,
+        "recall": 0.5995,
+        "f1": 0.7011,
+        "coverage": 0.6551
+      },
+      {
+        "threshold": 0.5,
+        "precision": 0.8441,
+        "recall": 0.5995,
+        "f1": 0.7011,
+        "coverage": 0.6551
+      },
+      {
+        "threshold": 0.55,
+        "precision": 0.9466,
+        "recall": 0.5107,
+        "f1": 0.6635,
+        "coverage": 0.476
+      },
+      {
+        "threshold": 0.6,
+        "precision": 0.9571,
+        "recall": 0.5022,
+        "f1": 0.6587,
+        "coverage": 0.4584
+      },
+      {
+        "threshold": 0.65,
+        "precision": 0.9601,
+        "recall": 0.499,
+        "f1": 0.6567,
+        "coverage": 0.4529
+      },
+      {
+        "threshold": 0.7,
+        "precision": 0.9653,
+        "recall": 0.4924,
+        "f1": 0.6522,
+        "coverage": 0.4424
+      },
+      {
+        "threshold": 0.75,
+        "precision": 0.9707,
+        "recall": 0.4846,
+        "f1": 0.6464,
+        "coverage": 0.4306
+      },
+      {
+        "threshold": 0.8,
+        "precision": 0.9767,
+        "recall": 0.473,
+        "f1": 0.6373,
+        "coverage": 0.4152
+      },
+      {
+        "threshold": 0.85,
+        "precision": 0.9847,
+        "recall": 0.4507,
+        "f1": 0.6183,
+        "coverage": 0.3887
+      },
+      {
+        "threshold": 0.9,
+        "precision": 0.9897,
+        "recall": 0.4329,
+        "f1": 0.6023,
+        "coverage": 0.3697
+      },
+      {
+        "threshold": 0.95,
+        "precision": 0.9933,
+        "recall": 0.41,
+        "f1": 0.5804,
+        "coverage": 0.3473
+      }
+    ]
+  },
+  "calibration": {
+    "split": "test + new_category",
+    "heuristic": {
+      "ece": 0.1047,
+      "picks": 120170,
+      "bins": [
+        {
+          "low": 0.0,
+          "high": 0.1,
+          "count": 0,
+          "confidence": 0.0,
+          "accuracy": 0.0
+        },
+        {
+          "low": 0.1,
+          "high": 0.2,
+          "count": 0,
+          "confidence": 0.0,
+          "accuracy": 0.0
+        },
+        {
+          "low": 0.2,
+          "high": 0.3,
+          "count": 0,
+          "confidence": 0.0,
+          "accuracy": 0.0
+        },
+        {
+          "low": 0.3,
+          "high": 0.4,
+          "count": 1617,
+          "confidence": 0.3675,
+          "accuracy": 0.4205
+        },
+        {
+          "low": 0.4,
+          "high": 0.5,
+          "count": 25877,
+          "confidence": 0.4584,
+          "accuracy": 0.617
+        },
+        {
+          "low": 0.5,
+          "high": 0.6,
+          "count": 13488,
+          "confidence": 0.5386,
+          "accuracy": 0.7878
+        },
+        {
+          "low": 0.6,
+          "high": 0.7,
+          "count": 14221,
+          "confidence": 0.6608,
+          "accuracy": 0.8528
+        },
+        {
+          "low": 0.7,
+          "high": 0.8,
+          "count": 34523,
+          "confidence": 0.727,
+          "accuracy": 0.7792
+        },
+        {
+          "low": 0.8,
+          "high": 0.9,
+          "count": 16005,
+          "confidence": 0.8496,
+          "accuracy": 0.8578
+        },
+        {
+          "low": 0.9,
+          "high": 1.0,
+          "count": 14439,
+          "confidence": 0.9628,
+          "accuracy": 0.9374
+        }
+      ]
+    },
+    "raw": {
+      "ece": 0.1035,
+      "picks": 129143,
+      "bins": [
+        {
+          "low": 0.0,
+          "high": 0.1,
+          "count": 32241,
+          "confidence": 0.0265,
+          "accuracy": 0.3887
+        },
+        {
+          "low": 0.1,
+          "high": 0.2,
+          "count": 3509,
+          "confidence": 0.1478,
+          "accuracy": 0.2579
+        },
+        {
+          "low": 0.2,
+          "high": 0.3,
+          "count": 3513,
+          "confidence": 0.2489,
+          "accuracy": 0.4332
+        },
+        {
+          "low": 0.3,
+          "high": 0.4,
+          "count": 2372,
+          "confidence": 0.3432,
+          "accuracy": 0.43
+        },
+        {
+          "low": 0.4,
+          "high": 0.5,
+          "count": 1924,
+          "confidence": 0.4496,
+          "accuracy": 0.4886
+        },
+        {
+          "low": 0.5,
+          "high": 0.6,
+          "count": 2328,
+          "confidence": 0.551,
+          "accuracy": 0.5666
+        },
+        {
+          "low": 0.6,
+          "high": 0.7,
+          "count": 3080,
+          "confidence": 0.6534,
+          "accuracy": 0.6406
+        },
+        {
+          "low": 0.7,
+          "high": 0.8,
+          "count": 4081,
+          "confidence": 0.7522,
+          "accuracy": 0.7584
+        },
+        {
+          "low": 0.8,
+          "high": 0.9,
+          "count": 6490,
+          "confidence": 0.8548,
+          "accuracy": 0.8388
+        },
+        {
+          "low": 0.9,
+          "high": 1.0,
+          "count": 69605,
+          "confidence": 0.985,
+          "accuracy": 0.9875
+        }
+      ]
+    },
+    "calibrated": {
+      "ece": 0.014,
+      "picks": 129143,
+      "bins": [
+        {
+          "low": 0.0,
+          "high": 0.1,
+          "count": 12867,
+          "confidence": 0.0208,
+          "accuracy": 0.0208
+        },
+        {
+          "low": 0.1,
+          "high": 0.2,
+          "count": 616,
+          "confidence": 0.1473,
+          "accuracy": 0.1331
+        },
+        {
+          "low": 0.2,
+          "high": 0.3,
+          "count": 569,
+          "confidence": 0.2671,
+          "accuracy": 0.2302
+        },
+        {
+          "low": 0.3,
+          "high": 0.4,
+          "count": 1362,
+          "confidence": 0.3662,
+          "accuracy": 0.5573
+        },
+        {
+          "low": 0.4,
+          "high": 0.5,
+          "count": 0,
+          "confidence": 0.0,
+          "accuracy": 0.0
+        },
+        {
+          "low": 0.5,
+          "high": 0.6,
+          "count": 30909,
+          "confidence": 0.5241,
+          "accuracy": 0.5583
+        },
+        {
+          "low": 0.6,
+          "high": 0.7,
+          "count": 2180,
+          "confidence": 0.6707,
+          "accuracy": 0.6358
+        },
+        {
+          "low": 0.7,
+          "high": 0.8,
+          "count": 3847,
+          "confidence": 0.7501,
+          "accuracy": 0.7466
+        },
+        {
+          "low": 0.8,
+          "high": 0.9,
+          "count": 6869,
+          "confidence": 0.8554,
+          "accuracy": 0.8303
+        },
+        {
+          "low": 0.9,
+          "high": 1.0,
+          "count": 69924,
+          "confidence": 0.9898,
+          "accuracy": 0.9871
+        }
+      ]
+    }
+  },
+  "ablation": [
+    {
+      "group": "all",
+      "baseline": {
+        "precision": 0.7786,
+        "recall": 0.5846,
+        "f1": 0.6678,
+        "coverage_after": 0.6906,
+        "macro_f1": 0.491,
+        "weighted_f1": 0.7644
+      },
+      "ranker": {
+        "precision": 0.8428,
+        "recall": 0.606,
+        "f1": 0.7051,
+        "coverage_after": 0.6597,
+        "macro_f1": 0.5314,
+        "weighted_f1": 0.7882
+      }
+    },
+    {
+      "group": "split:test",
+      "baseline": {
+        "precision": 0.7831,
+        "recall": 0.5836,
+        "f1": 0.6688,
+        "coverage_after": 0.6839,
+        "macro_f1": 0.4897,
+        "weighted_f1": 0.7651
+      },
+      "ranker": {
+        "precision": 0.8571,
+        "recall": 0.6056,
+        "f1": 0.7097,
+        "coverage_after": 0.6463,
+        "macro_f1": 0.5317,
+        "weighted_f1": 0.7985
+      }
+    },
+    {
+      "group": "split:new_category",
+      "baseline": {
+        "precision": 0.7252,
+        "recall": 0.5966,
+        "f1": 0.6546,
+        "coverage_after": 0.7896,
+        "macro_f1": 0.5378,
+        "weighted_f1": 0.7576
+      },
+      "ranker": {
+        "precision": 0.6918,
+        "recall": 0.6115,
+        "f1": 0.6492,
+        "coverage_after": 0.8567,
+        "macro_f1": 0.5641,
+        "weighted_f1": 0.7009
+      }
+    },
+    {
+      "group": "categories:tail",
+      "baseline": {
+        "precision": 0.7897,
+        "recall": 0.5741,
+        "f1": 0.6649,
+        "coverage_after": 0.6627,
+        "macro_f1": 0.4936,
+        "weighted_f1": 0.7529
+      },
+      "ranker": {
+        "precision": 0.8583,
+        "recall": 0.594,
+        "f1": 0.7021,
+        "coverage_after": 0.629,
+        "macro_f1": 0.5258,
+        "weighted_f1": 0.7417
+      }
+    },
+    {
+      "group": "sellers:small",
+      "baseline": {
+        "precision": 0.7582,
+        "recall": 0.5706,
+        "f1": 0.6512,
+        "coverage_after": 0.6889,
+        "macro_f1": 0.5901,
+        "weighted_f1": 0.7996
+      },
+      "ranker": {
+        "precision": 0.7779,
+        "recall": 0.578,
+        "f1": 0.6632,
+        "coverage_after": 0.6826,
+        "macro_f1": 0.6159,
+        "weighted_f1": 0.7874
+      }
+    },
+    {
+      "group": "category:smartphones",
+      "baseline": {
+        "precision": 0.7351,
+        "recall": 0.6337,
+        "f1": 0.6807,
+        "coverage_after": 0.8608,
+        "macro_f1": 0.6648,
+        "weighted_f1": 0.7294
+      },
+      "ranker": {
+        "precision": 0.8508,
+        "recall": 0.6367,
+        "f1": 0.7283,
+        "coverage_after": 0.748,
+        "macro_f1": 0.6722,
+        "weighted_f1": 0.7729
+      }
+    },
+    {
+      "group": "category:laptops",
+      "baseline": {
+        "precision": 0.7043,
+        "recall": 0.6875,
+        "f1": 0.6958,
+        "coverage_after": 0.9687,
+        "macro_f1": 0.6718,
+        "weighted_f1": 0.7482
+      },
+      "ranker": {
+        "precision": 0.88,
+        "recall": 0.7732,
+        "f1": 0.8232,
+        "coverage_after": 0.8686,
+        "macro_f1": 0.7877,
+        "weighted_f1": 0.8356
+      }
+    }
+  ],
+  "seconds": 1184.2
+}

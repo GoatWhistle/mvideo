@@ -59,7 +59,7 @@ export function ExtractionResults({
       {extraction.isPending ? <Skeleton /> : null}
       {extraction.isIdle ? (
         <EmptyState
-          icon="document"
+          icon="card"
           title={t("home:extraction.emptyTitle")}
           description={t("home:extraction.emptyHint")}
         />
@@ -74,7 +74,7 @@ export function ExtractionResults({
           {event.categories?.map((category) => (
             <Button
               key={category.category_id}
-              icon="document"
+              icon="card"
               variant="secondary"
               onClick={() => onRun(category.category_id)}
             >

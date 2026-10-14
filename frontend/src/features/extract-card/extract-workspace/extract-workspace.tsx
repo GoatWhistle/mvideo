@@ -77,7 +77,7 @@ export function ExtractWorkspace() {
           />
           <Button
             type="submit"
-            icon="extract"
+            icon="automate"
             pending={extraction.isPending}
             disabled={!text.trim() || feedback.isPending}
           >

@@ -1,14 +1,21 @@
 export {
+  StatusBadge,
+  type StatusBadgeProps,
+  type StatusTone,
+} from "./data-display/status-badge/status-badge"
+export {
   Segmented,
   type SegmentedDisplay,
   type SegmentedOption,
   type SegmentedProps,
 } from "./forms/segmented/segmented"
+export { Select, type SelectOption, type SelectProps } from "./forms/select/select"
+export { TextField, type TextFieldProps } from "./forms/text-field/text-field"
 export {
+  CorrectionInput,
+  type CorrectionInputProps,
   Textarea,
   type TextareaProps,
-  TextField,
-  type TextFieldProps,
 } from "./forms/textarea/textarea"
 export { Card, type CardProps } from "./layout/card/card"
 export { PageHeader, type PageHeaderProps } from "./layout/page-header/page-header"

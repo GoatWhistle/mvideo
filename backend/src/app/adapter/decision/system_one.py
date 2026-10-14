@@ -1,3 +1,4 @@
+import asyncio
 import math
 import time
 from collections.abc import Mapping
@@ -22,8 +23,11 @@ from app.domain.inference import Tier, Usage
 
 TYPESAFE_URL = "https://api.typesafe.ai"
 ENDPOINT = "/v1/systemone"
-DEFAULT_MODELS = {Tier.FAST: "jev-latest", Tier.SMART: "jev-latest"}
+DEFAULT_MODEL_NAME = "jev-latest"
+DEFAULT_MODELS = {Tier.FAST: DEFAULT_MODEL_NAME, Tier.SMART: DEFAULT_MODEL_NAME}
 ERROR_BODY_LIMIT = 300
+RETRY_STATUSES = frozenset({429, 500, 502, 503, 504, 529})
+RETRY_BASE_S = 1.0
 
 
 class SystemOneModel:
@@ -34,8 +38,12 @@ class SystemOneModel:
         models: Mapping[Tier, str] = DEFAULT_MODELS,
         timeout_s: float = 10.0,
         transport: httpx.AsyncBaseTransport | None = None,
+        retries: int = 0,
+        retry_base_s: float = RETRY_BASE_S,
     ) -> None:
         self._models = dict(models)
+        self._retries = retries
+        self._retry_base_s = retry_base_s
         headers = {"Authorization": f"Bearer {api_key}"} if api_key else {}
         self._client = httpx.AsyncClient(
             base_url=base_url, headers=headers, timeout=timeout_s, transport=transport
@@ -49,10 +57,7 @@ class SystemOneModel:
             "questions": {key: _question(q) for key, q in request.questions.items()},
         }
         started = time.perf_counter()
-        try:
-            response = await self._client.post(ENDPOINT, json=body)
-        except httpx.HTTPError as exc:
-            raise DecisionFailure(f"Decision model failed: {exc!r}") from exc
+        response = await self._post(body)
         duration_ms = round((time.perf_counter() - started) * 1000)
         if response.is_error:
             raise DecisionFailure(
@@ -71,6 +76,20 @@ class SystemOneModel:
             },
             usage=_usage(payload, model, duration_ms),
         )
+
+    async def _post(self, body: dict[str, Any]) -> httpx.Response:
+        attempt = 0
+        while True:
+            try:
+                response = await self._client.post(ENDPOINT, json=body)
+            except httpx.HTTPError as exc:
+                if attempt >= self._retries:
+                    raise DecisionFailure(f"Decision model failed: {exc!r}") from exc
+            else:
+                if response.status_code not in RETRY_STATUSES or attempt >= self._retries:
+                    return response
+            await asyncio.sleep(self._retry_base_s * 2**attempt)
+            attempt += 1
 
     async def aclose(self) -> None:
         await self._client.aclose()
@@ -151,8 +170,15 @@ def _usage(payload: dict[str, Any], model: str, duration_ms: int) -> Usage:
         duration_ms=duration_ms,
         input_tokens=_count(tokens.get("input_tokens")),
         output_tokens=_count(tokens.get("output_tokens")),
+        cost_usd=_cost(tokens.get("cost")),
     )
 
 
 def _count(value: object) -> int | None:
     return value if isinstance(value, int) and not isinstance(value, bool) else None
+
+
+def _cost(value: object) -> float | None:
+    if isinstance(value, bool) or not isinstance(value, int | float) or not math.isfinite(value):
+        return None
+    return float(value) if value >= 0 else None
