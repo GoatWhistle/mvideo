@@ -17,6 +17,7 @@ baseline = "app.run_baseline:main"
 stand-pack = "app.build_stand_pack:main"
 ranker = "app.run_ranker:main"
 decide = "app.run_decision:main"
+twins = "app.run_twins:main"
 
 [dependency-groups]
 llm = [
@@ -54,5 +55,5 @@ mypy_path = "src"
 files = ["src", "tests"]
 
 [[tool.mypy.overrides]]
-module = ["pyarrow", "pyarrow.*", "catboost", "catboost.*", "sklearn", "sklearn.*", "pandas", "pandas.*"]
+module = ["pyarrow", "pyarrow.*", "catboost", "catboost.*", "sklearn", "sklearn.*", "pandas", "pandas.*", "scipy", "scipy.*"]
 ignore_missing_imports = true
