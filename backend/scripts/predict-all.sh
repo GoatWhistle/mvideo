@@ -10,6 +10,8 @@ STAGE="${STAGE:-baseline}"
 RANKER_MODEL="${RANKER_MODEL:-../data/models/ranker_final}"
 FUSION_MODEL="${FUSION_MODEL:-../data/models/fusion}"
 REPORTS="${REPORTS:-../reports}"
+TWINS="${TWINS:-1}"
+TWIN_MODEL="${TWIN_MODEL:-../data/models/twins}"
 
 run_shard() {
   local i="$1"
@@ -36,6 +38,11 @@ for ((first = 0; first < SHARDS; first += PARALLEL)); do
 done
 mkdir -p "$OUT"
 if [[ "$STAGE" == "final" ]]; then
+  if [[ "$TWINS" == "1" ]]; then
+    OMP_NUM_THREADS=3 OPENBLAS_NUM_THREADS=3 nice -n 10 uv run twins --data "$DATA" --out "$OUT" \
+      --reports "$REPORTS" --stage ranker_final --name twins_final --all-cards --work "$WORK" \
+      --shard-count "$SHARDS" --save-model "$TWIN_MODEL"
+  fi
   shards=()
   for ((i = 0; i < SHARDS; i++)); do
     shards+=("$WORK/out_$i")

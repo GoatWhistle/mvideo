@@ -6,7 +6,7 @@ from app.domain.lexicon import Lexicon
 from app.domain.metrics import MetricsBook
 from app.domain.profile import MODEL
 from app.domain.scoring import Pick
-from app.domain.twin import Transfer, TwinEntry, accepted, vote
+from app.domain.twin import Transfer, accepted, others, vote
 from app.domain.values import canonical_key
 from app.usecase.baseline import EVAL_SPLITS, BaselineConfig, Segments, extra_attributes, observe
 from app.usecase.baseline_ports import CardRecord, GoldRecord, ReportSink
@@ -26,7 +26,7 @@ from app.usecase.twin_pass import (
 )
 from app.usecase.twin_ports import TitleIndex, TwinPrediction, TwinPredictionSink, TwinSource
 from app.usecase.twin_report import TwinLog, build_twin_report, render_twin_markdown
-from app.usecase.twin_tuning import PairRecord, TuningLog, pick_threshold
+from app.usecase.twin_tuning import CurvePoint, PairRecord, TuningLog, pick_threshold
 
 GRID = tuple(round(0.5 + 0.05 * i, 2) for i in range(10))
 
@@ -43,12 +43,20 @@ class TwinConfig:
 
 
 @dataclass(slots=True)
-class _Context:
+class TwinContext:
     required: RequiredAttributes
     lexicon: Lexicon
     names: frozenset[str]
     segments: Segments
     data: TwinIndexData
+
+
+@dataclass(slots=True)
+class TwinModel:
+    context: TwinContext
+    threshold: float
+    curve: list[CurvePoint]
+    tuning: TuningLog
 
 
 class RunTwins:
@@ -63,7 +71,7 @@ class RunTwins:
         self._reports = reports
         self._logger = logger
 
-    def run(self, config: TwinConfig) -> Mapping[str, object]:
+    def prepare(self, config: TwinConfig) -> TwinModel:
         started = time.monotonic()
         context = self._context(config)
         self._index.fit(context.data.titles)
@@ -74,17 +82,24 @@ class RunTwins:
         fit = [(p.similarity, p.twin_ok) for p in tuning.pairs if p.similarity >= 0 and p.has_gold]
         self._calibrator.fit([s for s, _ in fit], [ok for _, ok in fit])
         self._logger.info("twin_threshold", threshold=threshold)
+        return TwinModel(context, threshold, curve, tuning)
+
+    def run(self, config: TwinConfig) -> Mapping[str, object]:
+        started = time.monotonic()
+        model = self.prepare(config)
+        context, threshold, tuning = model.context, model.threshold, model.tuning
         books, log, cards = self._evaluate(context, config, threshold)
         report = build_twin_report(
             books, cards=cards, entries=len(context.data.entries), threshold=threshold,
-            curve=curve, tuning=tuning.summary(threshold), examples=tuning.examples(threshold),
-            log=log, seconds=round(time.monotonic() - started, 1),
+            curve=model.curve, tuning=tuning.summary(threshold),
+            examples=tuning.examples(threshold), log=log,
+            seconds=round(time.monotonic() - started, 1),
         )
         self._reports.write(report, render_twin_markdown(report))
         self._logger.info("twins_done", cards=cards, seconds=round(time.monotonic() - started))
         return report
 
-    def _context(self, config: TwinConfig) -> _Context:
+    def _context(self, config: TwinConfig) -> TwinContext:
         records = self._source.required()
         names = frozenset(r.attribute for r in records) | extra_attributes() | {MODEL}
         lexicon = build_lexicon(self._source.train_values(names), config.baseline.lexicon)
@@ -101,21 +116,22 @@ class RunTwins:
         for rows in self._source.gold_rows(train, names):
             builder.add_rows(rows)
         data = builder.build()
-        return _Context(required, lexicon, names, segments, data)
+        return TwinContext(required, lexicon, names, segments, data)
 
     def _neighbors(
-        self, context: _Context, cards: list[CardRecord], extractions: list[CardExtraction],
+        self, context: TwinContext, cards: list[CardRecord], extractions: list[CardExtraction],
         picks: Sequence[Mapping[str, Pick]], config: TwinConfig,
     ) -> Iterator[dict[str, Transfer]]:
         queries = [query_of(c, p) for c, p in zip(cards, picks, strict=True)]
         found = self._index.neighbors([q.title for q in queries], config.k)
         entries = context.data.entries
-        for query, hits, extraction, chosen in zip(queries, found, extractions, picks, strict=True):
-            near: list[tuple[TwinEntry, float]] = [(entries[i], s) for i, s in hits]
+        for card, query, hits, extraction, chosen in zip(cards, queries, found, extractions, picks,
+                                                         strict=True):
+            near = others([(entries[i], s) for i, s in hits], card.sku_id)
             slots = open_slots(extraction, chosen)
             yield vote(query, near, slots, config.floor) if query.title else {}
 
-    def _tune(self, context: _Context, config: TwinConfig) -> TuningLog:
+    def _tune(self, context: TwinContext, config: TwinConfig) -> TuningLog:
         log = TuningLog()
         val = frozenset({"val"})
         gold = self._source.gold_where(val, context.names, 1)
@@ -134,7 +150,7 @@ class RunTwins:
         return log
 
     def _evaluate(
-        self, context: _Context, config: TwinConfig, threshold: float
+        self, context: TwinContext, config: TwinConfig, threshold: float
     ) -> tuple[tuple[MetricsBook, MetricsBook, MetricsBook, MetricsBook], TwinLog, int]:
         books = (MetricsBook(weighted=False), MetricsBook(weighted=True),
                  MetricsBook(weighted=False), MetricsBook(weighted=True))
