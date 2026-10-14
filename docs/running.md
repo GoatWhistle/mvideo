@@ -106,6 +106,22 @@ uv run baseline --data ../data/processed --out ../data/predictions --all-cards -
 Пишет `data/predictions/baseline_all.predictions.jsonl`. У карточек вне каталога категории нет, для
 них извлекаются только бренд и цвет.
 
+### Двойники из каталога поверх ранжировщика
+
+После `uv run ranker` (нужен `data/predictions/ranker.predictions.jsonl`):
+
+```bash
+uv run twins --data ../data/processed --out ../data/predictions --reports ../reports
+```
+
+Строит индекс названий карточек `train`, подбирает порог сходства на `val`, переносит значения
+двойников в пустые обязательные слоты `test` и `new_category`. Пишет
+`data/predictions/twins.predictions.jsonl` (формат ранжировщика; у перенесённых значений
+`source: catalog_twin`, `twin_sku`, `similarity`, `exact_title`, `start`/`end` = −1) и
+`reports/twins.md`/`.json` с абляцией «ранжировщик → + двойники». kNN считается в одном потоке
+батчами разреженного умножения (`--knn-batch`, по умолчанию 256 запросов ≈ 200 МБ на батч), `--stage`
+— файл предсказаний, поверх которого переносить.
+
 ## Как поднять стенд?
 
 Стенд работает на том же коде извлечения, что и офлайн-базлайн, но не читает гигабайты parquet при
