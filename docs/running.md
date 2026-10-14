@@ -1,9 +1,9 @@
 # Запуск и проверки
 
-Сейчас Compose запускает фронтенд и бэкенд. У бэкенда один метод — `GET /api/v1/health`; сценарии,
-база данных и миграции будут добавлены при реализации проекта.
+Compose запускает экран заполнения и потоковый API. Без ключа работают правила; при настройке
+Jev спорные кандидаты проверяются автоматически. SQLite сохраняет каталог, исправления и алиасы.
 
-**Читайте, если** вы запускаете шаблон · **Связано:** [архитектура](architecture.md) · [зависимости](dependencies.md)
+**Читайте, если** вы запускаете стенд · **Связано:** [архитектура](architecture.md) · [зависимости](dependencies.md)
 
 ## Как запустить через Docker?
 
@@ -48,6 +48,9 @@ npm run dev
 ```bash
 cd backend
 uv sync                      # группы dev и llm; без SDK LLM: uv sync --no-group llm
+mkdir -p data
+dbmate --url sqlite:data/app.db --migrations-dir migrations/sqlite --no-dump-schema up
+uv run seed-catalog --database data/app.db
 uv run uvicorn app.main:create_app --factory --reload
 ```
 
@@ -87,13 +90,13 @@ uv run baseline --data ../data/processed --out ../data/predictions --reports ../
 ```
 
 Команда без сети и ключей строит справочники по `train`, извлекает атрибуты для карточек `test` и
-`new_category` и пишет (`--splits val` — тот же прогон на настроечном сплите, отчёт `reports/baseline_val.md`):
+`new_category` и пишет (`--splits val` — тот же прогон на настроечном сплите, отчёт `reports/baseline_v2_val.md`):
 
 | Файл | Что внутри |
 |---|---|
-| `data/predictions/baseline.predictions.jsonl` | По строке на карточку: `sku_id`, `category_id`, `split`, `confidence_calibrated: false`, `attributes: {атрибут: {value, confidence, source, sources, evidence, start, end}}` — значения с уверенностью от 0,35; `review` — то же для значений ниже порога, очередь проверки |
-| `data/predictions/baseline.candidates.parquet` | Все кандидаты для следующих ступеней: `sku_id`, `attribute`, `key`, `value`, `evidence`, `start`, `end`, `source`, `zone`, `affinity`, `prior`, `seller_fit`, `slot`, `score`, `chosen` |
-| `reports/baseline.md`, `reports/baseline.json` | Метрики по [плану валидации](validation-plan.md): сводка по срезам и таблицы по атрибутам |
+| `data/predictions/baseline_v2.predictions.jsonl` | По строке на карточку: `sku_id`, `category_id`, `split`, `confidence_calibrated: false`, `attributes: {атрибут: {value, confidence, source, sources, evidence, start, end}}` — значения с уверенностью от 0,35; `review` — то же для значений ниже порога, очередь проверки |
+| `data/predictions/baseline_v2.candidates.parquet` | Все кандидаты для следующих ступеней: `sku_id`, `attribute`, `key`, `value`, `evidence`, `start`, `end`, `source`, `zone`, `affinity`, `prior`, `seller_fit`, `slot`, `score`, `chosen` |
+| `reports/baseline_v2.md`, `reports/baseline_v2.json` | Метрики по [плану валидации](validation-plan.md): сводка по срезам и таблицы по атрибутам |
 
 Предсказания для всех 1,18 млн карточек с текстом, без оценки:
 
@@ -101,15 +104,16 @@ uv run baseline --data ../data/processed --out ../data/predictions --reports ../
 uv run baseline --data ../data/processed --out ../data/predictions --all-cards --no-candidates
 ```
 
-Пишет `data/predictions/baseline_all.predictions.jsonl`. У карточек вне каталога категории нет, для
+Пишет `data/predictions/baseline_v2_all.predictions.jsonl`. У карточек вне каталога категории нет, для
 них извлекаются только бренд и цвет.
 
 ## Какие переменные читает бэкенд?
 
-Все необязательны: без них работает офлайн-реализация.
+Все необязательны: без них работает офлайн-реализация после миграций и seed.
 
 | Переменная | По умолчанию | Что задаёт |
 |---|---|---|
+| `DATABASE_PATH` | `data/app.db` локально, `/data/app.db` в Compose | Файл SQLite, подготовленный миграциями и seed |
 | `DECISION_MODEL` | `lexical` | `lexical` — офлайн-замена; `system_one` — HTTP-модель по контракту `/v1/systemone` |
 | `DECISION_MODEL_URL` | `https://api.typesafe.ai` | Адрес модели для `system_one`, например локальный `laya-serve` |
 | `DECISION_MODEL_API_KEY` | пусто | Ключ для `system_one`; без него заголовок `Authorization` не отправляется |
@@ -141,11 +145,12 @@ uv run ruff check .
 uv run ruff format --check .
 uv run mypy .
 uv run pytest tests/unit
-uv run pytest tests/integration
+DBMATE_BIN=dbmate TEST_API_URL=http://localhost:8000 uv run pytest tests/integration
 ```
 
-`tests/unit` работает без базы и сети; `tests/integration` требует локальную инфраструктуру
-(PostgreSQL, запущенный стенд). `uv run pytest` запускает обе группы. Число процессов pytest-xdist
+`tests/unit` работает без базы и сети; `tests/integration` требует dbmate 2.36.0 в PATH
+(или `DBMATE_BIN` с путём к бинарнику) и запущенный стенд в режиме правил (`TEST_API_URL`).
+SQLite-тесты применяют миграции к временным файлам, без отдельного сервера. `uv run pytest` запускает обе группы. Число процессов pytest-xdist
 зависит от размера набора: маленький идёт в один процесс.
 
 Тесты адаптера Claude подменяют вызов SDK и не ходят в сеть. Реальный вызов требует
@@ -166,3 +171,64 @@ uv run pytest tests/integration
 ---
 
 <sub>[Оглавление документации](README.md) · [README проекта](../README.md)</sub>
+
+## Как проверить автоматическое заполнение?
+
+Откройте интерфейс, вставьте текст и нажмите «Заполнить карточку»:
+
+```text
+Смартфон Samsung Galaxy S26 12/256GB Black
+Вес: 500 г
+```
+
+Без ключа ожидаются категория «Смартфоны», 12 ГБ RAM, 256 ГБ ROM, вес 0.5 кг,
+бренд, модель и цвет с цитатами. Нажатие на цитату показывает её в исходнике.
+«Скачать JSON» выгружает заполненные поля отдельно от исключений.
+
+Seed по умолчанию загружает `backend/src/app/assets/demo-catalog.json` в SQLite. Для нового
+локального хранилища с другим каталогом выполните после миграций:
+
+```bash
+uv run seed-catalog --database data/custom.db --catalog /absolute/path/catalog.json
+```
+
+Затем задайте
+`DATABASE_PATH=data/custom.db`. Seed не перезаписывает уже существующий каталог.
+
+В Compose цепочка `storage-init → migrate → seed → backend` выполняется автоматически.
+Именованный том `catalog-data` сохраняет данные при перезапуске и `docker compose down`;
+`docker compose down -v` удаляет данные. Проверка повторного seed: `docker compose run --rm seed`.
+Для локальной разработки dbmate устанавливается отдельно из официального релиза 2.36.0.
+
+Для Jev задайте `DECISION_MODEL=system_one` и `DECISION_MODEL_API_KEY` в локальном окружении.
+`DECISION_MODEL_TIMEOUT_S` задаёт общий бюджет этапа, максимум два обращения.
+Для собственного сервиса можно задать `DECISION_MODEL_URL`; ключ зависит от сервиса.
+Запрос к TypeSafe без ключа не выполняется, остаётся режим правил. Платный прогон запускается отдельно.
+
+## Как запустить аудит данных?
+
+Из корня репозитория:
+
+```bash
+cd backend
+uv run audit-catalog --data ../data/processed --revision "$(git rev-parse HEAD)" --out ../reports/catalog-audit.json
+```
+
+Команда требует подготовленные parquet-файлы, не обращается к моделям и не перезаписывает отчёт.
+Метод группирования и ограничения описаны в [автоматическом заполнении](automatic-catalog.md).
+Новые baseline-прогоны пишутся под именами `baseline_v2*`; старые отчёты не заменяются.
+
+Для интеграционной проверки уже запущенного backend в режиме `DECISION_MODEL=lexical`:
+
+```bash
+cd backend
+DBMATE_BIN=dbmate TEST_API_URL=http://localhost:8000 uv run pytest tests/integration
+```
+
+Браузерный сценарий проверяет реальные API-ответы и экспорт, без подмены результатов:
+
+```bash
+cd frontend
+npx playwright install chromium --only-shell
+E2E_BASE_URL=http://localhost:8080 npm run e2e
+```
