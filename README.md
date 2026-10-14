@@ -163,6 +163,10 @@ docker buildx bake
 docker compose up
 ```
 
+Данные: `unzip brief/sources/dataset.zip -d data/raw`, затем
+`cd backend && uv run prepare-data --raw ../data/raw --out ../data/processed` — подробнее в
+[запуске и проверках](docs/running.md#как-подготовить-данные).
+
 Интерфейс шаблона — http://localhost:8080, Swagger бэкенда — http://localhost:8000/docs.
 У бэкенда пока один метод — `GET /api/v1/health`; сценарии, база и засев данных появятся при реализации
 проекта. Сборка образов требует сети.

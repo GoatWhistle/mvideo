@@ -28,3 +28,7 @@ class StdlibLogger:
         pairs = " ".join(f"{key}={value!r}" for key, value in fields.items())
         message = f"{event} {pairs}" if pairs else event
         self._logger.log(level, message, exc_info=exc)
+
+
+def configure(level: int = logging.INFO) -> None:
+    logging.basicConfig(level=level, format="%(asctime)s %(name)s %(message)s")
