@@ -12,6 +12,7 @@ dependencies = [
 [project.scripts]
 prepare-data = "app.prepare_data:main"
 baseline = "app.run_baseline:main"
+stand-pack = "app.build_stand_pack:main"
 
 [dependency-groups]
 llm = [

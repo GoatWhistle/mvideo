@@ -7,11 +7,23 @@ from pydantic import BaseModel
 from starlette.exceptions import HTTPException
 
 from app.domain.errors import DomainError, InvalidQuestion, ModelFailure
+from app.domain.review import (
+    InvalidCorrection,
+    ReviewAlreadyResolved,
+    ReviewItemNotFound,
+    StandUnavailable,
+    UnknownCategory,
+)
 from app.usecase.interface import Logger
 
 STATUS_BY_ERROR: dict[type[DomainError], HTTPStatus] = {
     InvalidQuestion: HTTPStatus.UNPROCESSABLE_ENTITY,
     ModelFailure: HTTPStatus.SERVICE_UNAVAILABLE,
+    ReviewItemNotFound: HTTPStatus.NOT_FOUND,
+    ReviewAlreadyResolved: HTTPStatus.CONFLICT,
+    InvalidCorrection: HTTPStatus.UNPROCESSABLE_ENTITY,
+    UnknownCategory: HTTPStatus.UNPROCESSABLE_ENTITY,
+    StandUnavailable: HTTPStatus.SERVICE_UNAVAILABLE,
 }
 
 
