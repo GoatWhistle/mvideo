@@ -37,10 +37,10 @@ def test_candidates_carry_quotes_and_pick_expected_values() -> None:
     assert picks["Бренд"].candidate.value == "Samsung"
     assert picks["Модель"].candidate.value == "Galaxy S26"
     assert picks["Цвет"].candidate.key == "черный"
-    assert picks["Встроенная память (ROM)"].candidate.key == "256"
-    assert picks["Оперативная память (RAM)"].candidate.key == "12"
-    assert picks["Емкость аккумулятора"].candidate.key == "5000"
-    assert picks["Диагональ"].candidate.key == "6.7"
+    assert picks["Встроенная память (ROM)"].candidate.key == "256 гб"
+    assert picks["Оперативная память (RAM)"].candidate.key == "12 гб"
+    assert picks["Емкость аккумулятора"].candidate.key == "5000 мач"
+    assert picks["Диагональ"].candidate.key == "17.018 см"
 
 
 def test_seller_key_value_is_a_candidate_but_ranges_are_not() -> None:

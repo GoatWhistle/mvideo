@@ -5,7 +5,7 @@ from dataclasses import dataclass, field
 from app.domain.candidate import best_attributes
 from app.domain.extractors import MIN_AFFINITY
 from app.domain.metrics import MetricsBook, Observation, value_in_text
-from app.domain.profile import TZ_REQUIRED
+from app.domain.profile import TZ_REQUIRED, Kind
 from app.domain.values import canonical_key
 from app.usecase.baseline_ports import (
     BaselineSource,
@@ -129,15 +129,19 @@ def observe(
         pick = extraction.picks.get(name)
         correct = False
         reachable = False
+        candidate_found = False
         if truth is not None:
-            expected = canonical_key(truth.value, truth.unit, profile.numeric)
+            expected = canonical_key(truth.value, truth.unit or profile.unit, profile.numeric)
             correct = pick is not None and pick.candidate.key == expected
+            candidate_found = any(c.attribute == name and c.key == expected
+                                  for c in extraction.candidates)
             reachable = value_in_text(extraction.text, truth.value, truth.unit, profile)
         filled = any(name in best_attributes(extraction.profiles, s, MIN_AFFINITY)
                      for s in seller_names)
         weight = segments.pair_weight(card.category_id, weights.get(name, 1.0))
         observation = Observation(name, truth is not None, pick is not None, correct, reachable,
-                                  filled, weight)
+                                  filled, weight, candidate_found, name in extraction.review,
+                                  profile.kind is not Kind.UNSUPPORTED)
         for book in books:
             book.add(groups, observation)
 

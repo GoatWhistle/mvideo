@@ -6,6 +6,9 @@ from app.domain.candidate import Candidate, Source
 from app.domain.profile import AttributeProfile
 
 BASE: dict[tuple[str, str], float] = {
+    ("confirmed_alias", "title"): 0.65,
+    ("confirmed_alias", "description"): 0.65,
+    ("confirmed_alias", "seller"): 0.65,
     (Source.SELLER, "seller"): 0.55,
     (Source.KEY_VALUE, "description"): 0.55,
     (Source.KEY_VALUE, "title"): 0.55,

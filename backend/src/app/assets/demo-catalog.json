@@ -1,0 +1,20 @@
+{
+  "synthetic": true,
+  "categories": [
+    {"id": 761, "name": "Смартфоны", "keywords": ["смартфон", "smartphone", "iphone"]},
+    {"id": 987, "name": "Ноутбуки", "keywords": ["ноутбук", "laptop", "macbook"]}
+  ],
+  "attributes": [
+    {"name": "Бренд", "kind": "categorical", "categories": [761, 987], "values": ["Samsung", "Apple", "Xiaomi", "Honor", "Huawei", "Google", "Nothing", "OnePlus", "ASUS", "Acer", "Lenovo", "HP", "Dell", "MSI"]},
+    {"name": "Модель", "kind": "free", "categories": [761, 987], "values": ["Galaxy S26", "Galaxy S25", "iPhone 16", "iPhone 17", "Pixel 9", "MacBook Air M4", "ThinkBook 14"]},
+    {"name": "Цвет", "kind": "categorical", "categories": [761, 987], "values": ["черный", "белый", "красный", "серый", "серебристый", "синий", "зеленый", "фиолетовый", "розовый", "золотой"]},
+    {"name": "Встроенная память (ROM)", "kind": "numeric", "unit": "гб", "categories": [761], "keywords": ["накоп", "rom", "storage", "встро"]},
+    {"name": "Оперативная память (RAM)", "kind": "numeric", "unit": "гб", "categories": [761, 987], "keywords": ["ram", "опера", "озу"]},
+    {"name": "Емкость аккумулятора", "kind": "numeric", "unit": "мач", "categories": [761], "keywords": ["батар", "аккум", "battery"]},
+    {"name": "Диагональ", "kind": "numeric", "unit": "\"", "categories": [761], "keywords": ["экран", "диспл", "screen"]},
+    {"name": "Диагональ экрана", "kind": "numeric", "unit": "\"", "categories": [987], "keywords": ["экран", "диспл", "screen"]},
+    {"name": "Общий объем накопителя", "kind": "numeric", "unit": "гб", "categories": [987], "keywords": ["ssd", "накоп", "storage"]},
+    {"name": "Процессор", "kind": "categorical", "categories": [987], "values": ["Intel Core i5", "Intel Core i7", "AMD Ryzen 5", "AMD Ryzen 7", "Apple M4"], "keywords": ["cpu"]},
+    {"name": "Вес", "kind": "numeric", "unit": "кг", "categories": [761, 987], "keywords": ["вес", "weight"]}
+  ]
+}

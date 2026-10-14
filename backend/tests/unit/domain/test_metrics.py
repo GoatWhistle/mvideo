@@ -1,4 +1,6 @@
-from app.domain.metrics import MetricsBook, Observation
+from app.domain.card_text import build_card_text
+from app.domain.metrics import MetricsBook, Observation, value_in_text
+from app.domain.profile import AttributeProfile, Kind, name_keywords
 
 
 def obs(has_gold: bool, predicted: bool, correct: bool, reachable: bool = True) -> Observation:
@@ -25,3 +27,10 @@ def test_weighted_book_uses_weights() -> None:
     book.add(["all"], Observation("Цвет", True, True, True, True, False, weight=3.0))
     book.add(["all"], Observation("Цвет", True, True, False, True, False, weight=1.0))
     assert book.micro("all")["precision"] == 0.75
+
+
+def test_numeric_text_match_needs_the_attribute_and_compatible_unit() -> None:
+    profile = AttributeProfile("Вес", Kind.NUMERIC, "кг", name_keywords("Вес"))
+    assert not value_in_text(build_card_text("Накопитель 500 ГБ", None, ()), "500 г", None,
+                             profile)
+    assert value_in_text(build_card_text("Вес: 500 г", None, ()), "0.5 кг", None, profile)

@@ -27,8 +27,8 @@ def main(argv: list[str] | None = None) -> None:
     args = parser.parse_args(argv)
     configure()
     splits = frozenset(s.strip() for s in args.splits.split(",") if s.strip())
-    name = "baseline_all" if args.all_cards else (
-        "baseline" if splits == EVAL_SPLITS else "baseline_" + "_".join(sorted(splits)))
+    name = "baseline_v2_all" if args.all_cards else (
+        "baseline_v2" if splits == EVAL_SPLITS else "baseline_v2_" + "_".join(sorted(splits)))
     config = BaselineConfig(
         splits=None if args.all_cards else splits,
         evaluate=not args.all_cards,

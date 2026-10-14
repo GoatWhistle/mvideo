@@ -2,6 +2,7 @@ import re
 from dataclasses import dataclass
 
 from app.domain.card_text import match_form
+from app.domain.measurement import base_unit, convert_number
 
 NUMBER = r"\d+(?:[.,]\d+)?"
 LEADING = re.compile(rf"^\s*({NUMBER})\s*(.*)$")
@@ -12,6 +13,8 @@ WORD = re.compile(r"[a-zа-я]+")
 UNIT_HEAD = re.compile(r"[^\s(/,;]+")
 
 UNIT_ALIASES: dict[str, str] = {
+    "gib": "gib", "mib": "mib", "tib": "tib", "гиб": "gib",
+    "мг": "мг", "мл": "мл", "ач": "ач", "ah": "ач",
     "гб": "гб", "gb": "гб", "гбайт": "гб", "гигабайт": "гб",
     "тб": "тб", "tb": "тб", "мб": "мб", "mb": "мб",
     "мач": "мач", "mah": "мач", "ма*ч": "мач", "ма·ч": "мач", "мa*ч": "мач",
@@ -52,7 +55,7 @@ def parse_number(raw: str) -> float:
 
 
 def format_number(value: float) -> str:
-    text = f"{value:.4f}".rstrip("0").rstrip(".")
+    text = f"{value:.12f}".rstrip("0").rstrip(".")
     return text or "0"
 
 
@@ -99,7 +102,10 @@ def canonical_key(value: str, unit: str | None, numeric: bool) -> str:
     if numeric:
         quantity = leading_quantity(value, unit)
         if quantity is not None:
-            return format_number(quantity.number)
+            target = base_unit(quantity.unit)
+            number = convert_number(quantity.number, quantity.unit, target)
+            if number is not None:
+                return f"{format_number(number)} {target}".strip()
     return canonical_text(value)
 
 

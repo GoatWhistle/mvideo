@@ -1,0 +1,15 @@
+{
+  "card": "Смартфон Samsung Galaxy S26 12/256GB Black\nВес: 500 г",
+  "weight": "0.5 кг",
+  "ram": "12 гб",
+  "quote": "500 г",
+  "attribute": "Вес",
+  "category": "Смартфоны",
+  "conflict": "Смартфон Samsung Galaxy S26 черный\nЦвет: белый",
+  "color": "Цвет",
+  "white": "белый",
+  "black": "черный",
+  "unknown": "Смартфон Samsung Galaxy S26 midnight",
+  "nextUnknown": "Смартфон Samsung Galaxy S25 midnight",
+  "aliasQuote": "midnight"
+}

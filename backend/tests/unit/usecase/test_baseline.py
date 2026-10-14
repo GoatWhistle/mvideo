@@ -88,8 +88,9 @@ def test_baseline_predicts_evaluates_and_reports() -> None:
     micro = groups["all"]["micro"]
     assert micro["gold"] == 5
     assert micro["precision"] == 0.8
-    assert micro["pairs"] == 6
-    assert micro["coverage_before"] == round(1 / 6, 4)
+    assert micro["pairs"] == 12
+    assert micro["coverage_before"] == round(1 / 12, 4)
+    assert micro["unsupported_rate"] == 0.5
     assert "category:smartphones" in groups
     assert "Сводка по срезам" in reports.markdown
     assert all(c.evidence for c in sink.candidates)

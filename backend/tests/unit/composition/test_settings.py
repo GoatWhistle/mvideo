@@ -5,7 +5,7 @@ from app.settings import ConfigError, DecisionProvider, LanguageProvider, Settin
 
 
 def test_empty_environment_selects_offline_providers() -> None:
-    assert load_settings({}) == Settings()
+    assert load_settings({}) == Settings(database_path="data/app.db")
     assert Settings().decision_provider is DecisionProvider.LEXICAL
     assert Settings().language_provider is LanguageProvider.NONE
 
@@ -22,6 +22,7 @@ def test_environment_selects_paid_providers() -> None:
     )
 
     assert settings == Settings(
+        database_path="data/app.db",
         decision_provider=DecisionProvider.SYSTEM_ONE,
         decision_url="http://laya:8000",
         decision_api_key="secret",

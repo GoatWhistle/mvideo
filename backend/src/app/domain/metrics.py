@@ -1,12 +1,11 @@
 from collections import defaultdict
 from dataclasses import dataclass, field
 
-from app.domain.candidate import is_range
 from app.domain.card_text import CardText
-from app.domain.extractors import KEY_VALUE
-from app.domain.lexicon import match_token, value_tokens
+from app.domain.extractors import extract_candidates
+from app.domain.lexicon import Lexicon, match_token, value_tokens
 from app.domain.profile import AttributeProfile
-from app.domain.values import format_number, leading_quantity
+from app.domain.values import canonical_key
 
 MACRO_MIN_GOLD = 20
 
@@ -20,6 +19,9 @@ class Observation:
     reachable: bool
     seller_filled: bool
     weight: float = 1.0
+    candidate_found: bool = False
+    reviewed: bool = False
+    supported: bool = True
 
 
 @dataclass(slots=True)
@@ -34,16 +36,22 @@ class Counts:
     reachable: float = 0.0
     tp_reachable: float = 0.0
     seller_filled: float = 0.0
+    candidate_found: float = 0.0
+    reviewed: float = 0.0
+    unsupported: float = 0.0
 
     def add(self, o: Observation, weighted: bool) -> None:
         w = o.weight if weighted else 1.0
         self.pairs += w
         self.predicted += w if o.predicted else 0.0
         self.seller_filled += w if o.seller_filled else 0.0
+        self.reviewed += w if o.reviewed else 0.0
+        self.unsupported += w if not o.supported else 0.0
         if not o.has_gold:
             self.extra += w if o.predicted else 0.0
             return
         self.gold += w
+        self.candidate_found += w if o.candidate_found else 0.0
         self.reachable += w if o.reachable else 0.0
         if o.predicted and o.correct:
             self.tp += w
@@ -68,6 +76,9 @@ class Counts:
             "coverage_after": round(self.predicted / self.pairs, 4) if self.pairs else 0.0,
             "gold_coverage": round(self.gold / self.pairs, 4) if self.pairs else 0.0,
             "extra_fills": round(self.extra, 3),
+            "candidate_recall": round(self.candidate_found / self.gold, 4) if self.gold else 0.0,
+            "review_rate": round(self.reviewed / self.pairs, 4) if self.pairs else 0.0,
+            "unsupported_rate": round(self.unsupported / self.pairs, 4) if self.pairs else 0.0,
         }
 
 
@@ -104,24 +115,13 @@ def value_in_text(
     card: CardText, value: str, unit: str | None, profile: AttributeProfile
 ) -> bool:
     if profile.numeric:
-        quantity = leading_quantity(value, unit)
-        if quantity is not None:
-            target = format_number(quantity.number)
-            if any(t.start < card.seller_start and t.text[0].isdigit()
-                   and format_number(float(match_token(t.text))) == target for t in card.tokens):
-                return True
-            return any(_exact_seller_number(line.group(2)) == target
-                       for line in KEY_VALUE.finditer(card.text[card.seller_start:]))
+        target = canonical_key(value, unit or profile.unit, True)
+        profiles = {profile.name: profile}
+        candidates = extract_candidates(card, profiles, Lexicon(profiles, (), {}), None)
+        return any(c.key == target and (c.affinity > 0 or c.slot >= 0) for c in candidates)
     wanted = value_tokens(value)
     if not wanted:
         return False
     normalized = [match_token(t.text) for t in card.tokens]
     size = len(wanted)
     return any(tuple(normalized[i:i + size]) == wanted for i in range(len(normalized) - size + 1))
-
-
-def _exact_seller_number(value: str) -> str | None:
-    if is_range(value):
-        return None
-    quantity = leading_quantity(value)
-    return format_number(quantity.number) if quantity is not None else None

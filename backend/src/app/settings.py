@@ -22,6 +22,8 @@ class ConfigError(Exception):
 
 @dataclass(frozen=True, slots=True)
 class Settings:
+    database_path: str | None = None
+    catalog_path: str | None = None
     decision_provider: DecisionProvider = DecisionProvider.LEXICAL
     decision_url: str = TYPESAFE_URL
     decision_api_key: str | None = None
@@ -31,6 +33,8 @@ class Settings:
 
 def load_settings(env: Mapping[str, str]) -> Settings:
     return Settings(
+        database_path=env.get("DATABASE_PATH") or "data/app.db",
+        catalog_path=env.get("CATALOG_CONFIG") or None,
         decision_provider=_choice(
             env, "DECISION_MODEL", DecisionProvider, DecisionProvider.LEXICAL
         ),

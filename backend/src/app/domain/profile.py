@@ -39,6 +39,7 @@ TZ_REQUIRED: dict[int, tuple[str, ...]] = {
 
 
 class Kind(StrEnum):
+    UNSUPPORTED = "unsupported"
     NUMERIC = "numeric"
     CATEGORICAL = "categorical"
     BOOLEAN = "boolean"

@@ -3,6 +3,7 @@ name = "app"
 version = "0.1.0"
 requires-python = ">=3.12"
 dependencies = [
+    "aiosqlite>=0.22.1",
     "fastapi>=0.143.1",
     "httpx>=0.28.1",
     "pyarrow>=26.0.0",
@@ -12,6 +13,8 @@ dependencies = [
 [project.scripts]
 prepare-data = "app.prepare_data:main"
 baseline = "app.run_baseline:main"
+audit-catalog = "app.audit_catalog:main"
+seed-catalog = "app.seed_catalog:main"
 
 [dependency-groups]
 llm = [

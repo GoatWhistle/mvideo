@@ -10,9 +10,11 @@ GROUP_ORDER = (
 )
 DETAIL_GROUPS = ("category:smartphones", "category:laptops", "split:new_category", "all")
 SUMMARY_COLUMNS = (
-    ("precision", "P"), ("recall", "R"), ("f1", "F1"), ("ceiling", "потолок"),
-    ("recall_in_text", "R от потолка"), ("coverage_before", "покрытие до"),
+    ("precision", "P"), ("recall", "R"), ("f1", "F1"), ("ceiling", "совпадение в тексте"),
+    ("recall_in_text", "R на совпадениях"), ("coverage_before", "поля продавца"),
     ("coverage_after", "покрытие после"),
+    ("candidate_recall", "recall кандидатов"), ("review_rate", "на проверке"),
+    ("unsupported_rate", "не поддерживается"),
 )
 ATTRIBUTE_COLUMNS = (("gold", "пар с эталоном"), *SUMMARY_COLUMNS)
 
@@ -37,6 +39,7 @@ def build_report(
         limit = len(items) if group.startswith("category:") else TOP_ATTRIBUTES
         details[group] = dict(list(items.items())[:limit])
     return {
+        "schema_version": 2,
         "stage": "baseline: dictionaries + rules",
         "confidence_calibrated": False,
         "cards": cards,
@@ -84,6 +87,8 @@ def render_markdown(report: Mapping[str, object]) -> str:
             cells = [attribute, str(int(summary["gold"]))]
             cells += [_pct(summary[key]) for key, _ in SUMMARY_COLUMNS]
             lines.append(_row(cells))
-    lines += ["", ("Значения в процентах. «Потолок» — доля пар, где значение эталона дословно есть в "
-              "тексте карточки; «R от потолка» — recall на этих парах."), ""]
+    lines += ["", ("Значения в процентах. Совпадение в тексте — диагностическая эвристика, "
+              "не потолок recall; для чисел проверены единица и контекст атрибута. "
+              "Coverage не означает правильность. Неподдерживаемые поля входят в знаменатель. "
+              "Ключ ceiling сохранён для совместимости JSON; определения изменены в версии 2."), ""]
     return "\n".join(lines)

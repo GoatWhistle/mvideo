@@ -1,11 +1,12 @@
 from collections.abc import Mapping, Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from app.domain.candidate import Candidate
 from app.domain.card_text import CardText, build_card_text
+from app.domain.evidence import conflicts
 from app.domain.extractors import extract_candidates
 from app.domain.lexicon import Lexicon
-from app.domain.profile import BRAND, TZ_REQUIRED, AttributeProfile
+from app.domain.profile import BRAND, TZ_REQUIRED, AttributeProfile, Kind, name_keywords
 from app.domain.scoring import Pick, candidate_score, pick_values
 from app.usecase.baseline_ports import (
     CandidateRow,
@@ -14,6 +15,7 @@ from app.usecase.baseline_ports import (
     PredictedValue,
     RequiredRecord,
 )
+from app.usecase.dto.feedback import Correction
 
 UNKNOWN_CATEGORY_ATTRIBUTES = (BRAND, "Цвет")
 
@@ -25,6 +27,7 @@ class CardExtraction:
     candidates: tuple[Candidate, ...]
     picks: Mapping[str, Pick]
     review: Mapping[str, Pick]
+    corrections: Mapping[str, Correction] = field(default_factory=dict)
 
 
 class RequiredAttributes:
@@ -52,7 +55,8 @@ class RequiredAttributes:
 
     def profiles(self, category: int | None) -> dict[str, AttributeProfile]:
         known = self._lexicon.profiles
-        return {a: known[a] for a in self.weights(category) if a in known}
+        return {a: known.get(a, AttributeProfile(a, Kind.UNSUPPORTED, "", name_keywords(a)))
+                for a in self.weights(category)}
 
 
 def extract_card(
@@ -62,8 +66,12 @@ def extract_card(
     profiles = required.profiles(card.category_id)
     candidates = tuple(extract_candidates(text, profiles, lexicon, card.category_id))
     picks = pick_values(candidates, profiles)
-    accepted = {n: p for n, p in picks.items() if p.confidence >= min_confidence}
-    review = {n: p for n, p in picks.items() if p.confidence < min_confidence}
+    ambiguous = conflicts(candidates)
+    accepted = {n: p for n, p in picks.items()
+                if p.confidence >= min_confidence and n not in ambiguous
+                and (profiles[n].kind is not Kind.CATEGORICAL
+                     or lexicon.display(n, p.candidate.key) is not None)}
+    review = {n: p for n, p in picks.items() if n not in accepted}
     return CardExtraction(text, profiles, candidates, accepted, review)
 
 
