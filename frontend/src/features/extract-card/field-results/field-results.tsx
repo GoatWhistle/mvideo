@@ -3,6 +3,7 @@ import { useTranslation } from "@/shared/i18n"
 import { Button, Icon, type IconName, NoValue } from "@/shared/ui"
 import { ReviewActions } from "../review-actions/review-actions"
 import type { ReviewActionsProps } from "../review-actions/review-contract"
+import { FieldProvenance } from "./field-provenance"
 import styles from "./field-results.module.css"
 
 const STATUS_ICON: Record<ExtractionField["state"], IconName> = {
@@ -44,9 +45,7 @@ export function FieldResults({ fields, onQuote, ...actions }: FieldResultsProps)
             {field.state === "review" ? (
               <p className={styles.reason}>{t("home:extraction.reviewHint")}</p>
             ) : null}
-            {field.source === "decision_model" ? (
-              <p className={styles.reason}>{t("home:extraction.modelSource")}</p>
-            ) : null}
+            <FieldProvenance field={field} />
             <ReviewActions {...actions} field={field} />
           </dd>
         </div>

@@ -30,7 +30,6 @@
     "fallback": "Background verification is unavailable. Rule results are preserved; ambiguous values remain for review.",
     "synthetic": "Demo dictionary: smartphones and laptops. Catalog quality has not been measured yet.",
     "reviewHint": "Ambiguous value. Excluded from the filled attributes in the export.",
-    "modelSource": "Selected by the background model",
     "states": {
       "accepted": "Filled",
       "review": "Needs review",
@@ -52,5 +51,18 @@
     "saveHere": "Save here",
     "saveLearn": "Save and remember",
     "cancel": "Cancel"
+  },
+  "provenance": {
+    "source": "Source: {{source}}",
+    "uncalibrated": "Confidence has not been calibrated.",
+    "calibrated": "Calibrated confidence: {{value, percent}}.",
+    "human": "Confirmed by a person; probability was not estimated.",
+    "sources": {
+      "dictionary": "dictionary",
+      "decision_model": "background model",
+      "human": "correction",
+      "confirmed_alias": "confirmed alias",
+      "rule": "rule"
+    }
   }
 }
