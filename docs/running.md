@@ -141,9 +141,34 @@ cd frontend && npm run dev
 ошибку с подсказкой собрать пакет. Очередь проверки и алиасы хранятся в памяти: перезапуск бэкенда их
 сбрасывает.
 
+## Как прогнать ступень выбора на decision-модели?
+
+Ступень берёт кандидатов базлайна и спрашивает decision-модель, какое значение указано в карточке.
+Без ключа работает офлайн-заглушка `lexical` — это проверка пайплайна, а не качество:
+
+```bash
+cd backend
+uv run decide --provider lexical --splits val --sample 300
+```
+
+С ключом (переменные ниже, можно положить в `.env` в корне репозитория — команда его читает):
+
+```bash
+uv run decide --splits test,new_category --sample 8000 --mix-k 8 --dictionary \
+  --override 0.0 --drop 0.6 --max-cost-usd 0.7 --concurrency 5 --name decision_jev
+```
+
+Пишет `reports/<name>.md|json` (сравнение с базлайном на той же выборке, калибровка, доля слотов в
+модели, сетка порогов, стоимость) и `data/predictions/<name>.predictions.jsonl`. Ответы модели
+кэшируются в `data/decision_cache/` по хешу запроса: повторный прогон с теми же настройками не платит.
+`--max-cost-usd` останавливает платные вызовы, когда сумма `usage.cost` из ответов достигла лимита;
+оставшиеся карточки получают значения базлайна.
+
 ## Какие переменные читает бэкенд?
 
-Все необязательны: без них работает офлайн-реализация.
+Все необязательны: без них работает офлайн-реализация. `DECISION_MODEL_NAME` — идентификатор
+модели в запросе: `jev-latest` у api.typesafe.ai (по умолчанию), `typesafe/jev-1.13` у OpenRouter
+(`DECISION_MODEL_URL=https://openrouter.ai/api`).
 
 | Переменная | По умолчанию | Что задаёт |
 |---|---|---|
@@ -151,6 +176,7 @@ cd frontend && npm run dev
 | `DECISION_MODEL_URL` | `https://api.typesafe.ai` | Адрес модели для `system_one`, например локальный `laya-serve` |
 | `DECISION_MODEL_API_KEY` | пусто | Ключ для `system_one`; без него заголовок `Authorization` не отправляется |
 | `DECISION_MODEL_TIMEOUT_S` | `10` | Таймаут запроса к модели, секунды |
+| `DECISION_MODEL_NAME` | `jev-latest` | Идентификатор модели в запросе; у OpenRouter — `typesafe/jev-1.13` |
 | `LANGUAGE_MODEL` | `none` | `none`, `claude` или `codex` |
 | `STAND_PACK` | `data/stand/pack.json.gz` | Путь к пакету данных стенда; в Compose — `/srv/data/stand/pack.json.gz` |
 | `BACKEND_PORT` | `8000` | Порт бэкенда на хосте в Compose |
