@@ -1,15 +1,20 @@
 import asyncio
+import json
 import os
 import shutil
 import subprocess
+import sys
 from dataclasses import replace
 from pathlib import Path
 
+import httpx
 import pytest
 
 from app.adapter.catalog.configured import load_configuration
 from app.adapter.decision.lexical import LexicalDecisionModel
+from app.main import create_app
 from app.repository.sqlite.uow import SqliteUow
+from app.settings import Settings
 from app.usecase.catalog_contract import ExtractCommand
 from app.usecase.dto.feedback import CatalogSnapshot
 from app.usecase.feedback import (
@@ -204,5 +209,40 @@ def test_feedback_rejects_unknown_category_and_numeric_value_without_matching_ev
             await service.save(replace(valid, value="500 кг"))
         record = await service.save(valid)
         assert record.value == "0.5 кг"
+
+    asyncio.run(check())
+
+
+def test_cli_and_http_use_the_same_seeded_cascade(database: Path) -> None:
+    subprocess.run(
+        [sys.executable, "-m", "app.seed_catalog", "--database", str(database)],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    text = "Смартфон Samsung Galaxy S26 12/256GB Black\nВес: 500 г"
+    result = subprocess.run(
+        [sys.executable, "-m", "app.extract_product", "--database", str(database), "--text", text],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    cli = [json.loads(line) for line in result.stdout.splitlines()]
+
+    async def check() -> None:
+        app = create_app(Settings(database_path=str(database)))
+        async with (
+            app.router.lifespan_context(app),
+            httpx.AsyncClient(
+                transport=httpx.ASGITransport(app=app), base_url="http://stand"
+            ) as client,
+        ):
+            response = await client.post("/api/v1/extract/stream", json={"text": text})
+        assert response.status_code == 200
+        http = [json.loads(line) for line in response.text.splitlines()]
+        assert [event["stage"] for event in cli] == ["category", "rules", "complete"]
+        assert cli[-1]["fields"] == http[-1]["fields"]
+        assert cli[-1]["category_id"] == http[-1]["category_id"] == 761
+        assert cli[-1]["model_calls"] == http[-1]["model_calls"] == 0
 
     asyncio.run(check())

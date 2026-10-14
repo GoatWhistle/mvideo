@@ -82,7 +82,7 @@ test("only ambiguous category asks for selection and retry recovers from network
   await expect(page.getByRole("status")).toHaveText(en.extraction.chooseCategory)
 })
 
-test("pending extraction is visible and repeated clicks do not start another request", async ({
+test("pending extraction blocks duplicates and cancellation allows a fresh run", async ({
   page,
   context,
 }) => {
@@ -106,6 +106,10 @@ test("pending extraction is visible and repeated clicks do not start another req
   await expect(run).toHaveAttribute("aria-busy", "true")
   await run.dispatchEvent("click")
   expect(requests).toBe(1)
+  await page.getByRole("button", { name: en.extraction.cancel }).click()
+  await expect(input).toBeEnabled()
   release()
+  await page.unrouteAll({ behavior: "wait" })
+  await run.click()
   await expect(page.getByRole("button", { name: en.extraction.export })).toBeVisible()
 })

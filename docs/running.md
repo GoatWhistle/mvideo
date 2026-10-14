@@ -314,3 +314,16 @@ uv run decide --splits test,new_category --sample 8000 --mix-k 8 --dictionary \
 кэшируются в `data/decision_cache/` по хешу запроса: повторный прогон с теми же настройками не платит.
 `--max-cost-usd` останавливает платные вызовы, когда сумма `usage.cost` из ответов достигла лимита;
 оставшиеся карточки получают значения базлайна.
+
+## Как обработать карточку из CLI?
+
+Из `backend/`, после миграций и seed:
+
+```bash
+uv run extract-product --database data/app.db --text 'Смартфон Samsung Galaxy S26 12/256GB Black'
+```
+
+Без `--text` команда читает stdin. Вывод — те же JSONL-события `category`, `rules`, `complete`,
+что у `/api/v1/extract/stream`. CLI использует тот же `ProcessCard` и сохранённые исправления
+из выбранной SQLite; работает в режиме правил без платных вызовов. Для уточнения неоднозначной
+категории есть `--category`. Интеграционный тест сравнивает поля CLI и HTTP на одном seed.

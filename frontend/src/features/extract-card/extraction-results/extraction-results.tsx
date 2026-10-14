@@ -21,10 +21,15 @@ function ResultStatus({ extraction }: Pick<ExtractionResultsProps, "extraction">
   if (extraction.isError) return t("home:extraction.failed")
   if (!extraction.event) return t("home:extraction.ready")
   if (extraction.event.category_id === null) return t("home:extraction.chooseCategory")
-  return t("home:extraction.summary", {
-    accepted: fields.filter((field) => field.state === "accepted").length,
-    review: fields.filter((field) => field.state === "review").length,
-  })
+  return (
+    <>
+      {t("home:extraction.summary", {
+        accepted: fields.filter((field) => field.state === "accepted").length,
+        review: fields.filter((field) => field.state === "review").length,
+      })}{" "}
+      {t("home:extraction.duration", { milliseconds: extraction.event.elapsed_ms })}
+    </>
+  )
 }
 
 export function ExtractionResults({

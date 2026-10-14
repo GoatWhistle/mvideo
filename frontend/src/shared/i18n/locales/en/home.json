@@ -36,7 +36,9 @@
       "not_stated": "No evidence in text",
       "unsupported": "Attribute not yet supported"
     },
-    "failed": "Extraction interrupted. Try again."
+    "failed": "Extraction interrupted. Try again.",
+    "cancel": "Cancel processing",
+    "duration": "Processed in {{milliseconds, number}} ms."
   },
   "feedback": {
     "undo": "Undo correction",

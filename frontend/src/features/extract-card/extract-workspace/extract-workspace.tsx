@@ -83,6 +83,11 @@ export function ExtractWorkspace() {
           >
             {t("home:extraction.run")}
           </Button>
+          {extraction.isPending ? (
+            <Button icon="stop" variant="secondary" onClick={() => extraction.clear()}>
+              {t("home:extraction.cancel")}
+            </Button>
+          ) : null}
         </form>
         {quote && event ? <SourceEvidence quote={quote} text={event.source_text} /> : null}
       </Card>

@@ -16,6 +16,7 @@ dependencies = [
 prepare-data = "app.prepare_data:main"
 baseline = "app.run_baseline:main"
 audit-catalog = "app.audit_catalog:main"
+extract-product = "app.extract_product:main"
 seed-catalog = "app.seed_catalog:main"
 stand-pack = "app.build_stand_pack:main"
 ranker = "app.run_ranker:main"

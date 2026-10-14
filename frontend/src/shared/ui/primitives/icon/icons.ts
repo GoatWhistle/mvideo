@@ -19,6 +19,7 @@ import {
   Save,
   ScanText,
   Sparkles,
+  Square,
   Sun,
   TriangleAlert,
 } from "lucide-react"
@@ -31,6 +32,7 @@ export const ICONS = {
   card: FileText,
   extract: ScanText,
   automate: Sparkles,
+  stop: Square,
   download: Download,
   quote: Quote,
   save: Save,
