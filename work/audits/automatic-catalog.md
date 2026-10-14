@@ -24,3 +24,17 @@ ship для проверенного исправления. Состояния 
 Использован свежий общий reviewer с контрактом degraded/finish-reviewer, так как именованные
 роли скилла не доступны в harness. PRODUCT/DESIGN содержат прежние шаблонные поля; новая брендовая
 система не утверждалась, токены не менялись.
+
+
+## Final acceptance delta
+
+Implementation e854c91 reconciles upstream main. Final verify: 300 frontend tests, 36 rules,
+TypeScript, Biome and production build; 205 backend unit and 7 integration tests, Ruff check/format,
+mypy. All 16 real Compose browser scenarios passed again, including pending cancellation and fresh
+run. Completed status now displays localized actual elapsed_ms. Evidence captures:
+/private/tmp/mvideo-ui-evidence-final (eight filled matrix, two pending, review, alias form).
+Documenter rechecked source delta: existing Button/icon/status patterns and tokens preserved;
+PRODUCT/DESIGN unchanged, pre-existing placeholders not repaired. Final reviewer disposition: ship at the scope of cancellation/duration additions and previous
+provenance fix. All ten required and two reference captures inspected as valid; no material
+regressions in that scope. Reviewer used read-only Git inspection because worktree checkout was
+sandbox-blocked; did not rerun parent tests. No whole-surface approval inferred.

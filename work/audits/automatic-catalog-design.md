@@ -51,3 +51,11 @@
 
 Итог: обновление глобальной системы не требуется для этого расширения. PRODUCT, DESIGN,
 токены и исходники сохранены. Создан только этот аудит; новый sidecar не создавался.
+
+
+## Final source delta, e854c91
+
+Documenter rechecked Cancel processing (existing secondary Button + Square), localized actual
+elapsed_ms in status, automatic root and preserved upstream /manual route. PRODUCT, DESIGN and
+tokens unchanged from 90c9dc0. No new visual rules required. Source-only delta check; browser evidence
+and 300-test result belong to the implementation verification. Existing placeholders remain.

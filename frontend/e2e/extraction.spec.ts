@@ -85,7 +85,7 @@ test("only ambiguous category asks for selection and retry recovers from network
 test("pending extraction blocks duplicates and cancellation allows a fresh run", async ({
   page,
   context,
-}) => {
+}, info) => {
   await context.addInitScript(() => localStorage.setItem("app-locale", "en"))
   let release: () => void = () => undefined
   const gate = new Promise<void>((resolve) => {
@@ -106,6 +106,11 @@ test("pending extraction blocks duplicates and cancellation allows a fresh run",
   await expect(run).toHaveAttribute("aria-busy", "true")
   await run.dispatchEvent("click")
   expect(requests).toBe(1)
+  for (const width of [375, 1440]) {
+    await page.setViewportSize({ width, height: 900 })
+    await page.evaluate(() => window.scrollTo(0, 0))
+    await page.screenshot({ path: info.outputPath(`pending-${width}.png`), fullPage: true })
+  }
   await page.getByRole("button", { name: en.extraction.cancel }).click()
   await expect(input).toBeEnabled()
   release()

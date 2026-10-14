@@ -4,35 +4,43 @@ Updated: 2026-10-15, MSK
 
 ## Current task
 
-Implementation in separate branch `feat/automatic-catalog`; last code SHA from Git: `5cefc3e`.
-Base: `747572d`. Parent spec and ten tickets are published in GoatWhistle/mvideo; implementation
-progress and draft PR publication are next. No merge authorized. SQLite explicitly approved;
-prepared dataset explicitly absent. No paid calls made.
+Implementation in separate branch `feat/automatic-catalog`; functional SHA from Git: `e854c91`.
+Main `626a7c1` merged into this branch, preserving upstream CatBoost/isotonic, batch Jev/twins,
+legacy sync API and reports. Draft PR https://github.com/GoatWhistle/mvideo/pull/35 is open.
+Parent spec and ten tickets published; verified progress updated. Main has not been merged.
+SQLite approved; prepared dataset absent. No paid calls made in this task; upstream reports are
+historical evidence only and cannot establish quality after unit and metric changes.
 
 Implemented: unit conversion; quote/negation/accessory guards and conflicts; full-field v2 metrics;
-audit-catalog CLI; automatic category and streaming extraction; background Jev with two-call timeout,
-cache and context retry; RU/EN UI with quotes, provenance/calibration status and JSON export;
-SQLite migrations/seed, durable idempotent corrections, scoped aliases, automatic rerun and undo.
-Decision cache includes current accepted/review fields so it cannot overwrite a fresh correction.
+audit-catalog CLI; automatic category and streaming extraction; background Jev with two-call budget,
+cache and context retry; RU/EN UI with quotes, provenance/calibration status, duration, cancellation
+and JSON export; SQLite migrations/seed, durable idempotent corrections, scoped aliases, rerun/undo.
+Decision cache includes accepted/review fields so it cannot overwrite a fresh correction.
+Offline extract-product CLI shares ProcessCard and SQLite with API; integration compares outputs.
 
-Validation: Ruff/mypy, 161 backend unit tests; 6 real SQLite/HTTP integration tests; frontend verify
-(36 rules, 290 tests, build); 16 browser tests on local API/Vite and Compose/nginx, plus 12 scenario
-tests after provenance UI fix. Matrix 375/1440, light/dark, RU/EN. Compose rebuilt at final code,
-migrations/seed/healthy services passed; correction survived backend container restart; seed repeat
-passed. Long 24k-character input/non-Latin/reduced-motion at 375/720 passed overflow/export check.
-No actual 200% zoom audit. Independent UI review scored missing provenance fix resolved (ship at
-that scope); documenter preserved neutral system and recorded pre-existing context placeholders.
-Evidence and remaining limits: docs/evidence.md, docs/automatic-catalog.md, work/audits/.
+Compatibility: root automatic screen uses /api/v1/extract/stream; upstream /api/v1/extract remains
+synchronous, /manual retains old screen with STAND_PACK and temporary review state. New screen has
+no calibrated confidence and excludes quote-free twins. Upstream experiments are preserved offline.
 
-Preview: isolated Compose project mvideo-automatic-check, frontend :8088, backend :8008,
-SQLite named volume. Controlled offline override /private/tmp/mvideo-compose-check.yml.
-Local earlier API :8000 PID 450 and Vite :5179 are still running; API lacks latest cache patch.
-dbmate binary /private/tmp/mvideo-dbmate. Docker credentials helper hung; build succeeded with
-isolated /private/tmp/mvideo-docker-config and explicit Docker socket (no credential changes).
+Validation at e854c91: Ruff check/format, mypy; 205 unit + 7 integration tests; frontend verify
+(36 rules, 300 tests, build); 16 browser tests on Compose, matrix375/1440 × light/dark × RU/EN,
+axe, cancellation/new run, quotes/export, feedback/undo/alias. Independent review disposition ship
+for final cancellation/duration additions and earlier provenance fix only, not whole-surface approval.
+Documenter confirmed existing system preserved. Evidence: docs/evidence.md, work/audits/.
+Clean clone /private/tmp/mvideo-clean-check rebuilt without .env, real volume migrated/seeded,
+healthchecks and HTTP scenario passed; CLI also ran in its container. Previous restart/seed-repeat
+checks passed. Long24k/non-Latin/reduced-motion checked at375/720; full200%zoom not checked.
 
-Next: commit reconciled docs, push branch, create draft PR, publish verified status to all Issues;
-keep parent, calibration/ablation and dataset-dependent acceptance open. CatBoost, calibration,
-real audit/ablation, new predictions and full submission/deck verification remain incomplete.
+Preview: http://localhost:8088 (backend8008), isolated mvideo-automatic-check project, SQLite volume,
+offline override /private/tmp/mvideo-compose-check.yml. Local Vite5179/API8000 stopped.
+Temporary clean-check projects8089/8009 and8090/8010 stopped after verification; volumes retained.
+Docker uses isolated /private/tmp/mvideo-docker-config and explicit user Docker socket because
+credential helper hung. No user credentials changed. dbmate: /private/tmp/mvideo-dbmate.
+Final screenshots: /private/tmp/mvideo-ui-evidence-final.
+
+Next: review draft PR; remaining work needs dataset: new audit, fair before/after, refit/calibrate
+final automatic cascade, end-to-end quality/ablation and predictions. Defense/six-artifact acceptance
+remains open. Do not substitute old reports or synthetic tests for real-catalog quality.
 
 ## Explicit user instructions
 
@@ -50,16 +58,11 @@ real audit/ablation, new predictions and full submission/deck verification remai
 
 ## Pitfalls
 
-- Run backend tools from backend/ and frontend tools from frontend/ (config roots matter).
-- Git writes and local server/browser/Docker commands need escalation. REST gh api is reliable;
-  GraphQL often times out. Use JSON files or body files, never interpolate multiline shell text.
-- No paid calls during tests. Inject Settings() for stateless unit composition; runtime load_settings
-  requires SQLite by default. Controlled stand uses DECISION_MODEL=lexical and LANGUAGE_MODEL=none.
-- SQLite WAL is enabled in its own nontransactional dbmate migration. Setting WAL on concurrent
-  connection entry caused a flaky lock; UoW now verifies WAL and uses BEGIN IMMEDIATE + busy_timeout.
-- E2E fixtures read backend/tests/fixtures/catalog-card.json at runtime; static import breaks the
-  isolated frontend Docker build. JSON dictionary imports use import attributes on Node 25.
-- Impeccable launcher context failed writing ~/.impeccable cache; direct project context read.
-  ui-ux-pro-max CSV missing. code-review skill absent; direct code review required.
-- UI retains neutral existing tokens (no Refero style approved). Real quality remains unmeasured.
-- Docs now describe SQLite; historical baseline is explicitly not evidence for the new version.
+- Run backend/frontend commands from their folders. Git writes, local browser/server/Docker need
+  escalation. gh REST works; GraphQL unreliable. Use body files for multiline content.
+- No paid calls during tests. Runtime uses SQLite; unit composition Settings() is stateless.
+- WAL enabled by separate dbmate migration; UoW verifies it and uses BEGIN IMMEDIATE + busy_timeout.
+- E2E fixture JSON is read at runtime, not statically imported (isolated Docker frontend build).
+- Impeccable cache uses writable temp path. ui-ux-pro-max CSV and code-review skill absent;
+  direct checks recorded. PRODUCT/DESIGN placeholders predate this work, no brand approved.
+- Ruff formatting applied in a separate commit; decision Markdown renderer split to keep≤250lines.
