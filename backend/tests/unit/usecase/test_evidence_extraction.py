@@ -5,11 +5,14 @@ from app.usecase.extraction import RequiredAttributes, extract_card
 from app.usecase.lexicon_builder import TrainValue, build_lexicon
 
 
-@pytest.mark.parametrize("text", [
-    "Белый смартфон, черный чехол в комплекте",
-    "Смартфон. Цвет не черный.",
-    "Смартфон. Подходит для черного чехла.",
-])
+@pytest.mark.parametrize(
+    "text",
+    [
+        "Белый смартфон, черный чехол в комплекте",
+        "Смартфон. Цвет не черный.",
+        "Смартфон. Подходит для черного чехла.",
+    ],
+)
 def test_accessory_or_negated_color_is_not_a_product_value(text: str) -> None:
     lexicon = build_lexicon([TrainValue(1, "Цвет", "черный", None)] * 3)
     required = RequiredAttributes([RequiredRecord(1, "Цвет", 1)], lexicon)
@@ -21,8 +24,9 @@ def test_accessory_or_negated_color_is_not_a_product_value(text: str) -> None:
 
 
 def test_conflicting_colors_require_resolution() -> None:
-    lexicon = build_lexicon([TrainValue(1, "Цвет", value, None)
-                             for value in ("черный", "белый") for _ in range(3)])
+    lexicon = build_lexicon(
+        [TrainValue(1, "Цвет", value, None) for value in ("черный", "белый") for _ in range(3)]
+    )
     required = RequiredAttributes([RequiredRecord(1, "Цвет", 1)], lexicon)
     card = CardRecord(1, 1, None, "Черный смартфон", "Цвет: белый", (), None)
 

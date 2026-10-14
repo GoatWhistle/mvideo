@@ -85,8 +85,9 @@ def alias_entry(alias: Alias, numeric: bool) -> LexiconEntry:
     )
 
 
-def resolve(item: ReviewItem, action: ReviewAction, value: str | None,
-            now: datetime) -> tuple[ReviewItem, Alias]:
+def resolve(
+    item: ReviewItem, action: ReviewAction, value: str | None, now: datetime
+) -> tuple[ReviewItem, Alias]:
     if item.status is not ReviewStatus.PENDING:
         raise ReviewAlreadyResolved()
     if action is ReviewAction.CORRECT:
@@ -98,10 +99,19 @@ def resolve(item: ReviewItem, action: ReviewAction, value: str | None,
         final = item.value
         status = ReviewStatus.ACCEPTED
     resolved = ReviewItem(
-        id=item.id, card_key=item.card_key, category_id=item.category_id, title=item.title,
-        attribute=item.attribute, value=item.value, confidence=item.confidence,
-        source=item.source, evidence=item.evidence, status=status, resolved_value=final,
-        created_at=item.created_at, resolved_at=now,
+        id=item.id,
+        card_key=item.card_key,
+        category_id=item.category_id,
+        title=item.title,
+        attribute=item.attribute,
+        value=item.value,
+        confidence=item.confidence,
+        source=item.source,
+        evidence=item.evidence,
+        status=status,
+        resolved_value=final,
+        created_at=item.created_at,
+        resolved_at=now,
     )
     alias = Alias(attribute=item.attribute, evidence=item.evidence, value=final, created_at=now)
     return resolved, alias

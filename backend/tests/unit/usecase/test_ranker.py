@@ -29,8 +29,7 @@ CARDS = {
     "val": [CardRecord(3, PHONE, "ИП", "Смартфон Xiaomi", "", (), "val")],
     "test": [
         CardRecord(1, PHONE, "М.Видео", "Смартфон Samsung черный", "", (), "test"),
-        CardRecord(2, PHONE, "ИП", "Смартфон Samsung", "", (SellerParam("Цвет", "белый"),),
-                   "test"),
+        CardRecord(2, PHONE, "ИП", "Смартфон Samsung", "", (SellerParam("Цвет", "белый"),), "test"),
     ],
 }
 
@@ -40,7 +39,9 @@ class MemorySink:
         self.predictions: list[CardPrediction] = []
         self.closed = False
 
-    def write(self, predictions: Sequence[CardPrediction], candidates: Sequence[CandidateRow]) -> None:
+    def write(
+        self, predictions: Sequence[CardPrediction], candidates: Sequence[CandidateRow]
+    ) -> None:
         self.predictions.extend(predictions)
 
     def close(self) -> None:
@@ -87,8 +88,11 @@ class FakeRankerSource:
         self, splits: frozenset[str], attributes: frozenset[str], modulo: int
     ) -> Mapping[int, Sequence[GoldRecord]]:
         wanted = {c.sku_id for s in splits for c in CARDS.get(s, []) if c.sku_id % modulo == 0}
-        return {sku: [g for g in gold if g.attribute in attributes]
-                for sku, gold in GOLD.items() if sku in wanted}
+        return {
+            sku: [g for g in gold if g.attribute in attributes]
+            for sku, gold in GOLD.items()
+            if sku in wanted
+        }
 
     def cards(self, splits: frozenset[str] | None, batch: int) -> Iterator[list[CardRecord]]:
         yield [c for s in sorted(splits or CARDS) for c in CARDS.get(s, [])]
@@ -136,26 +140,46 @@ def test_ranker_trains_tunes_evaluates_and_reports() -> None:
 
 def test_ranker_skips_train_cards_outside_the_modulo_sample() -> None:
     model = HeuristicModel()
-    usecase = RunRanker(FakeRankerSource(), model, IdentityCalibrator(), MemorySink(),
-                        MemoryReports(), SilentLogger())
+    usecase = RunRanker(
+        FakeRankerSource(),
+        model,
+        IdentityCalibrator(),
+        MemorySink(),
+        MemoryReports(),
+        SilentLogger(),
+    )
     usecase.run(RankerConfig(train_modulo=8))
     sampled = HeuristicModel()
-    RunRanker(FakeRankerSource(), sampled, IdentityCalibrator(), MemorySink(), MemoryReports(),
-              SilentLogger()).run(RankerConfig(train_modulo=4))
+    RunRanker(
+        FakeRankerSource(),
+        sampled,
+        IdentityCalibrator(),
+        MemorySink(),
+        MemoryReports(),
+        SilentLogger(),
+    ).run(RankerConfig(train_modulo=4))
     assert 0 < model.rows < sampled.rows
 
 
 class CapturingModel(HeuristicModel):
     def fit(self, train: FeatureTable, names: Sequence[str], categorical: Sequence[str]) -> None:
         super().fit(train, names, categorical)
-        self.columns = {name: [train.numeric[r * train.width + i] for r in range(train.rows)]
-                        for i, name in enumerate(names)}
+        self.columns = {
+            name: [train.numeric[r * train.width + i] for r in range(train.rows)]
+            for i, name in enumerate(names)
+        }
 
 
 def test_blind_cards_train_without_category_priors() -> None:
     seen, blind = CapturingModel(), CapturingModel()
     for model, remainder in ((seen, 3), (blind, 0)):
-        RunRanker(FakeRankerSource(), model, IdentityCalibrator(), MemorySink(), MemoryReports(),
-                  SilentLogger()).run(RankerConfig(blind_modulo=4, blind_remainder=remainder))
+        RunRanker(
+            FakeRankerSource(),
+            model,
+            IdentityCalibrator(),
+            MemorySink(),
+            MemoryReports(),
+            SilentLogger(),
+        ).run(RankerConfig(blind_modulo=4, blind_remainder=remainder))
     assert max(seen.columns["prior_known"]) == 1.0 and max(seen.columns["prior_max"]) > 0
     assert max(blind.columns["prior_known"]) == 0.0 and max(blind.columns["prior_max"]) == 0.0

@@ -62,7 +62,8 @@ class FilePredictionSink:
         self._predictions = (out_dir / f"{name}.predictions.jsonl").open("w", encoding="utf-8")
         self._writer = (
             pq.ParquetWriter(out_dir / f"{name}.candidates.parquet", CANDIDATE_SCHEMA)
-            if candidates else None
+            if candidates
+            else None
         )
 
     def write(

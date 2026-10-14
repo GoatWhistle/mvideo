@@ -46,7 +46,9 @@ def questions_for(
     for name in sorted(extraction.review):
         candidates = [c for c in extraction.candidates if c.attribute == name]
         if extraction.profiles[name].kind is Kind.CATEGORICAL:
-            normalized = {c.key for c in candidates if c.source in {"dictionary", "confirmed_alias"}}
+            normalized = {
+                c.key for c in candidates if c.source in {"dictionary", "confirmed_alias"}
+            }
             candidates = [c for c in candidates if c.key in normalized]
         candidates.sort(key=lambda c: (-candidate_score(c, extraction.profiles[name]), c.start))
         by_key: dict[str, Candidate] = {}
@@ -56,10 +58,19 @@ def questions_for(
         if not selected:
             continue
         choices[name] = {f"c{i}": c for i, c in enumerate(selected)}
-        options = {key: json.dumps({"value": c.value, "quote": c.evidence,
-                                   "start": c.start, "end": c.end, "zone": c.zone},
-                                  ensure_ascii=False)
-                   for key, c in choices[name].items()}
+        options = {
+            key: json.dumps(
+                {
+                    "value": c.value,
+                    "quote": c.evidence,
+                    "start": c.start,
+                    "end": c.end,
+                    "zone": c.zone,
+                },
+                ensure_ascii=False,
+            )
+            for key, c in choices[name].items()
+        }
         options["none"] = "Insufficient or contradictory evidence about the product"
         questions[name] = ChoiceQuestion(INSTRUCTIONS, options)
     return questions, choices
@@ -92,8 +103,12 @@ def selected_candidate(
 
 class ResolveCandidates:
     def __init__(
-        self, model: DecisionModel, enabled: bool, timeout_s: float = 12,
-        minimum: float = 0.9, model_version: str = "jev-latest",
+        self,
+        model: DecisionModel,
+        enabled: bool,
+        timeout_s: float = 12,
+        minimum: float = 0.9,
+        model_version: str = "jev-latest",
     ) -> None:
         self._model = model
         self._enabled = enabled
@@ -102,7 +117,9 @@ class ResolveCandidates:
         self._model_version = model_version
         self._cache: OrderedDict[str, Resolution] = OrderedDict()
 
-    async def run(self, extraction: CardExtraction, category: int | None, version: str) -> Resolution:
+    async def run(
+        self, extraction: CardExtraction, category: int | None, version: str
+    ) -> Resolution:
         baseline = Resolution(extraction.picks, extraction.review)
         if not self._enabled or not extraction.review:
             return baseline
@@ -110,11 +127,19 @@ class ResolveCandidates:
         if not questions:
             return baseline
         state: dict[str, object] = {
-            "card": extraction.text.text, "category": category, "version": version,
+            "card": extraction.text.text,
+            "category": category,
+            "version": version,
         }
-        payload = {"state": state, "options": {k: list(v.items()) for k, v in choices.items()},
-                   "model": self._model_version, "threshold": self._minimum,
-                   "policy": INSTRUCTIONS, "accepted": extraction.picks, "review": extraction.review}
+        payload = {
+            "state": state,
+            "options": {k: list(v.items()) for k, v in choices.items()},
+            "model": self._model_version,
+            "threshold": self._minimum,
+            "policy": INSTRUCTIONS,
+            "accepted": extraction.picks,
+            "review": extraction.review,
+        }
         key = hashlib.sha256(json.dumps(payload, default=str, sort_keys=True).encode()).hexdigest()
         if key in self._cache:
             self._cache.move_to_end(key)
@@ -127,8 +152,11 @@ class ResolveCandidates:
         return result
 
     async def _resolve(
-        self, extraction: CardExtraction, state: dict[str, object],
-        questions: Mapping[str, Question], choices: Mapping[str, Mapping[str, Candidate]],
+        self,
+        extraction: CardExtraction,
+        state: dict[str, object],
+        questions: Mapping[str, Question],
+        choices: Mapping[str, Mapping[str, Candidate]],
     ) -> Resolution:
         picks, review = dict(extraction.picks), dict(extraction.review)
         resolved: set[str] = set()
@@ -142,9 +170,12 @@ class ResolveCandidates:
                     try:
                         decision = await self._model.decide(DecisionRequest(state, questions))
                         usage.append(decision.usage)
-                        selected = {name: selected_candidate(decision.answers.get(name), options,
-                                                              extraction, self._minimum)
-                                    for name, options in choices.items()}
+                        selected = {
+                            name: selected_candidate(
+                                decision.answers.get(name), options, extraction, self._minimum
+                            )
+                            for name, options in choices.items()
+                        }
                         for name, value in selected.items():
                             if value is None:
                                 continue
@@ -155,25 +186,40 @@ class ResolveCandidates:
                         failure = None
                         if not review or attempt == 1:
                             break
-                        questions = {name: question for name, question in questions.items()
-                                     if name in review}
+                        questions = {
+                            name: question for name, question in questions.items() if name in review
+                        }
                         if not questions:
                             break
-                        choices = {name: options for name, options in choices.items()
-                                   if name in review}
-                        state = {**state, "recheck": {
-                            "instruction": "Recheck the product and attribute binding in each "
-                                           "context. Keep none if the conflict cannot be resolved.",
-                            "contexts": {name: [context_of(extraction.text, c.start, c.end)[0]
-                                                for c in options.values()]
-                                         for name, options in choices.items()},
-                        }}
+                        choices = {
+                            name: options for name, options in choices.items() if name in review
+                        }
+                        state = {
+                            **state,
+                            "recheck": {
+                                "instruction": "Recheck the product and attribute binding in each "
+                                "context. Keep none if the conflict cannot be resolved.",
+                                "contexts": {
+                                    name: [
+                                        context_of(extraction.text, c.start, c.end)[0]
+                                        for c in options.values()
+                                    ]
+                                    for name, options in choices.items()
+                                },
+                            },
+                        }
                     except DecisionFailure:
                         failure = "decision_unavailable"
                         if attempt == 0:
                             state = {**state, "retry": "Validate every option and probability."}
         except TimeoutError:
             failure = "decision_timeout"
-        return Resolution(picks, review, frozenset(resolved),
-                          "decision_model" if resolved else "rules", calls,
-                          failure=failure, usage=tuple(usage))
+        return Resolution(
+            picks,
+            review,
+            frozenset(resolved),
+            "decision_model" if resolved else "rules",
+            calls,
+            failure=failure,
+            usage=tuple(usage),
+        )

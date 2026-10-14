@@ -21,15 +21,13 @@ def locate(card: CardText, value: str) -> tuple[int, int] | None:
     normalized = [match_token(t.text) for t in tokens]
     size = len(wanted)
     for i in range(len(normalized) - size + 1):
-        if tuple(normalized[i:i + size]) == wanted:
+        if tuple(normalized[i : i + size]) == wanted:
             return tokens[i].start, tokens[i + size - 1].end
     return None
 
 
-
 def _stem(word: str) -> str:
     return word if word[0].isdigit() else word[:STEM]
-
 
 
 def locate_stems(card: CardText, value: str) -> tuple[int, int] | None:
@@ -51,10 +49,12 @@ def locate_stems(card: CardText, value: str) -> tuple[int, int] | None:
     return start, end
 
 
-
 def _merge_windows(spans: Iterable[tuple[int, int]], low: int, high: int) -> list[tuple[int, int]]:
-    windows = sorted((max(low, s - STATE_WINDOW), min(high, e + STATE_WINDOW))
-                     for s, e in spans if low <= s < high)
+    windows = sorted(
+        (max(low, s - STATE_WINDOW), min(high, e + STATE_WINDOW))
+        for s, e in spans
+        if low <= s < high
+    )
     merged: list[tuple[int, int]] = []
     for start, end in windows:
         if merged and start <= merged[-1][1]:
@@ -64,18 +64,17 @@ def _merge_windows(spans: Iterable[tuple[int, int]], low: int, high: int) -> lis
     return merged
 
 
-
 def compact_state(
     card: CardText, category: str | None, spans: Iterable[tuple[int, int]]
 ) -> dict[str, str]:
-    title = card.text[:card.title_end]
+    title = card.text[: card.title_end]
     body_start, body_end = card.title_end, card.seller_start
     windows = _merge_windows(spans, body_start, body_end)
     if windows:
         body = GAP.join(card.text[s:e].strip() for s, e in windows)
     else:
-        body = card.text[body_start:min(body_end, body_start + LEAD_CHARS)].strip()
-    seller = card.text[card.seller_start:card.seller_start + SELLER_CHARS]
+        body = card.text[body_start : min(body_end, body_start + LEAD_CHARS)].strip()
+    seller = card.text[card.seller_start : card.seller_start + SELLER_CHARS]
     text = "\n".join(part for part in (title, body, seller) if part)
     state = {"card": text[:MAX_STATE_CHARS]}
     if category:

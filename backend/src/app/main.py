@@ -51,8 +51,9 @@ def build_stand(settings: Settings, logger: Logger) -> StandServices:
     if pack is None:
         logger.warning("stand_pack_missing", path=settings.stand_pack)
     else:
-        logger.info("stand_pack_loaded", categories=len(pack.categories),
-                    examples=len(pack.examples))
+        logger.info(
+            "stand_pack_loaded", categories=len(pack.categories), examples=len(pack.examples)
+        )
     reviews, aliases, clock = MemoryReviewRepository(), MemoryAliasRepository(), SystemClock()
     return StandServices(
         extract=ExtractCard(pack, aliases, reviews, BaselineChooser(), clock, UuidIds()),
@@ -108,7 +109,9 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     @asynccontextmanager
     async def lifespan(app: FastAPI) -> AsyncIterator[None]:
-        configuration = load_configuration(Path(config.catalog_path) if config.catalog_path else None)
+        configuration = load_configuration(
+            Path(config.catalog_path) if config.catalog_path else None
+        )
         feedback = None
         if config.database_path:
             database = Path(config.database_path)
@@ -121,13 +124,20 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         app.state.stand = build_stand(config, logger)
         decision = build_decision_model(config)
         resolver = ResolveCandidates(
-            decision, enabled=(config.decision_provider is DecisionProvider.SYSTEM_ONE
-                               and bool(config.decision_api_key or config.decision_url != TYPESAFE_URL)),
-            timeout_s=config.decision_timeout_s, model_version=config.decision_model_name,
+            decision,
+            enabled=(
+                config.decision_provider is DecisionProvider.SYSTEM_ONE
+                and bool(config.decision_api_key or config.decision_url != TYPESAFE_URL)
+            ),
+            timeout_s=config.decision_timeout_s,
+            model_version=config.decision_model_name,
         )
         providers = Providers(
-            decision=decision, language=language, logger=logger,
-            processor=ProcessCard(configuration, resolver, feedback), feedback=feedback,
+            decision=decision,
+            language=language,
+            logger=logger,
+            processor=ProcessCard(configuration, resolver, feedback),
+            feedback=feedback,
         )
         app.state.providers = providers
         try:

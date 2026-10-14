@@ -47,8 +47,17 @@ class StandSource:
         return {}
 
     def cards(self, splits: frozenset[str] | None, batch: int) -> Iterator[list[CardRecord]]:
-        yield [CardRecord(7, PHONE, "М.Видео", "Смартфон Samsung черный", DESCRIPTION,
-                          (SellerParam("Цвет", "черный"),), "test")]
+        yield [
+            CardRecord(
+                7,
+                PHONE,
+                "М.Видео",
+                "Смартфон Samsung черный",
+                DESCRIPTION,
+                (SellerParam("Цвет", "черный"),),
+                "test",
+            )
+        ]
 
 
 class Names:
@@ -104,8 +113,12 @@ def anyio_backend() -> str:
 
 
 def card(category: int | None = PHONE) -> CardInput:
-    return CardInput(title="Смартфон Samsung Galaxy", description="Корпус черного цвета",
-                     seller_params=(SellerParam("Цвет", "черный"),), category_id=category)
+    return CardInput(
+        title="Смартфон Samsung Galaxy",
+        description="Корпус черного цвета",
+        seller_params=(SellerParam("Цвет", "черный"),),
+        category_id=category,
+    )
 
 
 def services(pack: StandPack | None) -> tuple[ExtractCard, ReviewQueue]:
@@ -131,7 +144,7 @@ async def test_values_carry_quote_spans_from_the_card() -> None:
 
     brand = next(v for v in result.values if v.attribute == "Бренд")
     assert brand.value == "Samsung"
-    assert result.text[brand.start:brand.end] == brand.evidence
+    assert result.text[brand.start : brand.end] == brand.evidence
 
 
 @pytest.mark.anyio
@@ -150,8 +163,11 @@ async def test_correction_turns_review_value_into_confident_one() -> None:
     assert again.values == first.values
     assert resolved.status is ReviewStatus.CORRECTED
     brand = next(v for v in second.values if v.attribute == "Бренд")
-    assert (brand.value, brand.source, brand.in_review) == ("Samsung Electronics",
-                                                            REVIEW_SOURCE, False)
+    assert (brand.value, brand.source, brand.in_review) == (
+        "Samsung Electronics",
+        REVIEW_SOURCE,
+        False,
+    )
     assert brand.confidence == REVIEW_CONFIDENCE
 
 

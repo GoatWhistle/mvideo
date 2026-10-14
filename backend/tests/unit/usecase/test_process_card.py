@@ -8,12 +8,17 @@ from app.usecase.resolution import ResolveCandidates
 
 
 def test_paste_to_fields_has_automatic_category_and_real_progress() -> None:
-    processor = ProcessCard(load_configuration(),
-                            ResolveCandidates(LexicalDecisionModel(), enabled=False))
+    processor = ProcessCard(
+        load_configuration(), ResolveCandidates(LexicalDecisionModel(), enabled=False)
+    )
 
     async def collect() -> list[ExtractionEvent]:
-        return [event async for event in processor.stream(ExtractCommand(
-            'Смартфон Samsung Galaxy S26 Black\nВес: 500 г\nБатарея: 5000 мАч'))]
+        return [
+            event
+            async for event in processor.stream(
+                ExtractCommand("Смартфон Samsung Galaxy S26 Black\nВес: 500 г\nБатарея: 5000 мАч")
+            )
+        ]
 
     events = asyncio.run(collect())
 
@@ -29,16 +34,21 @@ def test_paste_to_fields_has_automatic_category_and_real_progress() -> None:
     assert final.model_calls == 0
     for field in final.fields:
         if field.quote is not None:
-            assert final.source_text[field.start:field.end] == field.quote
+            assert final.source_text[field.start : field.end] == field.quote
 
 
 def test_slash_memory_fills_ram_and_storage_without_false_conflicts() -> None:
-    processor = ProcessCard(load_configuration(),
-                            ResolveCandidates(LexicalDecisionModel(), enabled=False))
+    processor = ProcessCard(
+        load_configuration(), ResolveCandidates(LexicalDecisionModel(), enabled=False)
+    )
 
     async def collect() -> list[ExtractionEvent]:
-        return [event async for event in processor.stream(ExtractCommand(
-            "Смартфон Samsung Galaxy S26 12/256GB Black"))]
+        return [
+            event
+            async for event in processor.stream(
+                ExtractCommand("Смартфон Samsung Galaxy S26 12/256GB Black")
+            )
+        ]
 
     final = asyncio.run(collect())[-1]
     fields = {f.attribute: f for f in final.fields}

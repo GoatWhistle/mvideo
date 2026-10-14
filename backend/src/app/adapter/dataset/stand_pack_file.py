@@ -39,9 +39,15 @@ class ParquetCategoryNames:
 
     def names(self) -> Mapping[int, tuple[str, str]]:
         table = pq.read_table(self._path, columns=["category_id", "name", "path"])
-        return {c: (n or "", p or "") for c, n, p in zip(
-            table["category_id"].to_pylist(), table["name"].to_pylist(),
-            table["path"].to_pylist(), strict=True)}
+        return {
+            c: (n or "", p or "")
+            for c, n, p in zip(
+                table["category_id"].to_pylist(),
+                table["name"].to_pylist(),
+                table["path"].to_pylist(),
+                strict=True,
+            )
+        }
 
 
 def encode(pack: StandPack) -> dict[str, Any]:
@@ -49,16 +55,21 @@ def encode(pack: StandPack) -> dict[str, Any]:
         "format": FORMAT,
         "built_at": pack.built_at,
         "threshold": pack.threshold,
-        "profiles": [[p.name, p.kind.value, p.unit, list(p.keywords)]
-                     for p in pack.profiles.values()],
+        "profiles": [
+            [p.name, p.kind.value, p.unit, list(p.keywords)] for p in pack.profiles.values()
+        ],
         "entries": [[e.attribute, list(e.tokens), e.key, e.display] for e in pack.entries],
         "priors": [[c, a, values] for (c, a), values in pack.priors.items()],
         "required": [[r.category_id, r.attribute, r.weight] for r in pack.required],
         "categories": [[c.category_id, c.name, c.path] for c in pack.categories],
         "examples": [
-            {"sku_id": e.sku_id, "category_id": e.category_id, "title": e.title,
-             "description": e.description,
-             "seller_params": [[p.name, p.value, p.unit] for p in e.seller_params]}
+            {
+                "sku_id": e.sku_id,
+                "category_id": e.category_id,
+                "title": e.title,
+                "description": e.description,
+                "seller_params": [[p.name, p.value, p.unit] for p in e.seller_params],
+            }
             for e in pack.examples
         ],
     }
@@ -73,16 +84,21 @@ def decode(raw: dict[str, Any]) -> StandPack:
         threshold=float(raw["threshold"]),
         profiles=profiles,
         entries=[LexiconEntry(a, tuple(t), k, d) for a, t, k, d in raw["entries"]],
-        priors={(int(c), a): {k: float(v) for k, v in values.items()}
-                for c, a, values in raw["priors"]},
+        priors={
+            (int(c), a): {k: float(v) for k, v in values.items()} for c, a, values in raw["priors"]
+        },
         required=[RequiredRecord(int(c), a, float(w)) for c, a, w in raw["required"]],
-        categories=[StandCategory(category_id=int(c), name=n, path=p)
-                    for c, n, p in raw["categories"]],
+        categories=[
+            StandCategory(category_id=int(c), name=n, path=p) for c, n, p in raw["categories"]
+        ],
         examples=[
-            StandExample(sku_id=int(e["sku_id"]), category_id=int(e["category_id"]),
-                         title=e["title"], description=e["description"],
-                         seller_params=tuple(SellerParam(n, v, u)
-                                             for n, v, u in e["seller_params"]))
+            StandExample(
+                sku_id=int(e["sku_id"]),
+                category_id=int(e["category_id"]),
+                title=e["title"],
+                description=e["description"],
+                seller_params=tuple(SellerParam(n, v, u) for n, v, u in e["seller_params"]),
+            )
             for e in raw["examples"]
         ],
     )

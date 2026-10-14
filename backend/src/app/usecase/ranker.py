@@ -45,8 +45,13 @@ class _Context:
 
 class RunRanker:
     def __init__(
-        self, source: RankerSource, model: ScoreModel, calibrator: Calibrator,
-        sink: PredictionSink, reports: ReportSink, logger: Logger,
+        self,
+        source: RankerSource,
+        model: ScoreModel,
+        calibrator: Calibrator,
+        sink: PredictionSink,
+        reports: ReportSink,
+        logger: Logger,
         baseline_report: Mapping[str, object] | None = None,
     ) -> None:
         self._source = source
@@ -62,14 +67,24 @@ class RunRanker:
         context = self._context(config)
         train = self._train(context, config)
         self._model.fit(train, NUMERIC_FEATURES, CATEGORICAL_FEATURES)
-        self._logger.info("ranker_fitted", rows=train.rows, seconds=round(time.monotonic() - started))
+        self._logger.info(
+            "ranker_fitted", rows=train.rows, seconds=round(time.monotonic() - started)
+        )
         threshold, curve = self._tune(context, config)
         plain, weighted, log, cards = self._evaluate(context, config, threshold)
         report = build_ranker_report(
-            plain, weighted, cards=cards, lexicon_entries=context.lexicon.size,
-            attributes=len(context.lexicon.profiles), train=train, threshold=threshold, curve=curve,
-            calibration=log, importances=self._model.importances(),
-            baseline=self._baseline_report, seconds=round(time.monotonic() - started, 1),
+            plain,
+            weighted,
+            cards=cards,
+            lexicon_entries=context.lexicon.size,
+            attributes=len(context.lexicon.profiles),
+            train=train,
+            threshold=threshold,
+            curve=curve,
+            calibration=log,
+            importances=self._model.importances(),
+            baseline=self._baseline_report,
+            seconds=round(time.monotonic() - started, 1),
         )
         self._reports.write(report, render_ranker_markdown(report))
         self._logger.info("ranker_done", cards=cards, seconds=round(time.monotonic() - started))
@@ -81,7 +96,9 @@ class RunRanker:
         lexicon = build_lexicon(self._source.train_values(names), config.baseline.lexicon)
         required = RequiredAttributes(records, lexicon)
         stats = self._source.category_stats()
-        head = frozenset(sorted(stats, key=lambda c: -stats[c][0])[: config.baseline.head_categories])
+        head = frozenset(
+            sorted(stats, key=lambda c: -stats[c][0])[: config.baseline.head_categories]
+        )
         cards_of = {c: max(1, s[1]) for c, s in stats.items()}
         segments = Segments(head, self._source.seller_cards(), config.baseline, cards_of)
         return _Context(required, lexicon, names, segments)
@@ -91,9 +108,16 @@ class RunRanker:
     ) -> Iterator[list[Scored]]:
         gold = self._source.gold_where(splits, context.names, 1)
         for batch in self._source.cards(splits, config.batch):
-            items = [card_options(c, gold.get(c.sku_id, ()), context.required, context.lexicon,
-                                  simulate and _blind(c.sku_id, config))
-                     for c in batch]
+            items = [
+                card_options(
+                    c,
+                    gold.get(c.sku_id, ()),
+                    context.required,
+                    context.lexicon,
+                    simulate and _blind(c.sku_id, config),
+                )
+                for c in batch
+            ]
             yield score_items(items, self._model)
 
     def _train(self, context: _Context, config: RankerConfig) -> FeatureTable:
@@ -103,8 +127,13 @@ class RunRanker:
         for batch in self._source.cards(splits, config.batch):
             for card in batch:
                 if card.sku_id % config.train_modulo == 0:
-                    item = card_options(card, gold.get(card.sku_id, ()), context.required,
-                                        context.lexicon, _blind(card.sku_id, config))
+                    item = card_options(
+                        card,
+                        gold.get(card.sku_id, ()),
+                        context.required,
+                        context.lexicon,
+                        _blind(card.sku_id, config),
+                    )
                     add_training_rows(table, item)
             self._logger.info("ranker_train_rows", rows=table.rows)
         return table
@@ -123,8 +152,9 @@ class RunRanker:
         judged = [(raw, ok) for raw, has, ok in picks if has]
         self._calibrator.fit([r for r, _ in judged], [ok for _, ok in judged])
         calibrated = self._calibrator.transform([raw for raw, _, _ in picks])
-        scored_picks = [ScoredPick(c, has, ok) for c, (_, has, ok) in zip(calibrated, picks,
-                                                                          strict=True)]
+        scored_picks = [
+            ScoredPick(c, has, ok) for c, (_, has, ok) in zip(calibrated, picks, strict=True)
+        ]
         curve = threshold_curve(scored_picks, gold, pairs, config.thresholds)
         best = best_threshold(curve)
         self._logger.info("ranker_threshold", threshold=best.threshold, f1=round(best.f1, 4))
@@ -145,8 +175,14 @@ class RunRanker:
                 confidences = {name: float(next(calibrated)) for name in scored.choices}
                 extraction = ranked_extraction(scored, confidences, threshold)
                 card = scored.item.card
-                observe(card, extraction, gold.get(card.sku_id, ()), context.required,
-                        context.segments, (plain, weighted))
+                observe(
+                    card,
+                    extraction,
+                    gold.get(card.sku_id, ()),
+                    context.required,
+                    context.segments,
+                    (plain, weighted),
+                )
                 predictions.append(prediction_of(card, extraction))
                 log.add(scored, confidences, baseline_picks(scored.item))
             self._sink.write(predictions, [])

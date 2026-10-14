@@ -33,12 +33,17 @@ class StandCatalog:
             lexicon = Lexicon(pack.profiles, (), pack.priors)
             required = RequiredAttributes(pack.required, lexicon)
             categories = tuple(
-                CategoryInfo(category_id=c.category_id, name=c.name, path=c.path,
-                             attributes=tuple(sorted(required.profiles(c.category_id))))
+                CategoryInfo(
+                    category_id=c.category_id,
+                    name=c.name,
+                    path=c.path,
+                    attributes=tuple(sorted(required.profiles(c.category_id))),
+                )
                 for c in sorted(pack.categories, key=lambda c: c.path)
             )
-            self._info = StandInfo(built_at=pack.built_at, threshold=pack.threshold,
-                                   categories=categories)
+            self._info = StandInfo(
+                built_at=pack.built_at, threshold=pack.threshold, categories=categories
+            )
         return self._info
 
     def examples(self) -> Sequence[StandExample]:

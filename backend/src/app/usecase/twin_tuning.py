@@ -24,17 +24,42 @@ class PairRecord:
 
     @classmethod
     def of(
-        cls, attribute: str, truth: str | None, pick: Pick | None, transfer: Transfer | None,
+        cls,
+        attribute: str,
+        truth: str | None,
+        pick: Pick | None,
+        transfer: Transfer | None,
         model: str | None,
     ) -> "PairRecord":
         stage_ok = pick is not None and truth is not None and pick.candidate.key == truth
         if transfer is None:
-            return cls(attribute, truth is not None, pick is not None, stage_ok, -1.0, False,
-                       False, False, truth or "", "", 0)
+            return cls(
+                attribute,
+                truth is not None,
+                pick is not None,
+                stage_ok,
+                -1.0,
+                False,
+                False,
+                False,
+                truth or "",
+                "",
+                0,
+            )
         false_twin = bool(model and transfer.twin_model and model != transfer.twin_model)
-        return cls(attribute, truth is not None, pick is not None, stage_ok, transfer.similarity,
-                   truth is not None and transfer.key == truth, transfer.exact, false_twin,
-                   truth or "", transfer.value, transfer.twin_sku)
+        return cls(
+            attribute,
+            truth is not None,
+            pick is not None,
+            stage_ok,
+            transfer.similarity,
+            truth is not None and transfer.key == truth,
+            transfer.exact,
+            false_twin,
+            truth or "",
+            transfer.value,
+            transfer.twin_sku,
+        )
 
 
 @dataclass(frozen=True, slots=True)
@@ -62,8 +87,12 @@ class TuningLog:
     def add(self, record: PairRecord, card: CardRecord) -> None:
         self.cards.setdefault(card.sku_id, []).append(len(self.pairs))
         self.pairs.append(record)
-        if record.similarity >= 0 and record.has_gold and not record.twin_ok \
-                and len(self.errors) < EXAMPLE_POOL:
+        if (
+            record.similarity >= 0
+            and record.has_gold
+            and not record.twin_ok
+            and len(self.errors) < EXAMPLE_POOL
+        ):
             self.errors.append(Example(card.sku_id, card.title or "", record))
 
     def summary(self, threshold: float) -> dict[str, object]:
@@ -71,11 +100,16 @@ class TuningLog:
         judged = [p for p in used if p.has_gold]
         exact = [p for p in judged if p.exact]
         inexact = [p for p in judged if not p.exact]
-        twin_cards = [ids for ids in self.cards.values()
-                      if any(self.pairs[i].similarity >= threshold for i in ids)]
-        false_cards = [ids for ids in twin_cards
-                       if any(self.pairs[i].similarity >= threshold and self.pairs[i].false_twin
-                              for i in ids)]
+        twin_cards = [
+            ids
+            for ids in self.cards.values()
+            if any(self.pairs[i].similarity >= threshold for i in ids)
+        ]
+        false_cards = [
+            ids
+            for ids in twin_cards
+            if any(self.pairs[i].similarity >= threshold and self.pairs[i].false_twin for i in ids)
+        ]
         return {
             "cards": len(self.cards),
             "pairs": len(self.pairs),
@@ -92,12 +126,23 @@ class TuningLog:
         }
 
     def examples(self, threshold: float, limit: int = 10) -> list[dict[str, object]]:
-        chosen = sorted((e for e in self.errors if e.record.similarity >= threshold),
-                        key=lambda e: (-e.record.similarity, e.sku_id))[:limit]
-        return [{"sku_id": e.sku_id, "title": e.title[:120], "attribute": e.record.attribute,
-                 "gold": e.record.truth, "twin_value": e.record.twin_value,
-                 "twin_sku": e.record.twin_sku, "similarity": round(e.record.similarity, 4),
-                 "exact": e.record.exact} for e in chosen]
+        chosen = sorted(
+            (e for e in self.errors if e.record.similarity >= threshold),
+            key=lambda e: (-e.record.similarity, e.sku_id),
+        )[:limit]
+        return [
+            {
+                "sku_id": e.sku_id,
+                "title": e.title[:120],
+                "attribute": e.record.attribute,
+                "gold": e.record.truth,
+                "twin_value": e.record.twin_value,
+                "twin_sku": e.record.twin_sku,
+                "similarity": round(e.record.similarity, 4),
+                "exact": e.record.exact,
+            }
+            for e in chosen
+        ]
 
 
 def _share(records: Sequence[PairRecord]) -> float:

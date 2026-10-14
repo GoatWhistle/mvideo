@@ -16,8 +16,9 @@ class ReviewQueue:
 
     async def list(self, status: ReviewStatus | None) -> list[ReviewItem]:
         items = await self._reviews.list(status)
-        return sorted(items, key=lambda i: (i.status is not ReviewStatus.PENDING, i.created_at),
-                      reverse=False)
+        return sorted(
+            items, key=lambda i: (i.status is not ReviewStatus.PENDING, i.created_at), reverse=False
+        )
 
     async def resolve(self, item_id: str, action: ReviewAction, value: str | None) -> ReviewItem:
         item = await self._reviews.get(item_id)

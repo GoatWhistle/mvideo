@@ -9,23 +9,34 @@ from app.usecase.twins import RunTwins, TwinConfig
 PHONE = 761
 ATTRS = ("Бренд", "Цвет", "Вес")
 GOLD = {
-    10: [GoldRecord("Бренд", "Samsung", None), GoldRecord("Вес", "190", "г"),
-         GoldRecord("Модель", "A55", None)],
-    11: [GoldRecord("Бренд", "Xiaomi", None), GoldRecord("Вес", "205", "г"),
-         GoldRecord("Модель", "Note 13", None)],
-    20: [GoldRecord("Бренд", "Samsung", None), GoldRecord("Вес", "190", "г"),
-         GoldRecord("Модель", "A55", None)],
+    10: [
+        GoldRecord("Бренд", "Samsung", None),
+        GoldRecord("Вес", "190", "г"),
+        GoldRecord("Модель", "A55", None),
+    ],
+    11: [
+        GoldRecord("Бренд", "Xiaomi", None),
+        GoldRecord("Вес", "205", "г"),
+        GoldRecord("Модель", "Note 13", None),
+    ],
+    20: [
+        GoldRecord("Бренд", "Samsung", None),
+        GoldRecord("Вес", "190", "г"),
+        GoldRecord("Модель", "A55", None),
+    ],
     30: [GoldRecord("Бренд", "Samsung", None), GoldRecord("Вес", "190", "г")],
     31: [GoldRecord("Бренд", "Xiaomi", None), GoldRecord("Вес", "999", "г")],
 }
 CARDS = {
-    "train": [CardRecord(10, PHONE, "ИП", "Смартфон Samsung Galaxy A55 8/256GB", "", (), "train"),
-              CardRecord(11, PHONE, "ИП", "Смартфон Xiaomi Redmi Note 13 8/256GB", "", (),
-                         "train")],
+    "train": [
+        CardRecord(10, PHONE, "ИП", "Смартфон Samsung Galaxy A55 8/256GB", "", (), "train"),
+        CardRecord(11, PHONE, "ИП", "Смартфон Xiaomi Redmi Note 13 8/256GB", "", (), "train"),
+    ],
     "val": [CardRecord(20, PHONE, "ИП", "Смартфон Samsung Galaxy A55 8/256GB", "", (), "val")],
     "test": [CardRecord(30, PHONE, "ИП", "Смартфон Samsung Galaxy A55 8/256GB", "", (), "test")],
-    "new_category": [CardRecord(31, PHONE, "ИП", "Смартфон Xiaomi Redmi Note 13 8/512GB", "", (),
-                                "new_category")],
+    "new_category": [
+        CardRecord(31, PHONE, "ИП", "Смартфон Xiaomi Redmi Note 13 8/512GB", "", (), "new_category")
+    ],
 }
 
 
@@ -53,8 +64,11 @@ class FakeSource:
         self, splits: frozenset[str], attributes: frozenset[str], modulo: int
     ) -> Mapping[int, Sequence[GoldRecord]]:
         wanted = {c.sku_id for s in splits for c in CARDS.get(s, [])}
-        return {sku: [g for g in gold if g.attribute in attributes]
-                for sku, gold in GOLD.items() if sku in wanted}
+        return {
+            sku: [g for g in gold if g.attribute in attributes]
+            for sku, gold in GOLD.items()
+            if sku in wanted
+        }
 
     def cards(self, splits: frozenset[str] | None, batch: int) -> Iterator[list[CardRecord]]:
         chosen = [c for s, cards in CARDS.items() if splits is None or s in splits for c in cards]
@@ -83,8 +97,10 @@ class FakeIndex:
         result = []
         for title in titles:
             words = set(title.split())
-            scored = [(i, len(words & set(t.split())) / len(words | set(t.split())))
-                      for i, t in enumerate(self.fitted)]
+            scored = [
+                (i, len(words & set(t.split())) / len(words | set(t.split())))
+                for i, t in enumerate(self.fitted)
+            ]
             result.append(sorted(scored, key=lambda x: -x[1])[:k])
         return result
 
@@ -125,7 +141,8 @@ class SilentLogger:
 def run() -> tuple[FakeIndex, MemorySink, Mapping[str, object], str]:
     index, sink, reports = FakeIndex(), MemorySink(), MemoryReports()
     report = RunTwins(FakeSource(), index, Identity(), sink, reports, SilentLogger()).run(
-        TwinConfig(k=5))
+        TwinConfig(k=5)
+    )
     return index, sink, report, reports.markdown
 
 

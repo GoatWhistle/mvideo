@@ -13,12 +13,20 @@ class AuditSource:
         yield from [TrainValue(1, "Цвет", "черный", None)] * 3
 
     def gold(self, splits: frozenset[str]) -> Mapping[int, Sequence[GoldRecord]]:
-        return {sku: [GoldRecord("Цвет", "белый", None), GoldRecord("Модель", "Phone X", None),
-                      GoldRecord("Материал", "металл", None)] for sku in (1, 2)}
+        return {
+            sku: [
+                GoldRecord("Цвет", "белый", None),
+                GoldRecord("Модель", "Phone X", None),
+                GoldRecord("Материал", "металл", None),
+            ]
+            for sku in (1, 2)
+        }
 
     def cards(self, splits: frozenset[str] | None, batch: int) -> Iterator[list[CardRecord]]:
-        yield [CardRecord(1, 1, None, "Phone X black", None, (), "train"),
-               CardRecord(2, 1, None, "Phone X black", None, (), "test")]
+        yield [
+            CardRecord(1, 1, None, "Phone X black", None, (), "train"),
+            CardRecord(2, 1, None, "Phone X black", None, (), "test"),
+        ]
 
 
 def test_audit_finds_cross_split_duplicates_and_reproducible_error_samples() -> None:

@@ -11,8 +11,9 @@ def test_calibration_summary_reports_overconfidence() -> None:
 
     assert summary["pairs"] == 10
     assert summary["ece"] == 0.85
-    assert summary["bins"] == [{"low": 0.9, "high": 1.0, "count": 10, "mean_confidence": 0.95,
-                                "accuracy": 0.1}]
+    assert summary["bins"] == [
+        {"low": 0.9, "high": 1.0, "count": 10, "mean_confidence": 0.95, "accuracy": 0.1}
+    ]
 
 
 def test_usage_uses_reported_cost_per_card() -> None:

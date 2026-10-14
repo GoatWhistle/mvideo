@@ -15,16 +15,19 @@ class SelectingModel:
 
     async def decide(self, request: DecisionRequest) -> Decision:
         self.calls += 1
-        answers = {name: ChoiceAnswer("c0", 0.95, {"c0": 0.95, "c1": 0.03, "none": 0.02})
-                   for name in request.questions}
+        answers = {
+            name: ChoiceAnswer("c0", 0.95, {"c0": 0.95, "c1": 0.03, "none": 0.02})
+            for name in request.questions
+        }
         return Decision(answers, Usage("test-model"))
 
     async def aclose(self) -> None: ...
 
 
 def test_sporadic_conflict_routes_automatically_and_reuses_validated_result() -> None:
-    lexicon = build_lexicon([TrainValue(1, "Цвет", color, None)
-                             for color in ("черный", "белый") for _ in range(3)])
+    lexicon = build_lexicon(
+        [TrainValue(1, "Цвет", color, None) for color in ("черный", "белый") for _ in range(3)]
+    )
     required = RequiredAttributes([RequiredRecord(1, "Цвет", 1)], lexicon)
     card = CardRecord(1, 1, None, "Черный смартфон", "Цвет: белый", (), None)
     initial = extract_card(card, required, lexicon, 0.35)
@@ -42,8 +45,9 @@ def test_sporadic_conflict_routes_automatically_and_reuses_validated_result() ->
 
 
 def test_offline_mode_keeps_conflict_for_review_without_a_model_call() -> None:
-    lexicon = build_lexicon([TrainValue(1, "Цвет", c, None)
-                             for c in ("черный", "белый") for _ in range(3)])
+    lexicon = build_lexicon(
+        [TrainValue(1, "Цвет", c, None) for c in ("черный", "белый") for _ in range(3)]
+    )
     required = RequiredAttributes([RequiredRecord(1, "Цвет", 1)], lexicon)
     card = CardRecord(1, 1, None, "Черный смартфон", "Цвет: белый", (), None)
     initial = extract_card(card, required, lexicon, 0.35)
@@ -60,16 +64,20 @@ def test_offline_mode_keeps_conflict_for_review_without_a_model_call() -> None:
 class InvalidModel(SelectingModel):
     async def decide(self, request: DecisionRequest) -> Decision:
         self.calls += 1
-        return Decision({name: ChoiceAnswer("invented", 1, {"invented": 1})
-                         for name in request.questions}, Usage("test-model"))
+        return Decision(
+            {name: ChoiceAnswer("invented", 1, {"invented": 1}) for name in request.questions},
+            Usage("test-model"),
+        )
 
 
 def test_invalid_decision_is_retried_once_and_never_becomes_a_value() -> None:
-    lexicon = build_lexicon([TrainValue(1, "Цвет", c, None)
-                             for c in ("черный", "белый") for _ in range(3)])
+    lexicon = build_lexicon(
+        [TrainValue(1, "Цвет", c, None) for c in ("черный", "белый") for _ in range(3)]
+    )
     required = RequiredAttributes([RequiredRecord(1, "Цвет", 1)], lexicon)
-    initial = extract_card(CardRecord(1, 1, None, "Черный смартфон", "Цвет: белый", (), None),
-                           required, lexicon, 0.35)
+    initial = extract_card(
+        CardRecord(1, 1, None, "Черный смартфон", "Цвет: белый", (), None), required, lexicon, 0.35
+    )
     model = InvalidModel()
 
     result = asyncio.run(ResolveCandidates(model, enabled=True).run(initial, 1, "test"))
@@ -88,11 +96,13 @@ class SlowModel(SelectingModel):
 
 
 def test_deadline_keeps_rule_result_and_does_not_cache_failure() -> None:
-    lexicon = build_lexicon([TrainValue(1, "Цвет", c, None)
-                             for c in ("черный", "белый") for _ in range(3)])
+    lexicon = build_lexicon(
+        [TrainValue(1, "Цвет", c, None) for c in ("черный", "белый") for _ in range(3)]
+    )
     required = RequiredAttributes([RequiredRecord(1, "Цвет", 1)], lexicon)
-    initial = extract_card(CardRecord(1, 1, None, "Черный смартфон", "Цвет: белый", (), None),
-                           required, lexicon, 0.35)
+    initial = extract_card(
+        CardRecord(1, 1, None, "Черный смартфон", "Цвет: белый", (), None), required, lexicon, 0.35
+    )
     model = SlowModel()
     resolver = ResolveCandidates(model, enabled=True, timeout_s=0.01)
     result = asyncio.run(resolver.run(initial, 1, "test"))
@@ -107,19 +117,25 @@ class RecheckingModel(SelectingModel):
     async def decide(self, request: DecisionRequest) -> Decision:
         if self.calls == 0:
             self.calls += 1
-            return Decision({name: ChoiceAnswer("none", 0.95,
-                {"c0": 0.03, "c1": 0.02, "none": 0.95}) for name in request.questions},
-                Usage("test-model"))
+            return Decision(
+                {
+                    name: ChoiceAnswer("none", 0.95, {"c0": 0.03, "c1": 0.02, "none": 0.95})
+                    for name in request.questions
+                },
+                Usage("test-model"),
+            )
         assert "recheck" in request.state
         return await super().decide(request)
 
 
 def test_unresolved_choice_gets_one_automatic_context_recheck() -> None:
-    lexicon = build_lexicon([TrainValue(1, "Цвет", c, None)
-                             for c in ("черный", "белый") for _ in range(3)])
+    lexicon = build_lexicon(
+        [TrainValue(1, "Цвет", c, None) for c in ("черный", "белый") for _ in range(3)]
+    )
     required = RequiredAttributes([RequiredRecord(1, "Цвет", 1)], lexicon)
-    initial = extract_card(CardRecord(1, 1, None, "Черный смартфон", "Цвет: белый", (), None),
-                           required, lexicon, 0.35)
+    initial = extract_card(
+        CardRecord(1, 1, None, "Черный смартфон", "Цвет: белый", (), None), required, lexicon, 0.35
+    )
     model = RecheckingModel()
     result = asyncio.run(ResolveCandidates(model, enabled=True).run(initial, 1, "test"))
     assert result.calls == 2
@@ -128,14 +144,18 @@ def test_unresolved_choice_gets_one_automatic_context_recheck() -> None:
 
 
 def test_cached_resolution_cannot_replace_a_newly_corrected_field() -> None:
-    lexicon = build_lexicon([TrainValue(1, "Цвет", c, None)
-                             for c in ("черный", "белый") for _ in range(3)]
-                            + [TrainValue(1, "Бренд", "Samsung", None)])
-    required = RequiredAttributes([RequiredRecord(1, "Цвет", 1),
-                                   RequiredRecord(1, "Бренд", 1)], lexicon)
+    lexicon = build_lexicon(
+        [TrainValue(1, "Цвет", c, None) for c in ("черный", "белый") for _ in range(3)]
+        + [TrainValue(1, "Бренд", "Samsung", None)]
+    )
+    required = RequiredAttributes(
+        [RequiredRecord(1, "Цвет", 1), RequiredRecord(1, "Бренд", 1)], lexicon
+    )
     initial = extract_card(
         CardRecord(1, 1, None, "Черный смартфон Samsung", "Цвет: белый", (), None),
-        required, lexicon, 0.35,
+        required,
+        lexicon,
+        0.35,
     )
     resolver = ResolveCandidates(SelectingModel(), enabled=True)
     asyncio.run(resolver.run(initial, 1, "test"))

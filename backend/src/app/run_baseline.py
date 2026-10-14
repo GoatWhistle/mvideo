@@ -18,17 +18,26 @@ def main(argv: list[str] | None = None) -> None:
     parser.add_argument("--data", type=Path, default=DEFAULT_DATA)
     parser.add_argument("--out", type=Path, default=DEFAULT_OUT)
     parser.add_argument("--reports", type=Path, default=DEFAULT_REPORTS)
-    parser.add_argument("--all-cards", action="store_true",
-                        help="predict every card with text instead of the evaluation splits")
-    parser.add_argument("--splits", default=",".join(sorted(EVAL_SPLITS)),
-                        help="comma-separated splits to predict and evaluate, e.g. val")
+    parser.add_argument(
+        "--all-cards",
+        action="store_true",
+        help="predict every card with text instead of the evaluation splits",
+    )
+    parser.add_argument(
+        "--splits",
+        default=",".join(sorted(EVAL_SPLITS)),
+        help="comma-separated splits to predict and evaluate, e.g. val",
+    )
     parser.add_argument("--no-candidates", action="store_true")
     parser.add_argument("--batch", type=int, default=2000)
     args = parser.parse_args(argv)
     configure()
     splits = frozenset(s.strip() for s in args.splits.split(",") if s.strip())
-    name = "baseline_v2_all" if args.all_cards else (
-        "baseline_v2" if splits == EVAL_SPLITS else "baseline_v2_" + "_".join(sorted(splits)))
+    name = (
+        "baseline_v2_all"
+        if args.all_cards
+        else ("baseline_v2" if splits == EVAL_SPLITS else "baseline_v2_" + "_".join(sorted(splits)))
+    )
     config = BaselineConfig(
         splits=None if args.all_cards else splits,
         evaluate=not args.all_cards,
@@ -44,8 +53,13 @@ def main(argv: list[str] | None = None) -> None:
     peak_mb = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss // 1024
     groups = report.get("groups", {})
     summary = groups.get("all", {}) if isinstance(groups, dict) else {}
-    print(json.dumps({"cards": report["cards"], "all": summary, "peak_rss_mb": peak_mb},
-                     ensure_ascii=False, indent=2))
+    print(
+        json.dumps(
+            {"cards": report["cards"], "all": summary, "peak_rss_mb": peak_mb},
+            ensure_ascii=False,
+            indent=2,
+        )
+    )
 
 
 if __name__ == "__main__":

@@ -68,9 +68,7 @@ class Lexicon:
     def display(self, attribute: str, key: str) -> str | None:
         return self._display.get((attribute, key))
 
-    def matches(
-        self, tokens: Sequence[Token], attributes: frozenset[str]
-    ) -> Iterator[EntryMatch]:
+    def matches(self, tokens: Sequence[Token], attributes: frozenset[str]) -> Iterator[EntryMatch]:
         normalized = [match_token(t.text) for t in tokens]
         for i, first in enumerate(normalized):
             for entry in self._index.get(first, ()):

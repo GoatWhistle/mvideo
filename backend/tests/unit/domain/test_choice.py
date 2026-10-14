@@ -13,15 +13,17 @@ from app.domain.choice_text import compact_state, locate_stems
 from app.domain.decision import ChoiceAnswer
 from app.domain.profile import AttributeProfile, Kind
 
-CARD = build_card_text("Смартфон Samsung Galaxy A55 черный",
-                       "Экран 6,6 дюйма. Пылесос не входит. Материал корпуса: пластик", ())
+CARD = build_card_text(
+    "Смартфон Samsung Galaxy A55 черный",
+    "Экран 6,6 дюйма. Пылесос не входит. Материал корпуса: пластик",
+    (),
+)
 COLOR = AttributeProfile("Цвет", Kind.CATEGORICAL, "", ("цвет",))
 
 
 def candidate(key: str, start: int, source: str = "dictionary", zone: str = "title") -> Candidate:
     end = start + len(key)
-    return Candidate("Цвет", key, key, CARD.span(start, end), start, end, source, zone, 0.0, 0.0,
-                     0)
+    return Candidate("Цвет", key, key, CARD.span(start, end), start, end, source, zone, 0.0, 0.0, 0)
 
 
 def answer(choice: str, probability: float) -> ChoiceAnswer:
@@ -30,8 +32,9 @@ def answer(choice: str, probability: float) -> ChoiceAnswer:
 
 def test_candidate_slot_dedupes_keys_and_adds_not_stated() -> None:
     start = CARD.text.index("черный")
-    slot = candidate_slot("Цвет", "q0", [candidate("черный", start), candidate("черный", start)],
-                          COLOR, top_k=5)
+    slot = candidate_slot(
+        "Цвет", "q0", [candidate("черный", start), candidate("черный", start)], COLOR, top_k=5
+    )
 
     assert slot is not None
     question = slot.question()
@@ -74,8 +77,16 @@ def test_dictionary_option_needs_text_support() -> None:
 
 def test_mixed_slot_appends_unseen_dictionary_values() -> None:
     start = CARD.text.index("черный")
-    slot = mixed_slot("Цвет", "q0", [candidate("черный", start)], COLOR, 5,
-                      {"черный": 9.0, "серый": 2.0}, {}, extra_k=3)
+    slot = mixed_slot(
+        "Цвет",
+        "q0",
+        [candidate("черный", start)],
+        COLOR,
+        5,
+        {"черный": 9.0, "серый": 2.0},
+        {},
+        extra_k=3,
+    )
 
     assert slot is not None
     assert [o.name for o in slot.options] == ["черный", "серый"]

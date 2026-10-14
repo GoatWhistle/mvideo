@@ -12,14 +12,18 @@ from app.usecase.catalog_contract import CatalogConfiguration
 
 
 def load_configuration(path: Path | None = None) -> CatalogConfiguration:
-    raw = path.read_text() if path else files("app").joinpath("assets/demo-catalog.json").read_text()
+    raw = (
+        path.read_text() if path else files("app").joinpath("assets/demo-catalog.json").read_text()
+    )
     return parse_configuration(raw)
 
 
 def parse_configuration(raw: str) -> CatalogConfiguration:
     payload = json.loads(raw)
-    categories = tuple(CategoryOption(int(c["id"]), str(c["name"]), tuple(c["keywords"]))
-                       for c in payload["categories"])
+    categories = tuple(
+        CategoryOption(int(c["id"]), str(c["name"]), tuple(c["keywords"]))
+        for c in payload["categories"]
+    )
     profiles = {}
     entries = []
     required = []
@@ -36,6 +40,10 @@ def parse_configuration(raw: str) -> CatalogConfiguration:
         for category in attribute["categories"]:
             required.append(RequiredRecord(int(category), name, 1))
     lexicon = Lexicon(profiles, entries, {})
-    return CatalogConfiguration(categories, tuple(required), lexicon,
-                                hashlib.sha256(raw.encode()).hexdigest()[:16],
-                                bool(payload["synthetic"]))
+    return CatalogConfiguration(
+        categories,
+        tuple(required),
+        lexicon,
+        hashlib.sha256(raw.encode()).hexdigest()[:16],
+        bool(payload["synthetic"]),
+    )

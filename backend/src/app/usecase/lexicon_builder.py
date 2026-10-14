@@ -39,8 +39,11 @@ def build_lexicon(rows: Iterable[TrainValue], config: LexiconConfig | None = Non
             keys[canonical_key(value, unit, profile.numeric)] += count
         total = sum(keys.values())
         priors[(category, attribute)] = {k: round(c / total, 6) for k, c in keys.items()}
-    entries = [e for name, profile in profiles.items()
-               for e in attribute_entries(profile, values[name], config)]
+    entries = [
+        e
+        for name, profile in profiles.items()
+        for e in attribute_entries(profile, values[name], config)
+    ]
     return Lexicon(profiles, entries, priors)
 
 

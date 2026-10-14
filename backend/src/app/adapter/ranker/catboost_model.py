@@ -15,8 +15,13 @@ SEED = 42
 class CatBoostScoreModel:
     def __init__(self, iterations: int = ITERATIONS, threads: int = -1) -> None:
         self._model = CatBoostClassifier(
-            iterations=iterations, depth=DEPTH, learning_rate=LEARNING_RATE,
-            loss_function="Logloss", random_seed=SEED, thread_count=threads, verbose=False,
+            iterations=iterations,
+            depth=DEPTH,
+            learning_rate=LEARNING_RATE,
+            loss_function="Logloss",
+            random_seed=SEED,
+            thread_count=threads,
+            verbose=False,
             allow_writing_files=False,
         )
         self._names: list[str] = []
@@ -43,5 +48,6 @@ class CatBoostScoreModel:
 
     def importances(self) -> Mapping[str, float]:
         values = self._model.get_feature_importance()
-        return {name: float(v) for name, v in zip(self._names + self._categorical, values,
-                                                  strict=True)}
+        return {
+            name: float(v) for name, v in zip(self._names + self._categorical, values, strict=True)
+        }

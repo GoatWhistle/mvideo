@@ -71,7 +71,9 @@ class Counts:
             "recall": round(recall, 4),
             "f1": round(f1, 4),
             "ceiling": round(self.reachable / self.gold, 4) if self.gold else 0.0,
-            "recall_in_text": round(self.tp_reachable / self.reachable, 4) if self.reachable else 0.0,
+            "recall_in_text": round(self.tp_reachable / self.reachable, 4)
+            if self.reachable
+            else 0.0,
             "coverage_before": round(self.seller_filled / self.pairs, 4) if self.pairs else 0.0,
             "coverage_after": round(self.predicted / self.pairs, 4) if self.pairs else 0.0,
             "gold_coverage": round(self.gold / self.pairs, 4) if self.pairs else 0.0,
@@ -101,8 +103,11 @@ class MetricsBook:
         return total.summary()
 
     def macro_f1(self, group: str) -> float:
-        scores = [c.summary()["f1"] for c in self.groups.get(group, {}).values()
-                  if c.gold >= MACRO_MIN_GOLD or (self.weighted and c.gold > 0)]
+        scores = [
+            c.summary()["f1"]
+            for c in self.groups.get(group, {}).values()
+            if c.gold >= MACRO_MIN_GOLD or (self.weighted and c.gold > 0)
+        ]
         return round(sum(scores) / len(scores), 4) if scores else 0.0
 
     def attributes(self, group: str) -> dict[str, dict[str, float]]:
@@ -111,9 +116,7 @@ class MetricsBook:
         return {name: counts.summary() for name, counts in ranked}
 
 
-def value_in_text(
-    card: CardText, value: str, unit: str | None, profile: AttributeProfile
-) -> bool:
+def value_in_text(card: CardText, value: str, unit: str | None, profile: AttributeProfile) -> bool:
     if profile.numeric:
         target = canonical_key(value, unit or profile.unit, True)
         profiles = {profile.name: profile}
@@ -124,4 +127,4 @@ def value_in_text(
         return False
     normalized = [match_token(t.text) for t in card.tokens]
     size = len(wanted)
-    return any(tuple(normalized[i:i + size]) == wanted for i in range(len(normalized) - size + 1))
+    return any(tuple(normalized[i : i + size]) == wanted for i in range(len(normalized) - size + 1))

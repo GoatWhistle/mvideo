@@ -24,14 +24,30 @@ PROFILES = {
 
 def cand(attribute: str, value: str) -> Candidate:
     start = TEXT.text.index(value)
-    return Candidate(attribute, value.lower(), value, value, start, start + len(value),
-                     "dictionary", TEXT.zone(start), 0.0, 0.0, 0)
+    return Candidate(
+        attribute,
+        value.lower(),
+        value,
+        value,
+        start,
+        start + len(value),
+        "dictionary",
+        TEXT.zone(start),
+        0.0,
+        0.0,
+        0,
+    )
 
 
 BRAND = cand("Бренд", "Samsung")
 SERIES = [cand("Серия", "Galaxy A55"), cand("Серия", "Galaxy A")]
-BASE = CardExtraction(TEXT, PROFILES, (BRAND, *SERIES), {"Бренд": Pick(BRAND, 0.5, ("d",))},
-                      {"Серия": Pick(SERIES[0], 0.2, ("d",))})
+BASE = CardExtraction(
+    TEXT,
+    PROFILES,
+    (BRAND, *SERIES),
+    {"Бренд": Pick(BRAND, 0.5, ("d",))},
+    {"Серия": Pick(SERIES[0], 0.2, ("d",))},
+)
 
 
 @pytest.fixture
@@ -52,8 +68,9 @@ class FakeModel:
             assert isinstance(question, ChoiceQuestion)
             names = list(question.options)
             choice = NOT_STATED if self.not_stated else names[-2 if self.pick_last else 0]
-            answers[key] = ChoiceAnswer(choice, 0.9, {n: (0.9 if n == choice else 0.0)
-                                                      for n in names})
+            answers[key] = ChoiceAnswer(
+                choice, 0.9, {n: (0.9 if n == choice else 0.0) for n in names}
+            )
         return Decision(answers, Usage("jev", 10, 100, 5, 0.00001))
 
     async def aclose(self) -> None:

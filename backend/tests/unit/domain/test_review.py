@@ -17,10 +17,21 @@ NOW = datetime(2026, 10, 14, tzinfo=UTC)
 
 
 def item() -> ReviewItem:
-    return ReviewItem(id="1", card_key="k", category_id=761, title="t", attribute="Цвет",
-                      value="алый", confidence=0.2, source="dictionary", evidence="Алый",
-                      status=ReviewStatus.PENDING, resolved_value=None, created_at=NOW,
-                      resolved_at=None)
+    return ReviewItem(
+        id="1",
+        card_key="k",
+        category_id=761,
+        title="t",
+        attribute="Цвет",
+        value="алый",
+        confidence=0.2,
+        source="dictionary",
+        evidence="Алый",
+        status=ReviewStatus.PENDING,
+        resolved_value=None,
+        created_at=NOW,
+        resolved_at=None,
+    )
 
 
 def test_accept_keeps_value_and_records_alias() -> None:

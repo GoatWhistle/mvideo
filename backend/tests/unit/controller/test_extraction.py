@@ -8,9 +8,12 @@ from app.settings import Settings
 
 def test_stream_extracts_without_a_key_and_preserves_quotes() -> None:
     with TestClient(create_app(Settings())) as client:
-        response = client.post('/api/v1/extract/stream', json={
-            "text": "Смартфон Samsung Galaxy S26 Black\nВес: 500 г",
-        })
+        response = client.post(
+            "/api/v1/extract/stream",
+            json={
+                "text": "Смартфон Samsung Galaxy S26 Black\nВес: 500 г",
+            },
+        )
     assert response.status_code == 200
     events = [json.loads(line) for line in response.text.splitlines()]
     assert [e["stage"] for e in events] == ["category", "rules", "complete"]
@@ -22,6 +25,6 @@ def test_stream_extracts_without_a_key_and_preserves_quotes() -> None:
 
 def test_empty_card_is_rejected_before_streaming() -> None:
     with TestClient(create_app(Settings())) as client:
-        response = client.post('/api/v1/extract/stream', json={"text": "   "})
+        response = client.post("/api/v1/extract/stream", json={"text": "   "})
     assert response.status_code == 422
     assert response.json()["code"] == "validation_error"

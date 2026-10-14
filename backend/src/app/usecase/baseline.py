@@ -101,15 +101,26 @@ class RunBaseline:
                 predictions.append(prediction_of(card, extraction))
                 rows.extend(candidate_rows(card, extraction))
                 if config.evaluate:
-                    observe(card, extraction, gold.get(card.sku_id, ()), required, segments,
-                            (plain, weighted))
+                    observe(
+                        card,
+                        extraction,
+                        gold.get(card.sku_id, ()),
+                        required,
+                        segments,
+                        (plain, weighted),
+                    )
             self._sink.write(predictions, rows)
             cards += len(batch)
             self._logger.info("batch_done", cards=cards)
         self._sink.close()
         elapsed = round(time.monotonic() - started, 1)
-        report = build_report(plain, weighted, cards=cards, lexicon_entries=lexicon.size,
-                              attributes=len(lexicon.profiles))
+        report = build_report(
+            plain,
+            weighted,
+            cards=cards,
+            lexicon_entries=lexicon.size,
+            attributes=len(lexicon.profiles),
+        )
         if config.evaluate:
             self._reports.write(report, render_markdown(report))
         self._logger.info("baseline_done", cards=cards, seconds=elapsed)
@@ -117,8 +128,12 @@ class RunBaseline:
 
 
 def observe(
-    card: CardRecord, extraction: CardExtraction, gold: Sequence[GoldRecord],
-    required: RequiredAttributes, segments: Segments, books: tuple[MetricsBook, MetricsBook],
+    card: CardRecord,
+    extraction: CardExtraction,
+    gold: Sequence[GoldRecord],
+    required: RequiredAttributes,
+    segments: Segments,
+    books: tuple[MetricsBook, MetricsBook],
 ) -> None:
     by_attribute = {g.attribute: g for g in gold}
     seller_names = [p.name for p in card.seller_params]
@@ -133,15 +148,26 @@ def observe(
         if truth is not None:
             expected = canonical_key(truth.value, truth.unit or profile.unit, profile.numeric)
             correct = pick is not None and pick.candidate.key == expected
-            candidate_found = any(c.attribute == name and c.key == expected
-                                  for c in extraction.candidates)
+            candidate_found = any(
+                c.attribute == name and c.key == expected for c in extraction.candidates
+            )
             reachable = value_in_text(extraction.text, truth.value, truth.unit, profile)
-        filled = any(name in best_attributes(extraction.profiles, s, MIN_AFFINITY)
-                     for s in seller_names)
+        filled = any(
+            name in best_attributes(extraction.profiles, s, MIN_AFFINITY) for s in seller_names
+        )
         weight = segments.pair_weight(card.category_id, weights.get(name, 1.0))
-        observation = Observation(name, truth is not None, pick is not None, correct, reachable,
-                                  filled, weight, candidate_found, name in extraction.review,
-                                  profile.kind is not Kind.UNSUPPORTED)
+        observation = Observation(
+            name,
+            truth is not None,
+            pick is not None,
+            correct,
+            reachable,
+            filled,
+            weight,
+            candidate_found,
+            name in extraction.review,
+            profile.kind is not Kind.UNSUPPORTED,
+        )
         for book in books:
             book.add(groups, observation)
 

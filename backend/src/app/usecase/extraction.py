@@ -55,8 +55,10 @@ class RequiredAttributes:
 
     def profiles(self, category: int | None) -> dict[str, AttributeProfile]:
         known = self._lexicon.profiles
-        return {a: known.get(a, AttributeProfile(a, Kind.UNSUPPORTED, "", name_keywords(a)))
-                for a in self.weights(category)}
+        return {
+            a: known.get(a, AttributeProfile(a, Kind.UNSUPPORTED, "", name_keywords(a)))
+            for a in self.weights(category)
+        }
 
 
 def extract_card(
@@ -67,34 +69,66 @@ def extract_card(
     candidates = tuple(extract_candidates(text, profiles, lexicon, card.category_id))
     picks = pick_values(candidates, profiles)
     ambiguous = conflicts(candidates)
-    accepted = {n: p for n, p in picks.items()
-                if p.confidence >= min_confidence and n not in ambiguous
-                and (profiles[n].kind is not Kind.CATEGORICAL
-                     or lexicon.display(n, p.candidate.key) is not None)}
+    accepted = {
+        n: p
+        for n, p in picks.items()
+        if p.confidence >= min_confidence
+        and n not in ambiguous
+        and (
+            profiles[n].kind is not Kind.CATEGORICAL
+            or lexicon.display(n, p.candidate.key) is not None
+        )
+    }
     review = {n: p for n, p in picks.items() if n not in accepted}
     return CardExtraction(text, profiles, candidates, accepted, review)
 
 
 def _values(picks: Mapping[str, Pick]) -> tuple[PredictedValue, ...]:
     return tuple(
-        PredictedValue(name, p.candidate.value, p.confidence, p.candidate.source, p.sources,
-                       p.candidate.evidence, p.candidate.start, p.candidate.end)
+        PredictedValue(
+            name,
+            p.candidate.value,
+            p.confidence,
+            p.candidate.source,
+            p.sources,
+            p.candidate.evidence,
+            p.candidate.start,
+            p.candidate.end,
+        )
         for name, p in sorted(picks.items())
     )
 
 
 def prediction_of(card: CardRecord, extraction: CardExtraction) -> CardPrediction:
-    return CardPrediction(card.sku_id, card.category_id, card.split, _values(extraction.picks),
-                          _values(extraction.review))
+    return CardPrediction(
+        card.sku_id,
+        card.category_id,
+        card.split,
+        _values(extraction.picks),
+        _values(extraction.review),
+    )
 
 
 def candidate_rows(card: CardRecord, extraction: CardExtraction) -> list[CandidateRow]:
     picked = [*extraction.picks.items(), *extraction.review.items()]
     chosen = {(n, p.candidate.key) for n, p in picked}
     return [
-        CandidateRow(card.sku_id, c.attribute, c.key, c.value, c.evidence, c.start, c.end,
-                     c.source, c.zone, round(c.affinity, 4), c.prior, c.seller_fit, c.slot,
-                     round(candidate_score(c, extraction.profiles[c.attribute]), 4),
-                     (c.attribute, c.key) in chosen)
+        CandidateRow(
+            card.sku_id,
+            c.attribute,
+            c.key,
+            c.value,
+            c.evidence,
+            c.start,
+            c.end,
+            c.source,
+            c.zone,
+            round(c.affinity, 4),
+            c.prior,
+            c.seller_fit,
+            c.slot,
+            round(candidate_score(c, extraction.profiles[c.attribute]), 4),
+            (c.attribute, c.key) in chosen,
+        )
         for c in extraction.candidates
     ]

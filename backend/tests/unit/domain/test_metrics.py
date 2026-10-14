@@ -9,8 +9,12 @@ def obs(has_gold: bool, predicted: bool, correct: bool, reachable: bool = True) 
 
 def test_precision_recall_f1_on_tiny_example() -> None:
     book = MetricsBook(weighted=False)
-    for o in [obs(True, True, True), obs(True, True, False), obs(True, False, False, False),
-              obs(False, True, False)]:
+    for o in [
+        obs(True, True, True),
+        obs(True, True, False),
+        obs(True, False, False, False),
+        obs(False, True, False),
+    ]:
         book.add(["all"], o)
     micro = book.micro("all")
     assert micro["precision"] == 0.5
@@ -31,6 +35,5 @@ def test_weighted_book_uses_weights() -> None:
 
 def test_numeric_text_match_needs_the_attribute_and_compatible_unit() -> None:
     profile = AttributeProfile("Вес", Kind.NUMERIC, "кг", name_keywords("Вес"))
-    assert not value_in_text(build_card_text("Накопитель 500 ГБ", None, ()), "500 г", None,
-                             profile)
+    assert not value_in_text(build_card_text("Накопитель 500 ГБ", None, ()), "500 г", None, profile)
     assert value_in_text(build_card_text("Вес: 500 г", None, ()), "0.5 кг", None, profile)

@@ -25,10 +25,16 @@ from app.usecase.extraction import CardExtraction
 from app.usecase.interface import DecisionModel
 
 DECISION_SOURCE = "decision"
-WEAK_ATTRIBUTES = frozenset({
-    "Процессор", "Поддержка стандартов", "Серия", "Производитель видеопроцессора",
-    "Емкость аккумулятора", "Диагональ",
-})
+WEAK_ATTRIBUTES = frozenset(
+    {
+        "Процессор",
+        "Поддержка стандартов",
+        "Серия",
+        "Производитель видеопроцессора",
+        "Емкость аккумулятора",
+        "Диагональ",
+    }
+)
 WEAK_PAIRS = frozenset({(987, "Цвет")})
 PROTECTED = frozenset({"Бренд", "Модель"})
 DICTIONARY_KINDS = frozenset({Kind.CATEGORICAL, Kind.BOOLEAN})
@@ -70,8 +76,13 @@ def baseline_picks(base: CardExtraction) -> dict[str, Pick]:
     return {**base.review, **base.picks}
 
 
-def merge(base: CardExtraction, result: StageResult | None, override: float,
-          min_confidence: float, drop: float | None = None) -> CardExtraction:
+def merge(
+    base: CardExtraction,
+    result: StageResult | None,
+    override: float,
+    min_confidence: float,
+    drop: float | None = None,
+) -> CardExtraction:
     picks = baseline_picks(base)
     if result is not None:
         if drop is not None:
@@ -80,8 +91,11 @@ def merge(base: CardExtraction, result: StageResult | None, override: float,
                     picks.pop(name, None)
         for name, chosen in result.chosen.items():
             if chosen.candidate is not None and chosen.probability >= override:
-                picks[name] = Pick(chosen.candidate, chosen.probability,
-                                   tuple(sorted({chosen.candidate.source, DECISION_SOURCE})))
+                picks[name] = Pick(
+                    chosen.candidate,
+                    chosen.probability,
+                    tuple(sorted({chosen.candidate.source, DECISION_SOURCE})),
+                )
     accepted = {n: p for n, p in picks.items() if p.confidence >= min_confidence}
     review = {n: p for n, p in picks.items() if p.confidence < min_confidence}
     return CardExtraction(base.text, base.profiles, base.candidates, accepted, review)
@@ -89,8 +103,12 @@ def merge(base: CardExtraction, result: StageResult | None, override: float,
 
 class ChooseValues:
     def __init__(
-        self, model: DecisionModel, lexicon: Lexicon, config: StageConfig,
-        cache: DecisionCache | None = None, categories: CategoryTree | None = None,
+        self,
+        model: DecisionModel,
+        lexicon: Lexicon,
+        config: StageConfig,
+        cache: DecisionCache | None = None,
+        categories: CategoryTree | None = None,
     ) -> None:
         self._model = model
         self._lexicon = lexicon
@@ -127,8 +145,16 @@ class ChooseValues:
             if found and mixable:
                 values = self.fallback_values(card.category_id, name)
                 display = {k: self._lexicon.display(name, k) or k for k in values}
-                slot = mixed_slot(name, key, found, profile, self._config.top_k, values, display,
-                                  self._config.mix_k)
+                slot = mixed_slot(
+                    name,
+                    key,
+                    found,
+                    profile,
+                    self._config.top_k,
+                    values,
+                    display,
+                    self._config.mix_k,
+                )
             elif found:
                 slot = candidate_slot(name, key, found, profile, self._config.top_k)
             elif profile.kind not in DICTIONARY_KINDS:
@@ -136,8 +162,9 @@ class ChooseValues:
             else:
                 values = self.fallback_values(card.category_id, name)
                 display = {k: self._lexicon.display(name, k) or k for k in values}
-                slot = dictionary_slot(name, key, values, display, self._config.dictionary_k,
-                                       profile.unit)
+                slot = dictionary_slot(
+                    name, key, values, display, self._config.dictionary_k, profile.unit
+                )
             if slot is not None:
                 slots.append(slot)
         return slots
@@ -179,7 +206,8 @@ class ChooseValues:
         state = compact_state(base.text, category, _spans(slots))
         request = build_request(state, slots)
         decision, cached = await self.decide(
-            request_fingerprint(request, self._config.model_name), request)
+            request_fingerprint(request, self._config.model_name), request
+        )
         chosen: dict[str, Chosen] = {}
         not_stated: dict[str, float] = {}
         for slot in slots:
@@ -196,5 +224,9 @@ class ChooseValues:
 
 
 def _spans(slots: Sequence[ChoiceSlot]) -> list[tuple[int, int]]:
-    return [(o.candidate.start, o.candidate.end) for s in slots for o in s.options
-            if o.candidate is not None and o.candidate.start >= 0]
+    return [
+        (o.candidate.start, o.candidate.end)
+        for s in slots
+        for o in s.options
+        if o.candidate is not None and o.candidate.start >= 0
+    ]

@@ -33,8 +33,10 @@ class ParquetTwinSource(ParquetRankerSource):
         wanted = pa.array(sorted(attributes), type=pa.string())
         gold = pq.ParquetFile(self._dir / "gold.parquet")
         for batch in gold.iter_batches(batch_size=GOLD_BATCH):
-            mask = pc.and_(pc.is_in(batch.column(0), value_set=skus),
-                           pc.is_in(batch.column(1), value_set=wanted))
+            mask = pc.and_(
+                pc.is_in(batch.column(0), value_set=skus),
+                pc.is_in(batch.column(1), value_set=wanted),
+            )
             kept = batch.filter(mask)
             if kept.num_rows:
                 yield list(zip(*(kept.column(i).to_pylist() for i in range(4)), strict=True))

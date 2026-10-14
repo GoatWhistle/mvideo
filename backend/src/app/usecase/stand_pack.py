@@ -37,8 +37,9 @@ class Counts:
 
 
 class BuildStandPack:
-    def __init__(self, source: BaselineSource, names: CategoryNames, sink: StandPackSink,
-                 logger: Logger) -> None:
+    def __init__(
+        self, source: BaselineSource, names: CategoryNames, sink: StandPackSink, logger: Logger
+    ) -> None:
         self._source = source
         self._names = names
         self._sink = sink
@@ -52,25 +53,45 @@ class BuildStandPack:
         attributes |= {a for c in FOCUS for a in TZ_REQUIRED.get(c, ())}
         counts = count_values(self._source.train_values(frozenset(attributes)), chosen)
         profiles = {n: profile_attribute(n, c) for n, c in counts.values.items()}
-        entries = [e for n, p in profiles.items()
-                   for e in attribute_entries(p, counts.values[n], LexiconConfig())]
+        entries = [
+            e
+            for n, p in profiles.items()
+            for e in attribute_entries(p, counts.values[n], LexiconConfig())
+        ]
         priors = category_priors(counts, profiles)
         self._logger.info("stand_lexicon", attributes=len(profiles), entries=len(entries))
         lexicon = Lexicon(profiles, entries, priors)
         examples = self._examples(RequiredAttributes(required, lexicon), lexicon, chosen, config)
         names = self._names.names()
-        categories = [StandCategory(category_id=c, name=names.get(c, ("", ""))[0],
-                                    path=names.get(c, ("", ""))[1]) for c in sorted(chosen)]
-        pack = StandPack(built_at=now.isoformat(timespec="seconds"), threshold=config.threshold,
-                         profiles=profiles, entries=entries, priors=priors, required=required,
-                         categories=categories, examples=examples)
+        categories = [
+            StandCategory(
+                category_id=c, name=names.get(c, ("", ""))[0], path=names.get(c, ("", ""))[1]
+            )
+            for c in sorted(chosen)
+        ]
+        pack = StandPack(
+            built_at=now.isoformat(timespec="seconds"),
+            threshold=config.threshold,
+            profiles=profiles,
+            entries=entries,
+            priors=priors,
+            required=required,
+            categories=categories,
+            examples=examples,
+        )
         size = self._sink.save(pack)
-        self._logger.info("stand_pack_saved", bytes=size, examples=len(examples),
-                          categories=len(categories))
+        self._logger.info(
+            "stand_pack_saved", bytes=size, examples=len(examples), categories=len(categories)
+        )
         return size
 
-    def _examples(self, required: RequiredAttributes, lexicon: Lexicon, chosen: frozenset[int],
-                  config: StandPackConfig) -> list[StandExample]:
+    def _examples(
+        self,
+        required: RequiredAttributes,
+        lexicon: Lexicon,
+        chosen: frozenset[int],
+        config: StandPackConfig,
+    ) -> list[StandExample]:
         quota = {c: config.focus_examples if c in FOCUS else config.other_examples for c in chosen}
         picked: list[StandExample] = []
         for batch in self._source.cards(frozenset({"test"}), 2000):
@@ -86,8 +107,9 @@ class BuildStandPack:
         return picked[: config.max_examples]
 
 
-def choose_categories(records: Sequence[RequiredRecord], stats: Mapping[int, tuple[int, int]],
-                      limit: int) -> frozenset[int]:
+def choose_categories(
+    records: Sequence[RequiredRecord], stats: Mapping[int, tuple[int, int]], limit: int
+) -> frozenset[int]:
     known = {r.category_id for r in records}
     ranked = sorted(known, key=lambda c: -stats.get(c, (0, 0))[0])
     return frozenset(ranked[:limit]) | (frozenset(FOCUS) & known)
@@ -104,8 +126,9 @@ def count_values(rows: Iterable[TrainValue], chosen: frozenset[int]) -> Counts:
     return Counts(dict(values), dict(per_category))
 
 
-def category_priors(counts: Counts, profiles: Mapping[str, AttributeProfile]
-                    ) -> dict[tuple[int, str], dict[str, float]]:
+def category_priors(
+    counts: Counts, profiles: Mapping[str, AttributeProfile]
+) -> dict[tuple[int, str], dict[str, float]]:
     priors: dict[tuple[int, str], dict[str, float]] = {}
     for (category, attribute), counter in counts.per_category.items():
         numeric = profiles[attribute].numeric
@@ -118,12 +141,19 @@ def category_priors(counts: Counts, profiles: Mapping[str, AttributeProfile]
 
 
 def wanted(card: CardRecord, quota: Mapping[int, int], config: StandPackConfig) -> bool:
-    return (card.category_id is not None and quota.get(card.category_id, 0) > 0
-            and bool(card.title) and len(card.description or "") >= config.min_description)
+    return (
+        card.category_id is not None
+        and quota.get(card.category_id, 0) > 0
+        and bool(card.title)
+        and len(card.description or "") >= config.min_description
+    )
 
 
 def example_of(card: CardRecord) -> StandExample:
-    return StandExample(sku_id=card.sku_id, category_id=card.category_id or 0,
-                        title=card.title or "", description=card.description or "",
-                        seller_params=card.seller_params)
-
+    return StandExample(
+        sku_id=card.sku_id,
+        category_id=card.category_id or 0,
+        title=card.title or "",
+        description=card.description or "",
+        seller_params=card.seller_params,
+    )

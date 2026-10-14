@@ -11,9 +11,12 @@ class MemoryReviewRepository:
     async def upsert_pending(self, item: ReviewItem) -> ReviewItem:
         async with self._lock:
             for existing in self._items.values():
-                if (existing.status is ReviewStatus.PENDING and existing.card_key == item.card_key
-                        and existing.attribute == item.attribute
-                        and existing.evidence == item.evidence):
+                if (
+                    existing.status is ReviewStatus.PENDING
+                    and existing.card_key == item.card_key
+                    and existing.attribute == item.attribute
+                    and existing.evidence == item.evidence
+                ):
                     return existing
             self._items[item.id] = item
             return item
@@ -36,8 +39,11 @@ class MemoryAliasRepository:
 
     async def add(self, alias: Alias) -> None:
         async with self._lock:
-            self._aliases = [a for a in self._aliases
-                             if (a.attribute, a.evidence) != (alias.attribute, alias.evidence)]
+            self._aliases = [
+                a
+                for a in self._aliases
+                if (a.attribute, a.evidence) != (alias.attribute, alias.evidence)
+            ]
             self._aliases.append(alias)
 
     async def all(self) -> list[Alias]:

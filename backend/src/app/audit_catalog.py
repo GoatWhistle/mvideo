@@ -19,7 +19,9 @@ def fingerprint(path: Path) -> str:
 
 
 def main(argv: list[str] | None = None) -> None:
-    parser = argparse.ArgumentParser(description="Audit split overlap and label discrepancies offline")
+    parser = argparse.ArgumentParser(
+        description="Audit split overlap and label discrepancies offline"
+    )
     parser.add_argument("--data", type=Path, default=Path("../data/processed"))
     parser.add_argument("--out", type=Path, default=Path("../reports/catalog-audit.json"))
     parser.add_argument("--seed", type=int, default=42)
@@ -28,7 +30,9 @@ def main(argv: list[str] | None = None) -> None:
     args = parser.parse_args(argv)
     missing = [name for name in FILES if not (args.data / name).is_file()]
     if missing:
-        parser.error(f"Missing processed data in {args.data}: {', '.join(missing)}; run prepare-data")
+        parser.error(
+            f"Missing processed data in {args.data}: {', '.join(missing)}; run prepare-data"
+        )
     if args.out.exists():
         parser.error(f"Output already exists: {args.out}; use a new --out path")
     if args.samples_per_group < 1:
@@ -37,7 +41,9 @@ def main(argv: list[str] | None = None) -> None:
         AuditConfig(seed=args.seed, samples_per_group=args.samples_per_group),
     )
     payload = {
-        **report, "created_at": datetime.now(UTC).isoformat(), "revision": args.revision,
+        **report,
+        "created_at": datetime.now(UTC).isoformat(),
+        "revision": args.revision,
         "source_sha256": {name: fingerprint(args.data / name) for name in FILES},
     }
     args.out.parent.mkdir(parents=True, exist_ok=True)

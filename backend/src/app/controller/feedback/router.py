@@ -41,21 +41,39 @@ def feedback(request: Request) -> FeedbackService:
     return service
 
 
-@router.post("/feedback", response_model=CorrectionResponse,
-             responses={409: {"model": ErrorResponse}, 422: {"model": ErrorResponse}})
+@router.post(
+    "/feedback",
+    response_model=CorrectionResponse,
+    responses={409: {"model": ErrorResponse}, 422: {"model": ErrorResponse}},
+)
 async def save_correction(
-    body: CorrectionRequest, service: Annotated[FeedbackService, Depends(feedback)],
+    body: CorrectionRequest,
+    service: Annotated[FeedbackService, Depends(feedback)],
 ) -> CorrectionResponse:
-    result = await service.save(SaveCorrection(
-        str(body.request_id), body.text, body.category_id, body.attribute, body.value,
-        body.quote, body.start, body.end, body.learn_alias,
-    ))
+    result = await service.save(
+        SaveCorrection(
+            str(body.request_id),
+            body.text,
+            body.category_id,
+            body.attribute,
+            body.value,
+            body.quote,
+            body.start,
+            body.end,
+            body.learn_alias,
+        )
+    )
     return CorrectionResponse.model_validate(result)
 
 
-@router.post("/feedback/{identifier}/revoke", response_model=CorrectionResponse,
-             responses={409: {"model": ErrorResponse}, 422: {"model": ErrorResponse}})
+@router.post(
+    "/feedback/{identifier}/revoke",
+    response_model=CorrectionResponse,
+    responses={409: {"model": ErrorResponse}, 422: {"model": ErrorResponse}},
+)
 async def revoke_correction(
-    identifier: UUID, body: RevokeRequest, service: Annotated[FeedbackService, Depends(feedback)],
+    identifier: UUID,
+    body: RevokeRequest,
+    service: Annotated[FeedbackService, Depends(feedback)],
 ) -> CorrectionResponse:
     return CorrectionResponse.model_validate(await service.revoke(str(identifier), body.version))

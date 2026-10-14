@@ -17,8 +17,9 @@ class SlotBook:
     decision_answered: int = 0
     by_attribute: dict[str, list[int]] = field(default_factory=dict)
 
-    def add(self, base: CardExtraction, result: StageResult,
-            gold: Sequence[GoldRecord]) -> Iterator[tuple[float, bool]]:
+    def add(
+        self, base: CardExtraction, result: StageResult, gold: Sequence[GoldRecord]
+    ) -> Iterator[tuple[float, bool]]:
         self.eligible += result.eligible
         self.routed += result.questions
         truth = {g.attribute: g for g in gold}
@@ -55,7 +56,13 @@ class SlotBook:
             "baseline_correct": self.baseline_correct,
             "decision_correct": self.decision_correct,
             "decision_answered": self.decision_answered,
-            "attributes": {name: {"slots": r[0], "baseline_correct": r[1],
-                                  "decision_correct": r[2], "decision_answered": r[3]}
-                           for name, r in ranked},
+            "attributes": {
+                name: {
+                    "slots": r[0],
+                    "baseline_correct": r[1],
+                    "decision_correct": r[2],
+                    "decision_answered": r[3],
+                }
+                for name, r in ranked
+            },
         }

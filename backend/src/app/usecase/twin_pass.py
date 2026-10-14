@@ -65,9 +65,16 @@ class IndexBuilder:
             title = self._titles[sku]
             values = self._values.get(sku, {})
             brand, model = values.get(BRAND), values.get(MODEL)
-            data.entries.append(TwinEntry(sku, title, title_numbers(title),
-                                          brand.key if brand else "", model.key if model else "",
-                                          values))
+            data.entries.append(
+                TwinEntry(
+                    sku,
+                    title,
+                    title_numbers(title),
+                    brand.key if brand else "",
+                    model.key if model else "",
+                    values,
+                )
+            )
         self._titles, self._values, self._memo = {}, {}, {}
         return data
 
@@ -89,17 +96,37 @@ def stage_picks(extraction: CardExtraction, record: StageRecord | None) -> dict[
         candidate = by_span.get((name, value.start, value.end))
         if candidate is None:
             numeric = extraction.profiles[name].numeric
-            candidate = Candidate(name, canonical_key(value.value, None, numeric), value.value,
-                                  value.value, value.start, value.end, value.source, "stage",
-                                  0.0, 0.0, 0)
+            candidate = Candidate(
+                name,
+                canonical_key(value.value, None, numeric),
+                value.value,
+                value.value,
+                value.start,
+                value.end,
+                value.source,
+                "stage",
+                0.0,
+                0.0,
+                0,
+            )
         picks[name] = Pick(candidate, value.confidence, value.sources)
     return picks
 
 
 def twin_pick(transfer: Transfer, confidence: float) -> Pick:
-    candidate = Candidate(transfer.attribute, transfer.key, transfer.value,
-                          f"SKU {transfer.twin_sku}", -1, -1, TWIN_SOURCE, "twin",
-                          round(transfer.similarity, 4), 0.0, 0)
+    candidate = Candidate(
+        transfer.attribute,
+        transfer.key,
+        transfer.value,
+        f"SKU {transfer.twin_sku}",
+        -1,
+        -1,
+        TWIN_SOURCE,
+        "twin",
+        round(transfer.similarity, 4),
+        0.0,
+        0,
+    )
     return Pick(candidate, confidence, (TWIN_SOURCE,))
 
 

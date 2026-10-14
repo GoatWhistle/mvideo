@@ -12,8 +12,14 @@ from app.domain.twin import (
 
 def entry(sku: int, title: str, brand: str = "samsung", color: str = "черный") -> TwinEntry:
     normalized = twin_title(title)
-    return TwinEntry(sku, normalized, title_numbers(normalized), brand, f"m{sku}",
-                     {"Цвет": TwinValue(color, color), "Вес": TwinValue("190", "190 г")})
+    return TwinEntry(
+        sku,
+        normalized,
+        title_numbers(normalized),
+        brand,
+        f"m{sku}",
+        {"Цвет": TwinValue(color, color), "Вес": TwinValue("190", "190 г")},
+    )
 
 
 def query(title: str, brand: str | None = None) -> TwinQuery:
@@ -22,7 +28,7 @@ def query(title: str, brand: str | None = None) -> TwinQuery:
 
 
 def test_title_numbers_normalize_format() -> None:
-    assert title_numbers(twin_title("Galaxy A55 8/256GB 6,60\"")) == {"55", "8", "256", "6.6"}
+    assert title_numbers(twin_title('Galaxy A55 8/256GB 6,60"')) == {"55", "8", "256", "6.6"}
     assert title_numbers(twin_title("Кабель 1.0 м, 007")) == {"1", "7"}
 
 

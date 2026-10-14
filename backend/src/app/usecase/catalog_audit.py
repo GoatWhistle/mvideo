@@ -73,10 +73,16 @@ class OverlapIndex:
             self._groups[key][str(card.split)].append(card.sku_id)
 
     def report(self, limit: int) -> Overlap:
-        groups = [sorted(sku for ids in splits.values() for sku in ids)
-                  for _, splits in sorted(self._groups.items()) if len(splits) > 1]
-        return {"groups": len(groups), "cards": sum(map(len, groups)),
-                "examples": [ids[:10] for ids in groups[:limit]]}
+        groups = [
+            sorted(sku for ids in splits.values() for sku in ids)
+            for _, splits in sorted(self._groups.items())
+            if len(splits) > 1
+        ]
+        return {
+            "groups": len(groups),
+            "cards": sum(map(len, groups)),
+            "examples": [ids[:10] for ids in groups[:limit]],
+        }
 
 
 def family_key(card: CardRecord, gold: Sequence[GoldRecord]) -> str:
@@ -106,9 +112,13 @@ def discrepancy(extraction: CardExtraction, gold: GoldRecord) -> tuple[str, Exam
         reason = "missing_candidate"
     suggested = pick or extraction.review.get(gold.attribute)
     example: Example = {
-        "sku_id": 0, "split": None, "text": extraction.text.text,
-        "gold": gold.value, "predicted": suggested.candidate.value if suggested else None,
-        "quote": suggested.candidate.evidence if suggested else None, "reason": reason,
+        "sku_id": 0,
+        "split": None,
+        "text": extraction.text.text,
+        "gold": gold.value,
+        "predicted": suggested.candidate.value if suggested else None,
+        "quote": suggested.candidate.evidence if suggested else None,
+        "reason": reason,
     }
     return f"{gold.attribute}:{reason}", example
 
@@ -145,20 +155,28 @@ class AuditCatalog:
                     example["sku_id"] = card.sku_id
                     example["split"] = card.split
                     counts[group] += 1
-                    key = hashlib.sha256(f"{config.seed}:{card.sku_id}:{group}".encode()).hexdigest()
+                    key = hashlib.sha256(
+                        f"{config.seed}:{card.sku_id}:{group}".encode()
+                    ).hexdigest()
                     samples[group].append((key, example))
                     samples[group].sort(key=lambda pair: pair[0])
-                    del samples[group][config.samples_per_group:]
+                    del samples[group][config.samples_per_group :]
         return {
-            "schema_version": 1, "seed": config.seed, "samples_per_group": config.samples_per_group,
-            "cards": sum(sizes.values()), "splits": dict(sorted(sizes.items())),
+            "schema_version": 1,
+            "seed": config.seed,
+            "samples_per_group": config.samples_per_group,
+            "cards": sum(sizes.values()),
+            "splits": dict(sorted(sizes.items())),
             "independent_human_validation": False,
             "policy": "normalized exact text; category+gold brand/model without memory; "
-                      "lowest seeded SHA256 per attribute/reason; reasons are hypotheses; "
-                      "only cards with text; original splits unchanged",
-            "overlaps": {"exact_text": exact.report(config.samples_per_group),
-                         "model_family": family.report(config.samples_per_group)},
-            "discrepancies": {group: {"count": count,
-                                      "examples": [example for _, example in samples[group]]}
-                              for group, count in sorted(counts.items())},
+            "lowest seeded SHA256 per attribute/reason; reasons are hypotheses; "
+            "only cards with text; original splits unchanged",
+            "overlaps": {
+                "exact_text": exact.report(config.samples_per_group),
+                "model_family": family.report(config.samples_per_group),
+            },
+            "discrepancies": {
+                group: {"count": count, "examples": [example for _, example in samples[group]]}
+                for group, count in sorted(counts.items())
+            },
         }

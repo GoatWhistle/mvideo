@@ -76,10 +76,16 @@ async def run(args: argparse.Namespace) -> dict[str, object]:
     splits = frozenset(s.strip() for s in args.splits.split(",") if s.strip())
     name = args.name or f"decision_{settings.decision_provider.value}_" + "_".join(sorted(splits))
     config = DecisionRunConfig(
-        stage=StageConfig(model_name=model_name, top_k=args.top_k,
-                          dictionary_k=args.dictionary_k, min_confidence=args.min_confidence,
-                          route_all=args.route_all, route_below=args.route_below,
-                          dictionary=args.dictionary, mix_k=args.mix_k),
+        stage=StageConfig(
+            model_name=model_name,
+            top_k=args.top_k,
+            dictionary_k=args.dictionary_k,
+            min_confidence=args.min_confidence,
+            route_all=args.route_all,
+            route_below=args.route_below,
+            dictionary=args.dictionary,
+            mix_k=args.mix_k,
+        ),
         provider=f"{settings.decision_provider.value}:{model_name}",
         offline=offline,
         splits=splits,
@@ -114,10 +120,20 @@ def main(argv: list[str] | None = None) -> None:
     report = asyncio.run(run(args))
     groups = report.get("groups", {})
     summary = groups.get("all", {}) if isinstance(groups, dict) else {}
-    print(json.dumps({"cards": report["cards"], "all": summary, "usage": report["usage"],
-                      "calibration": report["calibration"],
-                      "peak_rss_mb": resource.getrusage(resource.RUSAGE_SELF).ru_maxrss // 1024},
-                     ensure_ascii=False, indent=2, default=str))
+    print(
+        json.dumps(
+            {
+                "cards": report["cards"],
+                "all": summary,
+                "usage": report["usage"],
+                "calibration": report["calibration"],
+                "peak_rss_mb": resource.getrusage(resource.RUSAGE_SELF).ru_maxrss // 1024,
+            },
+            ensure_ascii=False,
+            indent=2,
+            default=str,
+        )
+    )
 
 
 if __name__ == "__main__":

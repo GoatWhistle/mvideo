@@ -30,7 +30,9 @@ class RankerSource(BaselineSource, Protocol):
 
 
 class ScoreModel(Protocol):
-    def fit(self, train: FeatureTable, names: Sequence[str], categorical: Sequence[str]) -> None: ...
+    def fit(
+        self, train: FeatureTable, names: Sequence[str], categorical: Sequence[str]
+    ) -> None: ...
 
     def predict(self, table: FeatureTable) -> Sequence[float]: ...
 

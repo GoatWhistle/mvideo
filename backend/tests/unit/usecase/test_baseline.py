@@ -32,17 +32,22 @@ class FakeSource:
 
     def gold(self, splits: frozenset[str]) -> Mapping[int, Sequence[GoldRecord]]:
         return {
-            1: [GoldRecord("Бренд", "Samsung", None), GoldRecord("Цвет", "черный", None),
-                GoldRecord("Емкость аккумулятора", "5000", "мАч")],
+            1: [
+                GoldRecord("Бренд", "Samsung", None),
+                GoldRecord("Цвет", "черный", None),
+                GoldRecord("Емкость аккумулятора", "5000", "мАч"),
+            ],
             2: [GoldRecord("Бренд", "Samsung", None), GoldRecord("Цвет", "белый", None)],
         }
 
     def cards(self, splits: frozenset[str] | None, batch: int) -> Iterator[list[CardRecord]]:
         yield [
-            CardRecord(1, PHONE, "М.Видео", "Смартфон Samsung черный", "Батарея 5000 мАч", (),
-                       "test"),
-            CardRecord(2, PHONE, "ИП", "Смартфон Samsung", "",
-                       (SellerParam("Цвет", "черный"),), "test"),
+            CardRecord(
+                1, PHONE, "М.Видео", "Смартфон Samsung черный", "Батарея 5000 мАч", (), "test"
+            ),
+            CardRecord(
+                2, PHONE, "ИП", "Смартфон Samsung", "", (SellerParam("Цвет", "черный"),), "test"
+            ),
         ]
 
 
@@ -52,7 +57,9 @@ class MemorySink:
         self.candidates: list[CandidateRow] = []
         self.closed = False
 
-    def write(self, predictions: Sequence[CardPrediction], candidates: Sequence[CandidateRow]) -> None:
+    def write(
+        self, predictions: Sequence[CardPrediction], candidates: Sequence[CandidateRow]
+    ) -> None:
         self.predictions.extend(predictions)
         self.candidates.extend(candidates)
 

@@ -7,14 +7,18 @@ import pyarrow.parquet as pq
 
 class ParquetCategoryTree:
     def __init__(self, processed: Path) -> None:
-        table = pq.read_table(processed / "categories.parquet",
-                              columns=["category_id", "parent_id", "path"])
+        table = pq.read_table(
+            processed / "categories.parquet", columns=["category_id", "parent_id", "path"]
+        )
         self._parent: dict[int, int] = {}
         self._children: dict[int, list[int]] = defaultdict(list)
         self._names: dict[int, str] = {}
-        for category, parent, path in zip(table["category_id"].to_pylist(),
-                                          table["parent_id"].to_pylist(),
-                                          table["path"].to_pylist(), strict=True):
+        for category, parent, path in zip(
+            table["category_id"].to_pylist(),
+            table["parent_id"].to_pylist(),
+            table["path"].to_pylist(),
+            strict=True,
+        ):
             if path:
                 self._names[category] = path
             if parent is not None:

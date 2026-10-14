@@ -13,16 +13,21 @@ class ParquetRankerSource(ParquetBaselineSource):
     def gold_where(
         self, splits: frozenset[str], attributes: frozenset[str], modulo: int
     ) -> Mapping[int, Sequence[GoldRecord]]:
-        skus = pa.array([s for s, name in self._split_map().items()
-                         if name in splits and s % modulo == 0], type=pa.int64())
+        skus = pa.array(
+            [s for s, name in self._split_map().items() if name in splits and s % modulo == 0],
+            type=pa.int64(),
+        )
         wanted = pa.array(sorted(attributes), type=pa.string())
         result: dict[int, list[GoldRecord]] = defaultdict(list)
         gold = pq.ParquetFile(self._dir / "gold.parquet")
         for batch in gold.iter_batches(batch_size=GOLD_BATCH):
-            mask = pc.and_(pc.is_in(batch.column(0), value_set=skus),
-                           pc.is_in(batch.column(1), value_set=wanted))
+            mask = pc.and_(
+                pc.is_in(batch.column(0), value_set=skus),
+                pc.is_in(batch.column(1), value_set=wanted),
+            )
             kept = batch.filter(mask)
-            for sku, attribute, value, unit in zip(*(kept.column(i).to_pylist() for i in range(4)),
-                                                   strict=True):
+            for sku, attribute, value, unit in zip(
+                *(kept.column(i).to_pylist() for i in range(4)), strict=True
+            ):
                 result[sku].append(GoldRecord(attribute, value, unit))
         return result

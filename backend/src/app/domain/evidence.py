@@ -29,11 +29,11 @@ def supported(card: CardText, candidate: Candidate) -> bool:
     clause, before = context_of(card, candidate.start, candidate.end)
     if EXCLUSION.search(clause) or NEGATION.search(before):
         return False
-    if NEGATED_VALUE.search(card.match[candidate.start:candidate.end]):
+    if NEGATED_VALUE.search(card.match[candidate.start : candidate.end]):
         return False
     if candidate.source == "number" and (RANGE.search(before) or before.rstrip().endswith("-")):
         return False
-    title = card.match[:card.title_end]
+    title = card.match[: card.title_end]
     product = MAIN_PRODUCT.search(title)
     accessory = ACCESSORY.search(title)
     main_first = product is not None and (accessory is None or product.start() < accessory.start())

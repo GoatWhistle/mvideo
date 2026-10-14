@@ -57,9 +57,15 @@ class BaselineChooser:
 
 
 class ExtractCard:
-    def __init__(self, pack: StandPack | None, aliases: AliasRepository,
-                 reviews: ReviewRepository, chooser: CandidateChooser, clock: Clock,
-                 ids: IdGenerator) -> None:
+    def __init__(
+        self,
+        pack: StandPack | None,
+        aliases: AliasRepository,
+        reviews: ReviewRepository,
+        chooser: CandidateChooser,
+        clock: Clock,
+        ids: IdGenerator,
+    ) -> None:
         self._pack = pack
         self._aliases = aliases
         self._reviews = reviews
@@ -76,8 +82,9 @@ class ExtractCard:
             raise UnknownCategory()
         aliases = await self._aliases.all()
         lexicon, required = self._dictionaries(pack, aliases)
-        record = CardRecord(0, card.category_id, None, card.title, card.description,
-                            card.seller_params, None)
+        record = CardRecord(
+            0, card.category_id, None, card.title, card.description, card.seller_params, None
+        )
         extraction = extract_card(record, required, lexicon, pack.threshold)
         extraction = await self._chooser.choose(extraction, pack.threshold)
         confirmed = {(a.attribute, evidence_form(a.evidence)): a for a in aliases}
@@ -88,28 +95,41 @@ class ExtractCard:
                 values.append(value)
         found = {v.attribute for v in values}
         missing = tuple(n for n in sorted(extraction.profiles) if n not in found)
-        return CardResult(text=extraction.text.text, threshold=pack.threshold,
-                          values=tuple(values), missing=missing)
+        return CardResult(
+            text=extraction.text.text,
+            threshold=pack.threshold,
+            values=tuple(values),
+            missing=missing,
+        )
 
     def _require_pack(self) -> StandPack:
         if self._pack is None:
             raise StandUnavailable()
         return self._pack
 
-    def _dictionaries(self, pack: StandPack,
-                      aliases: Sequence[Alias]) -> tuple[Lexicon, RequiredAttributes]:
+    def _dictionaries(
+        self, pack: StandPack, aliases: Sequence[Alias]
+    ) -> tuple[Lexicon, RequiredAttributes]:
         version = tuple(aliases)
         if self._cache is not None and self._cache[0] == version:
             return self._cache[1], self._cache[2]
-        extra = [alias_entry(a, pack.profiles[a.attribute].numeric)
-                 for a in aliases if a.attribute in pack.profiles]
+        extra = [
+            alias_entry(a, pack.profiles[a.attribute].numeric)
+            for a in aliases
+            if a.attribute in pack.profiles
+        ]
         lexicon = Lexicon(pack.profiles, [*pack.entries, *extra], pack.priors)
         required = RequiredAttributes(pack.required, lexicon)
         self._cache = (version, lexicon, required)
         return lexicon, required
 
-    async def _value(self, card: CardInput, name: str, extraction: CardExtraction,
-                     confirmed: Mapping[tuple[str, str], Alias]) -> ExtractedValue | None:
+    async def _value(
+        self,
+        card: CardInput,
+        name: str,
+        extraction: CardExtraction,
+        confirmed: Mapping[tuple[str, str], Alias],
+    ) -> ExtractedValue | None:
         for candidate in extraction.candidates:
             alias = confirmed.get((name, evidence_form(candidate.evidence)))
             if candidate.attribute == name and alias is not None:
@@ -125,11 +145,19 @@ class ExtractCard:
 
     def _item(self, card: CardInput, name: str, pick: Pick) -> ReviewItem:
         return ReviewItem(
-            id=self._ids.new(), card_key=card_key(card), category_id=card.category_id,
-            title=card.title, attribute=name, value=pick.candidate.value,
-            confidence=pick.confidence, source=pick.candidate.source,
-            evidence=pick.candidate.evidence, status=ReviewStatus.PENDING, resolved_value=None,
-            created_at=self._clock.now(), resolved_at=None,
+            id=self._ids.new(),
+            card_key=card_key(card),
+            category_id=card.category_id,
+            title=card.title,
+            attribute=name,
+            value=pick.candidate.value,
+            confidence=pick.confidence,
+            source=pick.candidate.source,
+            evidence=pick.candidate.evidence,
+            status=ReviewStatus.PENDING,
+            resolved_value=None,
+            created_at=self._clock.now(),
+            resolved_at=None,
         )
 
 
@@ -140,17 +168,30 @@ def card_key(card: CardInput) -> str:
 
 def _reviewed(candidate: Candidate, alias: Alias) -> ExtractedValue:
     return ExtractedValue(
-        attribute=candidate.attribute, value=alias.value, confidence=REVIEW_CONFIDENCE,
-        source=REVIEW_SOURCE, sources=(REVIEW_SOURCE, candidate.source),
-        evidence=candidate.evidence, start=candidate.start, end=candidate.end,
-        in_review=False, review_id=None,
+        attribute=candidate.attribute,
+        value=alias.value,
+        confidence=REVIEW_CONFIDENCE,
+        source=REVIEW_SOURCE,
+        sources=(REVIEW_SOURCE, candidate.source),
+        evidence=candidate.evidence,
+        start=candidate.start,
+        end=candidate.end,
+        in_review=False,
+        review_id=None,
     )
 
 
 def _from_pick(name: str, pick: Pick, review_id: str | None) -> ExtractedValue:
     c = pick.candidate
     return ExtractedValue(
-        attribute=name, value=c.value, confidence=pick.confidence, source=c.source,
-        sources=pick.sources, evidence=c.evidence, start=c.start, end=c.end,
-        in_review=review_id is not None, review_id=review_id,
+        attribute=name,
+        value=c.value,
+        confidence=pick.confidence,
+        source=c.source,
+        sources=pick.sources,
+        evidence=c.evidence,
+        start=c.start,
+        end=c.end,
+        in_review=review_id is not None,
+        review_id=review_id,
     )

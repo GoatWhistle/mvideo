@@ -68,12 +68,13 @@ def brand_matches(entry: TwinEntry, query: TwinQuery) -> bool:
 
 
 def is_twin(entry: TwinEntry, query: TwinQuery, similarity: float, floor: float) -> bool:
-    return (similarity >= floor and entry.numbers == query.numbers
-            and brand_matches(entry, query))
+    return similarity >= floor and entry.numbers == query.numbers and brand_matches(entry, query)
 
 
 def vote(
-    query: TwinQuery, neighbors: Sequence[tuple[TwinEntry, float]], attributes: Iterable[str],
+    query: TwinQuery,
+    neighbors: Sequence[tuple[TwinEntry, float]],
+    attributes: Iterable[str],
     floor: float,
 ) -> dict[str, Transfer]:
     twins = [(e, s) for e, s in neighbors if is_twin(e, query, s, floor)]
@@ -96,9 +97,16 @@ def vote(
             continue
         key = max(weight, key=lambda k: (weight[k], best[k][1], k))
         entry, similarity = best[key]
-        result[attribute] = Transfer(attribute, key, entry.values[attribute].value, similarity,
-                                     entry.sku_id, entry.title == query.title, support[key],
-                                     entry.model)
+        result[attribute] = Transfer(
+            attribute,
+            key,
+            entry.values[attribute].value,
+            similarity,
+            entry.sku_id,
+            entry.title == query.title,
+            support[key],
+            entry.model,
+        )
     return result
 
 

@@ -22,8 +22,12 @@ class TwinLog:
     attributes: Counter[str] = field(default_factory=Counter)
     cards: int = 0
 
-    def add(self, card: CardRecord, scored: Mapping[str, tuple[Transfer, float]],
-            expected: Mapping[str, str]) -> None:
+    def add(
+        self,
+        card: CardRecord,
+        scored: Mapping[str, tuple[Transfer, float]],
+        expected: Mapping[str, str],
+    ) -> None:
         if scored:
             self.cards += 1
         for name, (transfer, _) in scored.items():
@@ -41,6 +45,7 @@ class TwinLog:
     def summary(self) -> dict[str, object]:
         def share(ok: int, total: int) -> float:
             return round(ok / total, 4) if total else 0.0
+
         return {
             "cards_with_transfer": self.cards,
             "transfers": self.transfers,
@@ -68,17 +73,27 @@ def _ablation(stage: Mapping[str, object], twins: Mapping[str, object]) -> list[
         for stage_name, values in (("ranker", before), ("twins", data)):
             micro = cast(Mapping[str, float], values["micro"])
             weighted = cast(Mapping[str, float], values["weighted"])
-            row[stage_name] = {**{k: micro[k] for k in ABLATION_KEYS},
-                               "macro_f1": values["macro_f1"], "weighted_f1": weighted["f1"],
-                               "recall_over_ceiling": _over_ceiling(micro)}
+            row[stage_name] = {
+                **{k: micro[k] for k in ABLATION_KEYS},
+                "macro_f1": values["macro_f1"],
+                "weighted_f1": weighted["f1"],
+                "recall_over_ceiling": _over_ceiling(micro),
+            }
         rows.append(row)
     return rows
 
 
 def build_twin_report(
-    books: tuple[MetricsBook, MetricsBook, MetricsBook, MetricsBook], *, cards: int, entries: int,
-    threshold: float, curve: Sequence[CurvePoint], tuning: Mapping[str, object],
-    examples: Sequence[Mapping[str, object]], log: TwinLog, seconds: float,
+    books: tuple[MetricsBook, MetricsBook, MetricsBook, MetricsBook],
+    *,
+    cards: int,
+    entries: int,
+    threshold: float,
+    curve: Sequence[CurvePoint],
+    tuning: Mapping[str, object],
+    examples: Sequence[Mapping[str, object]],
+    log: TwinLog,
+    seconds: float,
 ) -> dict[str, object]:
     stage = build_report(books[0], books[1], cards=cards, lexicon_entries=0, attributes=0)
     twins = build_report(books[2], books[3], cards=cards, lexicon_entries=0, attributes=0)
@@ -125,31 +140,72 @@ def render_twin_markdown(report: Mapping[str, object]) -> str:
     lines = [
         "# Отчёт метрик: двойники в каталоге",
         "",
-        (f"Карточек: {report['cards']}; индекс train: {report['index_entries']}; порог сходства "
-         f"{report['threshold']} (выбран на val). Файл генерируется командой `uv run twins` и руками "
-         "не правится."),
-        "", "## Абляция «ранжировщик → + двойники»", "", *_ablation_lines(
-            cast(Sequence[Mapping[str, object]], report["ablation"])),
-        "", "## Двойники на val (порог, ложные двойники)", "",
-        _row(["показатель", "значение"]), _row(["---", "---"]),
+        (
+            f"Карточек: {report['cards']}; индекс train: {report['index_entries']}; порог сходства "
+            f"{report['threshold']} (выбран на val). Файл генерируется командой `uv run twins` и руками "
+            "не правится."
+        ),
+        "",
+        "## Абляция «ранжировщик → + двойники»",
+        "",
+        *_ablation_lines(cast(Sequence[Mapping[str, object]], report["ablation"])),
+        "",
+        "## Двойники на val (порог, ложные двойники)",
+        "",
+        _row(["показатель", "значение"]),
+        _row(["---", "---"]),
         *[_row([k, str(v)]) for k, v in val.items()],
-        "", "## Переносы на test + new_category", "",
-        _row(["показатель", "значение"]), _row(["---", "---"]),
+        "",
+        "## Переносы на test + new_category",
+        "",
+        _row(["показатель", "значение"]),
+        _row(["---", "---"]),
         *[_row([k, str(v)]) for k, v in test.items()],
-        "", "## Кривая порога на val", "", _row(["порог", "P", "R", "F1", "переносов"]),
+        "",
+        "## Кривая порога на val",
+        "",
+        _row(["порог", "P", "R", "F1", "переносов"]),
         _row(["---"] * 5),
-        *[_row([str(p["threshold"]), _pct(p["precision"]), _pct(p["recall"]), _pct(p["f1"]),
-                str(p["transfers"])])
-          for p in cast(Sequence[Mapping[str, float]], report["curve"])],
-        "", "## Примеры ошибок переноса на val", "",
+        *[
+            _row(
+                [
+                    str(p["threshold"]),
+                    _pct(p["precision"]),
+                    _pct(p["recall"]),
+                    _pct(p["f1"]),
+                    str(p["transfers"]),
+                ]
+            )
+            for p in cast(Sequence[Mapping[str, float]], report["curve"])
+        ],
+        "",
+        "## Примеры ошибок переноса на val",
+        "",
         _row(["SKU", "название", "атрибут", "эталон", "двойник", "SKU двойника", "сходство"]),
         _row(["---"] * 7),
-        *[_row([str(e["sku_id"]), str(e["title"]).replace("|", "/"), str(e["attribute"]),
-                str(e["gold"]), str(e["twin_value"]), str(e["twin_sku"]), str(e["similarity"])])
-          for e in cast(Sequence[Mapping[str, object]], report["examples"])],
+        *[
+            _row(
+                [
+                    str(e["sku_id"]),
+                    str(e["title"]).replace("|", "/"),
+                    str(e["attribute"]),
+                    str(e["gold"]),
+                    str(e["twin_value"]),
+                    str(e["twin_sku"]),
+                    str(e["similarity"]),
+                ]
+            )
+            for e in cast(Sequence[Mapping[str, object]], report["examples"])
+        ],
         "",
     ]
-    detail = render_markdown({"cards": report["cards"], "lexicon_entries": 0,
-                              "groups": report["groups"], "attributes": report["attributes"]})
+    detail = render_markdown(
+        {
+            "cards": report["cards"],
+            "lexicon_entries": 0,
+            "groups": report["groups"],
+            "attributes": report["attributes"],
+        }
+    )
     body = detail.split("## Сводка по срезам", 1)[1]
     return "\n".join(lines) + "\n## Сводка по срезам (ранжировщик + двойники)" + body

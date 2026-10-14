@@ -17,7 +17,9 @@ class SqliteUow:
 
     async def __aenter__(self) -> Self:
         if not self._path.is_file():
-            raise RuntimeError(f"Missing SQLite database {self._path}; run dbmate migrations and seed-catalog")
+            raise RuntimeError(
+                f"Missing SQLite database {self._path}; run dbmate migrations and seed-catalog"
+            )
         connection = await aiosqlite.connect(self._path)
         try:
             connection.row_factory = aiosqlite.Row

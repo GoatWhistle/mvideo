@@ -43,8 +43,12 @@ def test_reliability_and_ece() -> None:
 
 
 def test_threshold_curve_and_best_threshold() -> None:
-    picks = [ScoredPick(0.9, True, True), ScoredPick(0.6, True, False),
-             ScoredPick(0.3, True, True), ScoredPick(0.8, False, False)]
+    picks = [
+        ScoredPick(0.9, True, True),
+        ScoredPick(0.6, True, False),
+        ScoredPick(0.3, True, True),
+        ScoredPick(0.8, False, False),
+    ]
     points = threshold_curve(picks, gold=3, pairs=5, thresholds=(0.2, 0.5, 0.7))
     assert [round(p.precision, 3) for p in points] == [0.667, 0.5, 1.0]
     assert [round(p.coverage, 2) for p in points] == [0.8, 0.6, 0.4]

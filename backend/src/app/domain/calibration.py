@@ -39,8 +39,9 @@ def reliability(
         sums[index][1] += p
         sums[index][2] += 1.0 if ok else 0.0
     return [
-        ReliabilityBin(i / bins, (i + 1) / bins, int(n), conf / n if n else 0.0,
-                       hits / n if n else 0.0)
+        ReliabilityBin(
+            i / bins, (i + 1) / bins, int(n), conf / n if n else 0.0, hits / n if n else 0.0
+        )
         for i, (n, conf, hits) in enumerate(sums)
     ]
 

@@ -11,12 +11,22 @@ WORD_FEATURES = 100_000
 
 class TfidfTitleIndex:
     def __init__(self, batch: int = 256, min_df: int = 2) -> None:
-        self._chars = TfidfVectorizer(analyzer="char_wb", ngram_range=(3, 5), min_df=min_df,
-                                      max_features=CHAR_FEATURES, sublinear_tf=True,
-                                      dtype=np.float32)
-        self._words = TfidfVectorizer(analyzer="word", token_pattern=r"[^\s]+", min_df=min_df,
-                                      max_features=WORD_FEATURES, sublinear_tf=True,
-                                      dtype=np.float32)
+        self._chars = TfidfVectorizer(
+            analyzer="char_wb",
+            ngram_range=(3, 5),
+            min_df=min_df,
+            max_features=CHAR_FEATURES,
+            sublinear_tf=True,
+            dtype=np.float32,
+        )
+        self._words = TfidfVectorizer(
+            analyzer="word",
+            token_pattern=r"[^\s]+",
+            min_df=min_df,
+            max_features=WORD_FEATURES,
+            sublinear_tf=True,
+            dtype=np.float32,
+        )
         self._batch = batch
         self._matrix: csr_matrix | None = None
 
@@ -38,7 +48,7 @@ class TfidfTitleIndex:
         k = min(k, size)
         result: list[list[tuple[int, float]]] = []
         for start in range(0, len(titles), self._batch):
-            queries = self._vectors(titles[start:start + self._batch], fit=False)
+            queries = self._vectors(titles[start : start + self._batch], fit=False)
             scores = (queries @ self._matrix).toarray()
             top = np.argpartition(-scores, k - 1, axis=1)[:, :k]
             for row, indices in enumerate(top):

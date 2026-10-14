@@ -24,12 +24,15 @@ def select_category(text: str, categories: Sequence[CategoryOption]) -> Category
     title = match_form(text).split("\n")[0]
     exclusion = EXCLUSION.search(title)
     if exclusion:
-        title = title[:exclusion.start()]
+        title = title[: exclusion.start()]
     accessory = ACCESSORY.search(title)
     matches = []
     for category in categories:
-        found = [m for keyword in category.keywords
-                 if (m := re.search(r"\b" + re.escape(match_form(keyword)) + r"\w*", title))]
+        found = [
+            m
+            for keyword in category.keywords
+            if (m := re.search(r"\b" + re.escape(match_form(keyword)) + r"\w*", title))
+        ]
         if not found:
             continue
         first = min(m.start() for m in found)
@@ -38,5 +41,8 @@ def select_category(text: str, categories: Sequence[CategoryOption]) -> Category
         matches.append(category)
     if len(matches) == 1:
         return CategorySelection(matches[0].category_id, "category_detected", tuple(matches))
-    return CategorySelection(None, "category_ambiguous" if matches else "category_unknown",
-                             tuple(matches) if matches else tuple(categories))
+    return CategorySelection(
+        None,
+        "category_ambiguous" if matches else "category_unknown",
+        tuple(matches) if matches else tuple(categories),
+    )

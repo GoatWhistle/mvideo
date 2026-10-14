@@ -33,7 +33,10 @@ class Scored:
 
 
 def card_options(
-    card: CardRecord, gold: Sequence[GoldRecord], required: RequiredAttributes, lexicon: Lexicon,
+    card: CardRecord,
+    gold: Sequence[GoldRecord],
+    required: RequiredAttributes,
+    lexicon: Lexicon,
     blind: bool = False,
 ) -> CardOptions:
     extraction = extract_card(card, required, lexicon, 0.0)
@@ -42,8 +45,9 @@ def card_options(
         known: frozenset[str] = frozenset()
     else:
         candidates = extraction.candidates
-        known = frozenset(a for a in extraction.profiles
-                          if lexicon.category_values(card.category_id, a))
+        known = frozenset(
+            a for a in extraction.profiles if lexicon.category_values(card.category_id, a)
+        )
     options = rank_options(candidates, extraction.profiles, len(extraction.text.text), known)
     expected = {
         g.attribute: canonical_key(g.value, g.unit, extraction.profiles[g.attribute].numeric)
@@ -81,8 +85,9 @@ def score_items(items: Sequence[CardOptions], model: ScoreModel) -> list[Scored]
 
 
 def baseline_picks(item: CardOptions) -> Mapping[str, Pick]:
-    return {n: p for n, p in item.extraction.picks.items()
-            if p.confidence >= BASELINE_MIN_CONFIDENCE}
+    return {
+        n: p for n, p in item.extraction.picks.items() if p.confidence >= BASELINE_MIN_CONFIDENCE
+    }
 
 
 def ranked_extraction(

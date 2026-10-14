@@ -17,10 +17,19 @@ class ReportMeta:
     price_input_per_mtok: float | None = None
     price_output_per_mtok: float | None = None
 
+
 CARDS_PER_MILLION = 1_000_000
 BUDGET_SKIP = "budget exhausted"
-COMPARE_GROUPS = ("all", "split:test", "split:new_category", "split:val", "categories:head",
-                  "categories:tail", "category:smartphones", "category:laptops")
+COMPARE_GROUPS = (
+    "all",
+    "split:test",
+    "split:new_category",
+    "split:val",
+    "categories:head",
+    "categories:tail",
+    "category:smartphones",
+    "category:laptops",
+)
 
 
 @dataclass(slots=True)
@@ -38,9 +47,17 @@ class CalibrationBook:
         return {
             "pairs": len(self.confidences),
             "ece": round(expected_calibration_error(table), 4),
-            "bins": [{"low": round(b.low, 3), "high": round(b.high, 3), "count": b.count,
-                      "mean_confidence": round(b.confidence, 4), "accuracy": round(b.accuracy, 4)}
-                     for b in table if b.count],
+            "bins": [
+                {
+                    "low": round(b.low, 3),
+                    "high": round(b.high, 3),
+                    "count": b.count,
+                    "mean_confidence": round(b.confidence, 4),
+                    "accuracy": round(b.accuracy, 4),
+                }
+                for b in table
+                if b.count
+            ],
         }
 
 
@@ -127,18 +144,28 @@ class UsageBook:
 def _compare(books: MetricsBook, baseline: MetricsBook) -> dict[str, object]:
     return {
         group: {"decision": books.micro(group), "baseline": baseline.micro(group)}
-        for group in COMPARE_GROUPS if group in books.groups
+        for group in COMPARE_GROUPS
+        if group in books.groups
     }
 
 
 def build_decision_report(
-    books: tuple[MetricsBook, MetricsBook], baseline: tuple[MetricsBook, MetricsBook],
-    calibration: CalibrationBook, usage: UsageBook, *, meta: ReportMeta, cards: int,
-    lexicon_entries: int, attributes: int, seconds: float,
-    grid: Sequence[Mapping[str, object]] = (), slots: Mapping[str, object] | None = None,
+    books: tuple[MetricsBook, MetricsBook],
+    baseline: tuple[MetricsBook, MetricsBook],
+    calibration: CalibrationBook,
+    usage: UsageBook,
+    *,
+    meta: ReportMeta,
+    cards: int,
+    lexicon_entries: int,
+    attributes: int,
+    seconds: float,
+    grid: Sequence[Mapping[str, object]] = (),
+    slots: Mapping[str, object] | None = None,
 ) -> dict[str, object]:
-    report = build_report(books[0], books[1], cards=cards, lexicon_entries=lexicon_entries,
-                          attributes=attributes)
+    report = build_report(
+        books[0], books[1], cards=cards, lexicon_entries=lexicon_entries, attributes=attributes
+    )
     report["stage"] = f"decision model ({meta.provider}) over rule candidates"
     report["confidence_calibrated"] = False
     report["offline_stub"] = meta.offline
@@ -164,37 +191,66 @@ def render_decision_markdown(report: Mapping[str, object]) -> str:
     calibration = cast(Mapping[str, object], report["calibration"])
     lines = [f"# Отчёт метрик: {report['stage']}", ""]
     if report.get("offline_stub"):
-        lines += ["> Офлайн-заглушка `lexical`: это проверка пайплайна, а не качество продукта.", ""]
-    lines += ["## Сравнение с базлайном на той же выборке", "",
-              "| срез | F1 базлайн | F1 decision | P базлайн | P decision | R базлайн | R decision |",
-              "| --- | --- | --- | --- | --- | --- | --- |"]
+        lines += [
+            "> Офлайн-заглушка `lexical`: это проверка пайплайна, а не качество продукта.",
+            "",
+        ]
+    lines += [
+        "## Сравнение с базлайном на той же выборке",
+        "",
+        "| срез | F1 базлайн | F1 decision | P базлайн | P decision | R базлайн | R decision |",
+        "| --- | --- | --- | --- | --- | --- | --- |",
+    ]
     compare = cast(Mapping[str, Mapping[str, Mapping[str, float]]], report["baseline_same_sample"])
     for group, pair in compare.items():
         b, d = pair["baseline"], pair["decision"]
-        lines.append(f"| {group} | {_pct(b['f1'])} | {_pct(d['f1'])} | {_pct(b['precision'])} | "
-                     f"{_pct(d['precision'])} | {_pct(b['recall'])} | {_pct(d['recall'])} |")
-    lines += ["", "## Калибровка вероятностей", "",
-              f"Пар с эталоном: {calibration['pairs']}; ECE: {calibration['ece']}.", "",
-              "| корзина | пар | средняя уверенность | точность |", "| --- | --- | --- | --- |"]
+        lines.append(
+            f"| {group} | {_pct(b['f1'])} | {_pct(d['f1'])} | {_pct(b['precision'])} | "
+            f"{_pct(d['precision'])} | {_pct(b['recall'])} | {_pct(d['recall'])} |"
+        )
+    lines += [
+        "",
+        "## Калибровка вероятностей",
+        "",
+        f"Пар с эталоном: {calibration['pairs']}; ECE: {calibration['ece']}.",
+        "",
+        "| корзина | пар | средняя уверенность | точность |",
+        "| --- | --- | --- | --- |",
+    ]
     for b in cast(list[Mapping[str, float]], calibration["bins"]):
-        lines.append(f"| {b['low']:.1f}–{b['high']:.1f} | {int(b['count'])} | "
-                     f"{b['mean_confidence']:.3f} | {b['accuracy']:.3f} |")
+        lines.append(
+            f"| {b['low']:.1f}–{b['high']:.1f} | {int(b['count'])} | "
+            f"{b['mean_confidence']:.3f} | {b['accuracy']:.3f} |"
+        )
     routing = cast(Mapping[str, object], report.get("routing", {}))
     lines += ["", "## Слоты, отправленные в decision-модель", ""]
     lines += [f"- {k}: {v}" for k, v in routing.items() if k != "attributes"]
-    lines += ["", "| атрибут | слотов с эталоном | базлайн верно | decision верно | decision ответил |",
-              "| --- | --- | --- | --- | --- |"]
-    for name, counts in cast(Mapping[str, Mapping[str, int]], routing.get("attributes", {})).items():
-        lines.append(f"| {name} | {counts['slots']} | {counts['baseline_correct']} | "
-                     f"{counts['decision_correct']} | {counts['decision_answered']} |")
-    lines += ["", "## Порог переопределения базлайна", "",
-              "| порог | снять при «не указано» ≥ | P | R | F1 | покрытие | F1 взвеш. | macro F1 |",
-              "| --- | --- | --- | --- | --- | --- | --- | --- |"]
+    lines += [
+        "",
+        "| атрибут | слотов с эталоном | базлайн верно | decision верно | decision ответил |",
+        "| --- | --- | --- | --- | --- |",
+    ]
+    for name, counts in cast(
+        Mapping[str, Mapping[str, int]], routing.get("attributes", {})
+    ).items():
+        lines.append(
+            f"| {name} | {counts['slots']} | {counts['baseline_correct']} | "
+            f"{counts['decision_correct']} | {counts['decision_answered']} |"
+        )
+    lines += [
+        "",
+        "## Порог переопределения базлайна",
+        "",
+        "| порог | снять при «не указано» ≥ | P | R | F1 | покрытие | F1 взвеш. | macro F1 |",
+        "| --- | --- | --- | --- | --- | --- | --- | --- |",
+    ]
     for row in cast(list[Mapping[str, float]], report.get("override_grid", [])):
         drop = "—" if row.get("drop") is None else row["drop"]
-        lines.append(f"| {row['override']} | {drop} | {_pct(row['precision'])} | {_pct(row['recall'])} | "
-                     f"{_pct(row['f1'])} | {_pct(row['coverage_after'])} | "
-                     f"{_pct(row['weighted_f1'])} | {_pct(row['macro_f1'])} |")
+        lines.append(
+            f"| {row['override']} | {drop} | {_pct(row['precision'])} | {_pct(row['recall'])} | "
+            f"{_pct(row['f1'])} | {_pct(row['coverage_after'])} | "
+            f"{_pct(row['weighted_f1'])} | {_pct(row['macro_f1'])} |"
+        )
     lines += ["", "## Вызовы и стоимость", ""]
     lines += [f"- {key}: {value}" for key, value in usage.items()]
     lines += ["", body]

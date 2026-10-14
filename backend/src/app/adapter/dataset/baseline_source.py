@@ -10,8 +10,15 @@ from app.domain.card_text import SellerParam
 from app.usecase.baseline_ports import CardRecord, GoldRecord, RequiredRecord
 from app.usecase.lexicon_builder import TrainValue
 
-CARD_COLUMNS = ["sku_id", "category_id", "seller", "title", "description", "seller_params",
-                "has_text"]
+CARD_COLUMNS = [
+    "sku_id",
+    "category_id",
+    "seller",
+    "title",
+    "description",
+    "seller_params",
+    "has_text",
+]
 GOLD_BATCH = 1_000_000
 
 
@@ -23,20 +30,29 @@ class ParquetBaselineSource:
     def _split_map(self) -> dict[int, str]:
         if self._splits is None:
             table = pq.read_table(self._dir / "splits.parquet")
-            self._splits = dict(zip(table["sku_id"].to_pylist(), table["split"].to_pylist(),
-                                    strict=True))
+            self._splits = dict(
+                zip(table["sku_id"].to_pylist(), table["split"].to_pylist(), strict=True)
+            )
         return self._splits
 
     def _skus(self, splits: frozenset[str]) -> pa.Array:
-        return pa.array([s for s, name in self._split_map().items() if name in splits],
-                        type=pa.int64())
+        return pa.array(
+            [s for s, name in self._split_map().items() if name in splits], type=pa.int64()
+        )
 
     def _categories(self) -> dict[int, int]:
-        table = pq.read_table(self._dir / "cards.parquet", columns=["sku_id", "category_id"],
-                              filters=[("in_catalog", "=", True)])
-        return {s: c for s, c in zip(table["sku_id"].to_pylist(),
-                                     table["category_id"].to_pylist(), strict=True)
-                if c is not None}
+        table = pq.read_table(
+            self._dir / "cards.parquet",
+            columns=["sku_id", "category_id"],
+            filters=[("in_catalog", "=", True)],
+        )
+        return {
+            s: c
+            for s, c in zip(
+                table["sku_id"].to_pylist(), table["category_id"].to_pylist(), strict=True
+            )
+            if c is not None
+        }
 
     def train_values(self, attributes: frozenset[str]) -> Iterator[TrainValue]:
         categories = self._categories()
@@ -44,32 +60,51 @@ class ParquetBaselineSource:
         wanted = pa.array(sorted(attributes), type=pa.string())
         gold = pq.ParquetFile(self._dir / "gold.parquet")
         for batch in gold.iter_batches(batch_size=GOLD_BATCH):
-            mask = pc.and_(pc.is_in(batch.column(0), value_set=train),
-                           pc.is_in(batch.column(1), value_set=wanted))
+            mask = pc.and_(
+                pc.is_in(batch.column(0), value_set=train),
+                pc.is_in(batch.column(1), value_set=wanted),
+            )
             kept = batch.filter(mask)
-            for sku, attribute, value, unit in zip(*(kept.column(i).to_pylist() for i in range(4)),
-                                                   strict=True):
+            for sku, attribute, value, unit in zip(
+                *(kept.column(i).to_pylist() for i in range(4)), strict=True
+            ):
                 category = categories.get(sku)
                 if category is not None and value:
                     yield TrainValue(category, attribute, value, unit)
 
     def required(self) -> Sequence[RequiredRecord]:
-        table = pq.read_table(self._dir / "required_attributes.parquet",
-                              columns=["category_id", "attribute", "weight"])
-        return [RequiredRecord(c, a, float(w)) for c, a, w in zip(
-            table["category_id"].to_pylist(), table["attribute"].to_pylist(),
-            table["weight"].to_pylist(), strict=True)]
+        table = pq.read_table(
+            self._dir / "required_attributes.parquet",
+            columns=["category_id", "attribute", "weight"],
+        )
+        return [
+            RequiredRecord(c, a, float(w))
+            for c, a, w in zip(
+                table["category_id"].to_pylist(),
+                table["attribute"].to_pylist(),
+                table["weight"].to_pylist(),
+                strict=True,
+            )
+        ]
 
     def category_stats(self) -> Mapping[int, tuple[int, int]]:
-        table = pq.read_table(self._dir / "clicks_category.parquet",
-                              columns=["category_id", "clicks", "cards"])
-        return {c: (k, n) for c, k, n in zip(table["category_id"].to_pylist(),
-                                             table["clicks"].to_pylist(),
-                                             table["cards"].to_pylist(), strict=True)}
+        table = pq.read_table(
+            self._dir / "clicks_category.parquet", columns=["category_id", "clicks", "cards"]
+        )
+        return {
+            c: (k, n)
+            for c, k, n in zip(
+                table["category_id"].to_pylist(),
+                table["clicks"].to_pylist(),
+                table["cards"].to_pylist(),
+                strict=True,
+            )
+        }
 
     def seller_cards(self) -> Mapping[str, int]:
-        table = pq.read_table(self._dir / "cards.parquet", columns=["seller"],
-                              filters=[("in_catalog", "=", True)])
+        table = pq.read_table(
+            self._dir / "cards.parquet", columns=["seller"], filters=[("in_catalog", "=", True)]
+        )
         return dict(Counter(s for s in table["seller"].to_pylist() if s))
 
     def gold(self, splits: frozenset[str]) -> Mapping[int, Sequence[GoldRecord]]:
@@ -78,8 +113,9 @@ class ParquetBaselineSource:
         gold = pq.ParquetFile(self._dir / "gold.parquet")
         for batch in gold.iter_batches(batch_size=GOLD_BATCH):
             kept = batch.filter(pc.is_in(batch.column(0), value_set=skus))
-            for sku, attribute, value, unit in zip(*(kept.column(i).to_pylist() for i in range(4)),
-                                                   strict=True):
+            for sku, attribute, value, unit in zip(
+                *(kept.column(i).to_pylist() for i in range(4)), strict=True
+            ):
                 result[sku].append(GoldRecord(attribute, value, unit))
         return result
 

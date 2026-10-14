@@ -28,8 +28,20 @@ def database(tmp_path: Path) -> Path:
     assert binary, "Install dbmate 2.36.0 or set DBMATE_BIN for SQLite migration tests"
     path = tmp_path / "feedback.db"
     migrations = Path(__file__).resolve().parents[2] / "migrations/sqlite"
-    subprocess.run([binary, "--url", f"sqlite:{path}", "--migrations-dir", str(migrations),
-                    "--no-dump-schema", "up"], check=True, capture_output=True, text=True)
+    subprocess.run(
+        [
+            binary,
+            "--url",
+            f"sqlite:{path}",
+            "--migrations-dir",
+            str(migrations),
+            "--no-dump-schema",
+            "up",
+        ],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
     return path
 
 
@@ -59,17 +71,30 @@ def test_correction_survives_reopen_is_idempotent_and_can_be_revoked(database: P
 
     async def check() -> None:
         service = FeedbackService(configuration, lambda: SqliteUow(database))
-        processor = ProcessCard(configuration, ResolveCandidates(LexicalDecisionModel(), False), service)
+        processor = ProcessCard(
+            configuration, ResolveCandidates(LexicalDecisionModel(), False), service
+        )
         initial = [event async for event in processor.stream(ExtractCommand(text))][-1]
         color = next(field for field in initial.fields if field.attribute == "Цвет")
         assert color.state == "review"
         option = next(option for option in color.alternatives if option.value == "белый")
-        command = SaveCorrection("request-one", initial.source_text, 761, "Цвет", option.value,
-                                 option.quote, option.start, option.end, True)
+        command = SaveCorrection(
+            "request-one",
+            initial.source_text,
+            761,
+            "Цвет",
+            option.value,
+            option.quote,
+            option.start,
+            option.end,
+            True,
+        )
         first = await service.save(command)
         assert await service.save(command) == first
         reopened = FeedbackService(configuration, lambda: SqliteUow(database))
-        updated = ProcessCard(configuration, ResolveCandidates(LexicalDecisionModel(), False), reopened)
+        updated = ProcessCard(
+            configuration, ResolveCandidates(LexicalDecisionModel(), False), reopened
+        )
         result = [event async for event in updated.stream(ExtractCommand(text))][-1]
         fixed = next(field for field in result.fields if field.attribute == "Цвет")
         assert fixed.state == "accepted"
@@ -89,30 +114,59 @@ def test_alias_reuse_is_brand_scoped_and_revocation_stops_future_matches(databas
 
     async def check() -> None:
         service = FeedbackService(configuration, lambda: SqliteUow(database))
-        processor = ProcessCard(configuration, ResolveCandidates(LexicalDecisionModel(), False), service)
+        processor = ProcessCard(
+            configuration, ResolveCandidates(LexicalDecisionModel(), False), service
+        )
         text = "Смартфон Samsung Galaxy S26 midnight"
         initial = [event async for event in processor.stream(ExtractCommand(text))][-1]
         start = initial.source_text.index("midnight")
-        record = await service.save(SaveCorrection("alias-request", initial.source_text, 761,
-            "Цвет", "черный", "midnight", start, start + len("midnight"), True))
-        matched = [event async for event in processor.stream(ExtractCommand(
-            "Смартфон Samsung Galaxy S25 midnight"))][-1]
+        record = await service.save(
+            SaveCorrection(
+                "alias-request",
+                initial.source_text,
+                761,
+                "Цвет",
+                "черный",
+                "midnight",
+                start,
+                start + len("midnight"),
+                True,
+            )
+        )
+        matched = [
+            event
+            async for event in processor.stream(
+                ExtractCommand("Смартфон Samsung Galaxy S25 midnight")
+            )
+        ][-1]
         color = next(field for field in matched.fields if field.attribute == "Цвет")
         assert color.state == "accepted"
         assert color.value == "черный"
         assert color.source == "confirmed_alias"
-        other = [event async for event in processor.stream(ExtractCommand(
-            "Смартфон Apple iPhone 17 midnight"))][-1]
-        assert next(field for field in other.fields if field.attribute == "Цвет").state == "not_stated"
+        other = [
+            event
+            async for event in processor.stream(ExtractCommand("Смартфон Apple iPhone 17 midnight"))
+        ][-1]
+        assert (
+            next(field for field in other.fields if field.attribute == "Цвет").state == "not_stated"
+        )
         await service.revoke(record.id, record.version)
-        final = [event async for event in processor.stream(ExtractCommand(
-            "Смартфон Samsung Galaxy S25 midnight"))][-1]
-        assert next(field for field in final.fields if field.attribute == "Цвет").state == "not_stated"
+        final = [
+            event
+            async for event in processor.stream(
+                ExtractCommand("Смартфон Samsung Galaxy S25 midnight")
+            )
+        ][-1]
+        assert (
+            next(field for field in final.fields if field.attribute == "Цвет").state == "not_stated"
+        )
 
     asyncio.run(check())
 
 
-def test_competing_corrections_are_serialized_and_reused_id_cannot_change_payload(database: Path) -> None:
+def test_competing_corrections_are_serialized_and_reused_id_cannot_change_payload(
+    database: Path,
+) -> None:
     configuration = load_configuration()
 
     async def check() -> None:
@@ -121,7 +175,9 @@ def test_competing_corrections_are_serialized_and_reused_id_cannot_change_payloa
         start = text.index("midnight")
         first = SaveCorrection("first", text, 761, "Цвет", "черный", "midnight", start, start + 8)
         second = replace(first, request_id="second", value="белый")
-        results = await asyncio.gather(service.save(first), service.save(second), return_exceptions=True)
+        results = await asyncio.gather(
+            service.save(first), service.save(second), return_exceptions=True
+        )
         assert sum(isinstance(result, CorrectionConflict) for result in results) == 1, results
         successful = next(result for result in results if not isinstance(result, BaseException))
         original = first if successful.id == "first" else second
@@ -132,7 +188,9 @@ def test_competing_corrections_are_serialized_and_reused_id_cannot_change_payloa
     asyncio.run(check())
 
 
-def test_feedback_rejects_unknown_category_and_numeric_value_without_matching_evidence(database: Path) -> None:
+def test_feedback_rejects_unknown_category_and_numeric_value_without_matching_evidence(
+    database: Path,
+) -> None:
     configuration = load_configuration()
 
     async def check() -> None:

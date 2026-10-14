@@ -32,8 +32,9 @@ UNIT = (
 )
 QUANTITY = re.compile(rf"(?<![\d.,])({NUMBER})[\s-]*({UNIT})(?![a-zа-я])")
 SLASH_MEMORY = re.compile(r"(?<![\d.,])(\d+)\s*/\s*(\d+)\s*(гб|gb|тб|tb)(?![a-zа-я])")
-KEY_VALUE = re.compile(r"^[ \t]*[•\-–*]?[ \t]*([^:\n]{2,60}?)[ \t]*:[ \t]*([^\n]{1,120}?)[ \t]*$",
-                       re.MULTILINE)
+KEY_VALUE = re.compile(
+    r"^[ \t]*[•\-–*]?[ \t]*([^:\n]{2,60}?)[ \t]*:[ \t]*([^\n]{1,120}?)[ \t]*$", re.MULTILINE
+)
 MIN_AFFINITY = 0.5
 
 
@@ -49,7 +50,7 @@ def seller_ranges(
     card: CardText, profiles: Mapping[str, AttributeProfile]
 ) -> dict[str, SellerRange]:
     ranges: dict[str, SellerRange] = {}
-    seller = card.text[card.seller_start:]
+    seller = card.text[card.seller_start :]
     for line in KEY_VALUE.finditer(seller):
         for name in best_attributes(profiles, line.group(1), MIN_AFFINITY):
             if profiles[name].numeric:
@@ -67,7 +68,9 @@ def seller_ranges(
 
 
 def key_value_candidates(
-    card: CardText, profiles: Mapping[str, AttributeProfile], lexicon: Lexicon,
+    card: CardText,
+    profiles: Mapping[str, AttributeProfile],
+    lexicon: Lexicon,
     category: int | None,
 ) -> Iterator[Candidate]:
     for line in KEY_VALUE.finditer(card.text):
@@ -90,12 +93,25 @@ def key_value_candidates(
             else:
                 canon = canonical_text(value)
                 shown = lexicon.display(name, canon) or value.strip()
-            yield Candidate(name, canon, shown, card.span(start, end), start, end, source, zone,
-                            affinity, lexicon.prior(category, name, canon), 0)
+            yield Candidate(
+                name,
+                canon,
+                shown,
+                card.span(start, end),
+                start,
+                end,
+                source,
+                zone,
+                affinity,
+                lexicon.prior(category, name, canon),
+                0,
+            )
 
 
 def dictionary_candidates(
-    card: CardText, profiles: Mapping[str, AttributeProfile], lexicon: Lexicon,
+    card: CardText,
+    profiles: Mapping[str, AttributeProfile],
+    lexicon: Lexicon,
     category: int | None,
 ) -> Iterator[Candidate]:
     attributes = frozenset(n for n, p in profiles.items() if not p.numeric)
@@ -104,15 +120,27 @@ def dictionary_candidates(
         end = card.tokens[found.last].end
         entry = found.entry
         profile = profiles[entry.attribute]
-        yield Candidate(entry.attribute, entry.key, entry.display, card.span(start, end), start,
-                        end, Source.DICTIONARY, card.zone(start),
-                        nearby_affinity(card, profile, start),
-                        lexicon.prior(category, entry.attribute, entry.key), 0)
+        yield Candidate(
+            entry.attribute,
+            entry.key,
+            entry.display,
+            card.span(start, end),
+            start,
+            end,
+            Source.DICTIONARY,
+            card.zone(start),
+            nearby_affinity(card, profile, start),
+            lexicon.prior(category, entry.attribute, entry.key),
+            0,
+        )
 
 
 def number_candidates(
-    card: CardText, profiles: Mapping[str, AttributeProfile], lexicon: Lexicon,
-    category: int | None, ranges: Mapping[str, SellerRange],
+    card: CardText,
+    profiles: Mapping[str, AttributeProfile],
+    lexicon: Lexicon,
+    category: int | None,
+    ranges: Mapping[str, SellerRange],
 ) -> Iterator[Candidate]:
     numeric = {n: p for n, p in profiles.items() if p.kind is Kind.NUMERIC and p.unit}
     if not numeric:
@@ -142,9 +170,20 @@ def number_candidates(
             shown = f"{format_number(converted)} {profile.unit}"
             canon = canonical_key(shown, profile.unit, True)
             fit = ranges[name].fit(converted) if name in ranges else 0
-            yield Candidate(name, canon, shown, card.span(start, end), start, end,
-                            Source.NUMBER, card.zone(start), nearby_affinity(card, profile, start),
-                            lexicon.prior(category, name, canon), fit, slot)
+            yield Candidate(
+                name,
+                canon,
+                shown,
+                card.span(start, end),
+                start,
+                end,
+                Source.NUMBER,
+                card.zone(start),
+                nearby_affinity(card, profile, start),
+                lexicon.prior(category, name, canon),
+                fit,
+                slot,
+            )
 
 
 def title_model_candidates(
@@ -154,7 +193,7 @@ def title_model_candidates(
     if not in_title:
         return
     brand = min(in_title, key=lambda b: b.start)
-    raw = card.text[brand.end:card.title_end]
+    raw = card.text[brand.end : card.title_end]
     lead = len(raw) - len(raw.lstrip(" -"))
     value = raw.strip(" -")
     if len(value) < 2:
@@ -162,12 +201,25 @@ def title_model_candidates(
     start = brand.end + lead
     end = start + len(value)
     canon = canonical_text(value)
-    yield Candidate(MODEL, canon, value, card.span(start, end), start, end, Source.TITLE_MODEL,
-                    "title", 1.0, lexicon.prior(category, MODEL, canon), 0)
+    yield Candidate(
+        MODEL,
+        canon,
+        value,
+        card.span(start, end),
+        start,
+        end,
+        Source.TITLE_MODEL,
+        "title",
+        1.0,
+        lexicon.prior(category, MODEL, canon),
+        0,
+    )
 
 
 def extract_candidates(
-    card: CardText, profiles: Mapping[str, AttributeProfile], lexicon: Lexicon,
+    card: CardText,
+    profiles: Mapping[str, AttributeProfile],
+    lexicon: Lexicon,
     category: int | None,
 ) -> list[Candidate]:
     profiles = {name: p for name, p in profiles.items() if p.kind is not Kind.UNSUPPORTED}

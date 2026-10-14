@@ -72,15 +72,20 @@ def _unique_name(base: str, taken: set[str]) -> str:
 
 
 def candidate_slot(
-    attribute: str, key: str, candidates: Iterable[Candidate], profile: AttributeProfile,
+    attribute: str,
+    key: str,
+    candidates: Iterable[Candidate],
+    profile: AttributeProfile,
     top_k: int,
 ) -> ChoiceSlot | None:
     best: dict[str, tuple[float, Candidate]] = {}
     for c in candidates:
         score = candidate_score(c, profile)
         current = best.get(c.key)
-        if current is None or score > current[0] or (
-            score == current[0] and c.start < current[1].start
+        if (
+            current is None
+            or score > current[0]
+            or (score == current[0] and c.start < current[1].start)
         ):
             best[c.key] = (score, c)
     ranked = sorted(best.values(), key=lambda item: (-item[0], item[1].start))[:top_k]
@@ -88,56 +93,78 @@ def candidate_slot(
         return None
     taken: set[str] = set()
     options = tuple(
-        ChoiceOption(_unique_name(c.value, taken), f"фрагмент: «{c.evidence[:MAX_EVIDENCE_CHARS]}»",
-                     c)
+        ChoiceOption(
+            _unique_name(c.value, taken), f"фрагмент: «{c.evidence[:MAX_EVIDENCE_CHARS]}»", c
+        )
         for _, c in ranked
     )
     return ChoiceSlot(attribute, key, options, from_dictionary=False, unit=profile.unit)
 
 
 def mixed_slot(
-    attribute: str, key: str, candidates: Iterable[Candidate], profile: AttributeProfile,
-    top_k: int, values: Mapping[str, float], display: Mapping[str, str], extra_k: int,
+    attribute: str,
+    key: str,
+    candidates: Iterable[Candidate],
+    profile: AttributeProfile,
+    top_k: int,
+    values: Mapping[str, float],
+    display: Mapping[str, str],
+    extra_k: int,
 ) -> ChoiceSlot | None:
     base = candidate_slot(attribute, key, candidates, profile, top_k)
     if base is None:
         return dictionary_slot(attribute, key, values, display, extra_k, profile.unit)
     known = {o.candidate.key for o in base.options if o.candidate is not None}
     taken = {o.name for o in base.options}
-    ranked = [k for k, _ in sorted(values.items(), key=lambda kv: (-kv[1], kv[0]))
-              if k not in known][:extra_k]
+    ranked = [
+        k for k, _ in sorted(values.items(), key=lambda kv: (-kv[1], kv[0])) if k not in known
+    ][:extra_k]
     extra = tuple(
-        ChoiceOption(_unique_name(display.get(k, k), taken), "значение из справочника каталога",
-                     _placeholder(attribute, k, display.get(k, k)))
+        ChoiceOption(
+            _unique_name(display.get(k, k), taken),
+            "значение из справочника каталога",
+            _placeholder(attribute, k, display.get(k, k)),
+        )
         for k in ranked
     )
-    return ChoiceSlot(attribute, key, base.options + extra, from_dictionary=False,
-                      unit=profile.unit)
+    return ChoiceSlot(
+        attribute, key, base.options + extra, from_dictionary=False, unit=profile.unit
+    )
 
 
 def dictionary_slot(
-    attribute: str, key: str, values: Mapping[str, float], display: Mapping[str, str],
-    top_k: int, unit: str = "",
+    attribute: str,
+    key: str,
+    values: Mapping[str, float],
+    display: Mapping[str, str],
+    top_k: int,
+    unit: str = "",
 ) -> ChoiceSlot | None:
     ranked = sorted(values.items(), key=lambda kv: (-kv[1], kv[0]))[:top_k]
     if not ranked:
         return None
     taken: set[str] = set()
     options = tuple(
-        ChoiceOption(_unique_name(display.get(k, k), taken), "значение из справочника каталога",
-                     _placeholder(attribute, k, display.get(k, k)))
+        ChoiceOption(
+            _unique_name(display.get(k, k), taken),
+            "значение из справочника каталога",
+            _placeholder(attribute, k, display.get(k, k)),
+        )
         for k, _ in ranked
     )
     return ChoiceSlot(attribute, key, options, from_dictionary=True, unit=unit)
 
 
 def _placeholder(attribute: str, key: str, value: str) -> Candidate:
-    return Candidate(attribute, key, value, "", -1, -1, DICTIONARY_SOURCE, "dictionary", 0.0, 0.0,
-                     0)
+    return Candidate(
+        attribute, key, value, "", -1, -1, DICTIONARY_SOURCE, "dictionary", 0.0, 0.0, 0
+    )
 
 
 def build_request(state: Mapping[str, str], slots: Sequence[ChoiceSlot]) -> DecisionRequest:
-    return DecisionRequest(state=dict(state), questions={s.question_key: s.question() for s in slots})
+    return DecisionRequest(
+        state=dict(state), questions={s.question_key: s.question() for s in slots}
+    )
 
 
 def resolve(card: CardText, slot: ChoiceSlot, answer: ChoiceAnswer) -> Chosen | None:
@@ -152,9 +179,19 @@ def resolve(card: CardText, slot: ChoiceSlot, answer: ChoiceAnswer) -> Chosen | 
         if span is None:
             return None
         start, end = span
-        candidate = Candidate(candidate.attribute, candidate.key, candidate.value,
-                              card.span(start, end), start, end, DICTIONARY_SOURCE,
-                              card.zone(start), 0.0, 0.0, 0)
+        candidate = Candidate(
+            candidate.attribute,
+            candidate.key,
+            candidate.value,
+            card.span(start, end),
+            start,
+            end,
+            DICTIONARY_SOURCE,
+            card.zone(start),
+            0.0,
+            0.0,
+            0,
+        )
     probability = answer.probabilities.get(answer.choice, answer.confidence)
     return Chosen(slot.attribute, candidate, round(probability, 4))
 

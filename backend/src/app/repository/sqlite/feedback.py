@@ -31,8 +31,12 @@ class SqliteFeedbackRepository:
             row = await cursor.fetchone()
         return correction(row) if row else None
 
-    async def applicable(self, source_hash: str, category_id: int, brand: str) -> tuple[Correction, ...]:
-        async with self._connection.execute(APPLICABLE, (category_id, source_hash, brand)) as cursor:
+    async def applicable(
+        self, source_hash: str, category_id: int, brand: str
+    ) -> tuple[Correction, ...]:
+        async with self._connection.execute(
+            APPLICABLE, (category_id, source_hash, brand)
+        ) as cursor:
             rows = await cursor.fetchall()
         return tuple(correction(row) for row in rows)
 
