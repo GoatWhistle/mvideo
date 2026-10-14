@@ -13,6 +13,7 @@ from app.usecase.lexicon_builder import TrainValue
 CARD_COLUMNS = ["sku_id", "category_id", "seller", "title", "description", "seller_params",
                 "has_text"]
 GOLD_BATCH = 1_000_000
+INFERRED = "inferred_categories.parquet"
 
 
 class ParquetBaselineSource:
@@ -83,9 +84,19 @@ class ParquetBaselineSource:
                 result[sku].append(GoldRecord(attribute, value, unit))
         return result
 
+    def inferred_categories(self) -> dict[int, int]:
+        path = self._dir / INFERRED
+        if not path.exists():
+            return {}
+        table = pq.read_table(path, columns=["sku_id", "category_id"],
+                              filters=[("source", "!=", "catalog")])
+        return dict(zip(table["sku_id"].to_pylist(), table["category_id"].to_pylist(),
+                        strict=True))
+
     def cards(self, splits: frozenset[str] | None, batch: int) -> Iterator[list[CardRecord]]:
         split_map = self._split_map()
         skus = self._skus(splits) if splits is not None else None
+        inferred = self.inferred_categories() if splits is None else {}
         source = pq.ParquetFile(self._dir / "cards.parquet")
         for chunk in source.iter_batches(batch_size=batch, columns=CARD_COLUMNS):
             mask = chunk.column(CARD_COLUMNS.index("has_text"))
@@ -93,10 +104,14 @@ class ParquetBaselineSource:
                 mask = pc.and_(mask, pc.is_in(chunk.column(0), value_set=skus))
             kept = chunk.filter(mask)
             if kept.num_rows:
-                yield [card_record(row, split_map) for row in kept.to_pylist()]
+                yield [card_record(row, split_map, inferred) for row in kept.to_pylist()]
 
 
-def card_record(row: Mapping[str, object], split_map: Mapping[int, str]) -> CardRecord:
+def card_record(
+    row: Mapping[str, object],
+    split_map: Mapping[int, str],
+    inferred: Mapping[int, int] | None = None,
+) -> CardRecord:
     sku = _int(row["sku_id"])
     raw = row.get("seller_params")
     params = raw if isinstance(raw, list) else []
@@ -106,9 +121,10 @@ def card_record(row: Mapping[str, object], split_map: Mapping[int, str]) -> Card
         if isinstance(p, dict) and p.get("name") and p.get("value")
     )
     category = row.get("category_id")
+    resolved = _int(category) if category is not None else (inferred or {}).get(sku)
     return CardRecord(
         sku_id=sku,
-        category_id=_int(category) if category is not None else None,
+        category_id=resolved,
         seller=_text(row.get("seller")),
         title=_text(row.get("title")),
         description=_text(row.get("description")),
