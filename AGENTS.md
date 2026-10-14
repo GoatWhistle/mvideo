@@ -3,13 +3,14 @@
 Product hackathon «Точка сборки» (GIGASCHOOL), track: task 3 «ИИ для автоматического заполнения
 характеристик товаров», case owner М.Видео. Deadline: 2026-10-15 17:00 MSK.
 A catalog team pastes a seller's product card and gets normalized attributes, each with a quote from
-the card, a calibrated confidence and its source (rule, model, LLM); low-confidence values go to a
+the card, a calibrated confidence and its source (rule, ranker, decision model); low-confidence values go to a
 review queue whose corrections feed back into the dictionaries.
 
 Decisions that are not reopened: gold labels are the catalog's `*_search` params
 ([ADR 0001](docs/adr/0001-gold-from-search-params.md)); extraction is a cascade where a value needs a
-quote from the card ([ADR 0002](docs/adr/0002-cascade-rules-ranker-llm.md)); the LLM is Claude Haiku
-behind a port with a no-key fallback ([ADR 0003](docs/adr/0003-llm-behind-port.md)); the dataset stays
+quote from the card and a decision model picks among candidates
+([ADR 0002](docs/adr/0002-cascade-rules-ranker-llm.md)); the decision model is TypeSafe Jev behind
+the `DecisionModel` port with a no-key fallback ([ADR 0003](docs/adr/0003-llm-behind-port.md)); the dataset stays
 outside git ([ADR 0004](docs/adr/0004-dataset-outside-git.md)); the stand is one page without auth
 ([ADR 0005](docs/adr/0005-stand-scope.md)). Plan: `work/plan.md`.
 
