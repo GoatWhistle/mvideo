@@ -51,6 +51,32 @@ uv sync                      # группы dev и llm; без SDK LLM: uv sync 
 uv run uvicorn app.main:create_app --factory --reload
 ```
 
+## Как подготовить данные?
+
+Архив организаторов в git не хранится: 1,1 ГБ. Положите `dataset.zip` в `brief/sources/`, сверьте
+SHA-256 с таблицей в `brief/sources/README.md` и распакуйте:
+
+```bash
+unzip brief/sources/dataset.zip -d data/raw
+cd backend
+uv run prepare-data --raw ../data/raw --out ../data/processed
+```
+
+Команда без сети и ключей пишет в `data/processed/`:
+
+| Файл | Что внутри |
+|---|---|
+| `cards.parquet` | Карточка: `title`, `description`, название оффера, категория, продавец, параметры продавца без `*_search`, флаги `in_catalog`, `has_text`, `has_spec_block` |
+| `gold.parquet` | Эталон: `sku_id`, атрибут, значение, единица — из параметров `*_search`, плюс бренд и модель оффера |
+| `splits.parquet` | `train` / `val` / `test` по хешу `sku_id` с сидом 42 и `new_category` — отложенные целиком категории |
+| `required_attributes.parquet` | Обязательные атрибуты категории: бренд, модель и до шести самых кликаемых `*_search` с покрытием от 30 %, доля упоминаний в запросах и вес |
+| `categories.parquet`, `clicks_sku.parquet`, `clicks_category.parquet` | Дерево категорий с путями, клики по SKU и по категориям |
+| `stats.json` | Пересечения файлов, размеры сплитов, частые атрибуты, время прогона |
+
+`skus.pkl` читается потоково, без `pickle.load`: читатель понимает только опкоды словарей, списков и
+строк и падает на любом опкоде, который может исполнить код. Параметры `*_search` попадают только в
+`gold.parquet`, это проверяет юнит-тест.
+
 ## Какие переменные читает бэкенд?
 
 Все необязательны: без них работает офлайн-реализация.
