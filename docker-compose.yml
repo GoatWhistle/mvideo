@@ -7,6 +7,10 @@ services:
     env_file:
       - path: .env
         required: false
+    environment:
+      STAND_PACK: /srv/data/stand/pack.json.gz
+    volumes:
+      - ./data/stand:/srv/data/stand:ro
     ports:
       - "127.0.0.1:${BACKEND_PORT:-8000}:8000"
     healthcheck:
