@@ -1,17 +1,11 @@
 {
   "buttons": [
     {
-      "name": "live",
-      "label": "Открыть стенд",
-      "icon": "external-link",
-      "href": "https://{{DOMAIN}}",
-      "primary": true
-    },
-    {
       "name": "run",
       "label": "Запустить локально",
       "icon": "terminal",
-      "href": "#запуск"
+      "href": "#запуск",
+      "primary": true
     },
     {
       "name": "docs",
@@ -22,8 +16,8 @@
   ],
   "status": [
     {
-      "label": "{{M1}}",
-      "value": "{{значение на n}}",
+      "label": "micro F1",
+      "value": "77,5 на 191 236 парах",
       "href": "#результаты",
       "tone": "accent"
     },
@@ -34,7 +28,7 @@
     },
     {
       "label": "тесты",
-      "value": "{{N пройдено}}",
+      "value": "189 пройдено",
       "href": "docs/running.md"
     },
     {
@@ -54,15 +48,15 @@
     },
     {
       "label": "API",
-      "value": "{{FastAPI}}"
+      "value": "FastAPI"
     },
     {
       "label": "хранилище",
-      "value": "{{PostgreSQL 16}}"
+      "value": "в памяти процесса"
     },
     {
-      "label": "модель",
-      "value": "{{название, локально}}"
+      "label": "модели",
+      "value": "CatBoost, TF-IDF, Jev"
     },
     {
       "label": "запуск",
