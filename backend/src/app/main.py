@@ -10,6 +10,7 @@ from app.adapter.dataset.stand_pack_file import StandPackFile
 from app.adapter.decision.lexical import LexicalDecisionModel
 from app.adapter.decision.system_one import SystemOneModel
 from app.adapter.log.stdlib import StdlibLogger
+from app.adapter.ranker.fusion_store import has_fusion, has_ranker, load_fusion, load_ranker
 from app.adapter.system.clock import SystemClock, UuidIds
 from app.controller.errors import ErrorHandlers
 from app.controller.router import api_router_v1
@@ -20,6 +21,8 @@ from app.usecase.extract_card import BaselineChooser, ExtractCard
 from app.usecase.interface import DecisionModel, LanguageModel, Logger
 from app.usecase.review_queue import ReviewQueue
 from app.usecase.stand_catalog import StandCatalog
+from app.usecase.stand_chooser import FusedChooser, FusionPolicy
+from app.usecase.stand_ports import CandidateChooser
 
 
 @dataclass(frozen=True, slots=True)
@@ -48,10 +51,23 @@ def build_stand(settings: Settings, logger: Logger) -> StandServices:
                     examples=len(pack.examples))
     reviews, aliases, clock = MemoryReviewRepository(), MemoryAliasRepository(), SystemClock()
     return StandServices(
-        extract=ExtractCard(pack, aliases, reviews, BaselineChooser(), clock, UuidIds()),
+        extract=ExtractCard(pack, aliases, reviews, build_chooser(Path(settings.stand_models), logger),
+                            clock, UuidIds()),
         review=ReviewQueue(reviews, aliases, clock),
         catalog=StandCatalog(pack),
     )
+
+
+def build_chooser(models: Path, logger: Logger) -> CandidateChooser:
+    ranker_dir, fusion_dir = models / "ranker", models / "fusion"
+    if not (has_ranker(ranker_dir) and has_fusion(fusion_dir)):
+        logger.warning("stand_models_missing", path=str(models))
+        return BaselineChooser()
+    model, calibrator, threshold = load_ranker(ranker_dir)
+    fusion = load_fusion(fusion_dir)
+    logger.info("stand_models_loaded", path=str(models), threshold=fusion.threshold)
+    policy = FusionPolicy(fusion.rules, fusion.calibrate, fusion.threshold)
+    return FusedChooser(model, calibrator, threshold, policy)
 
 
 def build_decision_model(settings: Settings, retries: int = 0) -> DecisionModel:

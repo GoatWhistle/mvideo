@@ -5,6 +5,7 @@ from enum import StrEnum
 from app.adapter.decision.system_one import DEFAULT_MODEL_NAME, TYPESAFE_URL
 
 DEFAULT_STAND_PACK = "data/stand/pack.json.gz"
+DEFAULT_STAND_MODELS = "data/stand/models"
 
 
 class DecisionProvider(StrEnum):
@@ -31,6 +32,7 @@ class Settings:
     decision_model_name: str = DEFAULT_MODEL_NAME
     language_provider: LanguageProvider = LanguageProvider.NONE
     stand_pack: str = DEFAULT_STAND_PACK
+    stand_models: str = DEFAULT_STAND_MODELS
 
 
 def load_settings(env: Mapping[str, str]) -> Settings:
@@ -44,6 +46,7 @@ def load_settings(env: Mapping[str, str]) -> Settings:
         decision_model_name=env.get("DECISION_MODEL_NAME") or DEFAULT_MODEL_NAME,
         language_provider=_choice(env, "LANGUAGE_MODEL", LanguageProvider, LanguageProvider.NONE),
         stand_pack=env.get("STAND_PACK") or DEFAULT_STAND_PACK,
+        stand_models=env.get("STAND_MODELS") or DEFAULT_STAND_MODELS,
     )
 
 

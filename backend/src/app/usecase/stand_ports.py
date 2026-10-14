@@ -56,7 +56,8 @@ class StandPackSink(Protocol):
 
 
 class CandidateChooser(Protocol):
-    async def choose(self, extraction: CardExtraction, threshold: float) -> CardExtraction: ...
+    async def choose(self, extraction: CardExtraction, threshold: float, category_id: int | None,
+                     known: frozenset[str]) -> CardExtraction: ...
 
 
 class ReviewRepository(Protocol):
