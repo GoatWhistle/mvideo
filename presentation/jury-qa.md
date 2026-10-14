@@ -1,16 +1,16 @@
-# Jury Q&A: {{PRODUCT}}
+# Jury Q&A: Атрибут
 
-Q&A {{5:00}}. Facts: [pitch-evidence.md](pitch-evidence.md). A fact not confirmed
-there is answered as not measured, followed by what is known.
+Q&A length is not published (open question Q1). Facts: [pitch-evidence.md](pitch-evidence.md),
+`../docs/evidence.md`. A fact not confirmed there is answered as not measured, followed by what is known.
 
 ## Owners
 
 | Topic | Owner | Backup |
 | --- | --- | --- |
-| {{Quality and metrics}} | {{name}} | {{name}} |
-| {{Architecture and constraints}} | {{name}} | {{name}} |
-| {{Product, user, interface}} | {{name}} | {{name}} |
-| {{Plan, team, what is not done}} | {{name}} | {{name}} |
+| Quality and metrics | Докладчик | — |
+| Architecture, cost, decision model | Докладчик | — |
+| Stand and review queue | Докладчик | — |
+| Data, gold labels, limitations | Докладчик | — |
 
 ## Protocol
 
@@ -21,34 +21,112 @@ there is answered as not measured, followed by what is known.
 
 ## Questions
 
-### 1. {{How did you measure the main result?}}
+### 1. Где размеченная часть и как вы считали метрики?
 
-- **Short answer:**
-- **Proof:**
-- **Limitation:**
-- **Owner:**
+- **Short answer:** В архиве не было отдельной разметки, поэтому эталоном стали нормализованные поля фильтров каталога `*_search`; во вход они не попадают, это закреплено тестом.
+- **Proof:** `../docs/adr/0001-gold-from-search-params.md`, тест `test_split_offer_keeps_search_params_out_of_card_input`.
+- **Limitation:** Это не разметка людьми; если организаторы дадут gold-сет, он станет основным.
+- **Owner:** Data.
 
-### 2. {{Why this approach and not the obvious alternative?}}
+### 2. Как устроена оценка, нет ли подгонки под тест?
 
-- **Short answer:**
-- **Proof:**
-- **Limitation:**
-- **Owner:**
+- **Short answer:** Сплит по SKU, восемь категорий отложены целиком; правило выбора источника и порог подобраны только на валидации, тест прогнан один раз.
+- **Proof:** журнал `../docs/validation-plan.md`, `reports/final.md`.
+- **Limitation:** Ранние версии базлайна и ранжировщика видели тест до правок; их отчёты v1 опубликованы рядом.
+- **Owner:** Quality.
+
+### 3. Почему не LLM на каждую карточку?
+
+- **Short answer:** Дорого и нет гарантии против выдумки; у нас модель выбирает только среди вариантов, найденных в тексте или у двойника.
+- **Proof:** Jev получает 28% слотов, 62 доллара на миллион карточек по фактическим счетам.
+- **Limitation:** Поверх ранжировщика Jev F1 не поднял: 70,1 и 70,1.
+- **Owner:** Architecture.
+
+### 4. Что такое двойник и не утечка ли это?
+
+- **Short answer:** Тот же товар в каталоге с заполненными полями; индекс строится только из train, совпадать должны бренд и все числа в названии.
+- **Proof:** тест, что test и new_category не попадают в индекс; `../docs/evidence.md#что-дают-двойники-из-каталога-поверх-ранжировщика`.
+- **Limitation:** Варианты цвета и комплектации дают ложных двойников; точность переноса 76%.
+- **Owner:** Quality.
+
+### 5. Насколько можно верить уверенности?
+
+- **Short answer:** Ошибка калибровки 0,021; у значений с уверенностью от 0,9 точность 98,3%.
+- **Proof:** `../docs/images/results/reliability.png`, `../docs/evidence.md#что-даёт-итоговая-сборка`.
+- **Limitation:** Калибровка измерена на эталоне каталога, не на разметке людей.
+- **Owner:** Quality.
+
+### 6. Как работает петля обратной связи?
+
+- **Short answer:** Значение ниже порога 0,25 уходит в очередь; правка человека сохраняется как алиас, и повторное извлечение даёт уверенное значение.
+- **Proof:** тесты петли в `backend/tests/unit`, сценарий стенда.
+- **Limitation:** Очередь стенда хранится в памяти и стирается при перезапуске; алиас срабатывает на ту же цитату.
+- **Owner:** Stand.
+
+### 7. Что с новыми категориями?
+
+- **Short answer:** Держим уровень правил: 65,8 против 65,5 micro F1 на восьми отложенных категориях; это главное слабое место.
+- **Proof:** `reports/final.md`, срез new_category.
+- **Limitation:** По трафику на 0,4 ниже базлайна; двойников для новых категорий в индексе нет.
+- **Owner:** Quality.
+
+### 8. Сколько стоит обработать весь каталог?
+
+- **Short answer:** Без Jev каскад считается на CPU: все 1,18 млн карточек за 23 минуты на трёх процессах.
+- **Proof:** `../docs/evidence.md#что-даёт-итоговая-сборка`.
+- **Limitation:** Jev для всех карточек не прогоняли: только выборка 8 000 карточек из кэша.
+- **Owner:** Architecture.
+
+### 9. Почему у части карточек вообще нет атрибутов?
+
+- **Short answer:** У 936 тысяч карточек нет категории каталога; мы восстановили категорию по кликам и названию, пустых карточек стало 11,2% вместо 20,7%.
+- **Proof:** `../docs/evidence.md#насколько-полнее-файл-предсказаний-если-восстановить-категорию-карточкам-вне-каталога`.
+- **Limitation:** Точность категорий на карточках вне каталога не измерена, эталона нет.
+- **Owner:** Data.
+
+### 10. Справедливо ли решение к мелким продавцам?
+
+- **Short answer:** Мерили отдельно: у мелких продавцов F1 69,9 против 77,5 в среднем.
+- **Proof:** `reports/final.md`, срез sellers:small.
+- **Limitation:** Разрыв есть, и двойники помогают им меньше; это в списке следующих шагов.
+- **Owner:** Quality.
+
+### 11. Почему «Модель» в сборке хуже базлайна?
+
+- **Short answer:** Ранжировщик режет длинные названия модели; на валидации правило «брать базлайн» для этого атрибута не выиграло, и под тест мы его не подгоняли.
+- **Proof:** `../docs/evidence.md#что-даёт-итоговая-сборка`.
+- **Limitation:** Смартфоны 83,3, ноутбуки 74,0 против 97,7 и 94,9 у базлайна.
+- **Owner:** Quality.
+
+### 12. Почему не дообученный трансформер?
+
+- **Short answer:** За сутки не окупался: нужен большой размеченный корпус и GPU; это следующий шаг, обучаться он будет на правках из очереди.
+- **Proof:** `../docs/adr/0002-cascade-rules-ranker-llm.md`.
+- **Limitation:** Сравнения с трансформером у нас нет.
+- **Owner:** Architecture.
 
 ## Uncomfortable questions
 
-### {{The weakest number on the deck: is it good?}}
+### Jev почти ничего не дал. Зачем он вообще?
 
-- **Short answer:**
-- **Proof:**
-- **Limitation:**
-- **Owner:**
+- **Short answer:** Как отдельная ступень он не поднял F1 поверх ранжировщика; сборка отдаёт ему только те атрибуты, где он выиграл на валидации, например вес.
+- **Proof:** 2 531 значение от Jev в сборке; `../docs/evidence.md`.
+- **Limitation:** Его вероятности переуверены, ECE 0,34; без калибровки им верить нельзя.
+- **Owner:** Architecture.
+
+### Эталон из того же каталога: вы не учитесь на собственном ответе?
+
+- **Short answer:** Поля `*_search` закрыты от входа тестом; модель видит только текст и поля продавца.
+- **Proof:** `test_split_offer_keeps_search_params_out_of_card_input`.
+- **Limitation:** Двойники используют эталон train-карточек, это перенос, а не извлечение, и он помечен отдельным источником.
+- **Owner:** Data.
 
 ## Red lines
 
 | Don't say | Say instead |
 | --- | --- |
-| {{"It replaces X"}} | {{"It reduces the number of X runs"}} |
-| {{"Accuracy is N%"}} | {{"N% on held-out data of the same distribution, sample M"}} |
-| {{"It is already in production"}} | {{"It runs on the demo stand; production is the next step"}} |
-| {{"All tests pass"}} | {{"The demo build passes; full regression is checked separately"}} |
+| «Модель не галлюцинирует» | «Значение без цитаты или двойника не принимается; точность 83,3% на отложенной выборке» |
+| «Точность 98%» | «98,3% у значений с уверенностью от 0,9» |
+| «Работает на новых категориях» | «На новых категориях держим уровень правил, 65,8 против 65,5» |
+| «Размечено людьми» | «Эталон из полей фильтров каталога» |
+| «Уже в продакшене» | «Работает на локальном стенде и офлайн на всём архиве» |

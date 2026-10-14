@@ -1,5 +1,5 @@
 <section class="slide" id="explain" data-title="Объяснимость" data-steps="1">
-  <h2 class="title a">{{Каждый результат объяснён}}, <em>{{и у каждой причины есть источник}}</em></h2>
+  <h2 class="title a">У каждого значения видно, откуда оно, <em>а спорное решает человек</em></h2>
   <svg class="explain-links" viewBox="0 0 1920 1080" aria-hidden="true">
     <path class="trace dr" pathLength="1" style="--d:0.9s" d="M760 500 C960 500 980 400 1180 400" />
     <path class="trace dr" pathLength="1" style="--d:1.05s" d="M760 596 C960 596 980 540 1180 540" />
@@ -7,20 +7,20 @@
     <path class="trace is-muted is-dashed f" style="--d:1.5s" d="M760 788 C960 788 980 820 1180 820" />
   </svg>
   <article class="explain-card s" style="--d:0.3s">
-    <p class="micro">{{Сквозной пример}}</p>
-    <h3>{{Результат для примера}}</h3>
+    <p class="micro" data-plain>HONOR X9c, диагональ</p>
+    <h3 data-plain>6.7 дюйма</h3>
     <ul>
-      <li class="a" style="--d:0.6s">{{Причина 1}}</li>
-      <li class="a" style="--d:0.7s">{{Причина 2}}</li>
-      <li class="a" style="--d:0.8s">{{Причина 3}}</li>
-      <li class="a is-unknown" style="--d:0.9s">{{Чего не знаем}}</li>
+      <li class="a" style="--d:0.6s">Цитата в описании <span data-plain>«6,7-дюймовый экран»</span></li>
+      <li class="a" style="--d:0.7s">Сходится с диапазоном продавца</li>
+      <li class="a" style="--d:0.8s">Значение есть в справочнике категории</li>
+      <li class="a is-unknown" style="--d:0.9s">Процессор: в тексте записан иначе, чем в каталоге</li>
     </ul>
   </article>
   <ul class="explain-sources">
-    <li class="chip a" style="--d:1.2s;--y:400px">{{Источник 1}}</li>
-    <li class="chip a" style="--d:1.35s;--y:540px">{{Источник 2}}</li>
-    <li class="chip a" style="--d:1.5s;--y:680px">{{Источник 3}}</li>
-    <li class="chip is-unknown a" style="--d:1.7s;--y:820px">{{Неизвестно: что и почему}}</li>
+    <li class="chip a" style="--d:1.2s;--y:400px">Описание карточки</li>
+    <li class="chip a" style="--d:1.35s;--y:540px">Поля продавца</li>
+    <li class="chip a" style="--d:1.5s;--y:680px">Справочник каталога</li>
+    <li class="chip is-unknown a" style="--d:1.7s;--y:820px">Полная модель чипа не выбрана</li>
   </ul>
-  <p class="explain-key limit" data-s="1"><b>{{Где решает человек}}.</b> {{Что система не решает за него}}</p>
+  <p class="explain-key limit" data-s="1"><b>Где решает человек.</b> Серия ниже порога ушла в очередь, его правка станет правилом для следующих карточек</p>
 </section>

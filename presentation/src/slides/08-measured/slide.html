@@ -1,18 +1,18 @@
 <section class="slide" id="measured" data-title="Измерено" data-steps="1">
-  <h2 class="title a">{{Метрика}} {{лучше базового подхода}}, <em>{{и граница названа}}</em></h2>
-  <p class="measured-method caption f" style="--d:0.25s">{{Метод: выборка, как разбили, когда прогнали, чем считали}}</p>
+  <h2 class="title a">Каскад точнее правил и словарей, <em>а на новых категориях только держит уровень</em></h2>
+  <p class="measured-method caption f" style="--d:0.25s"><span data-plain>Micro F1</span> по обязательным атрибутам, отложенная выборка и отложенные категории, правило подобрано на валидации</p>
   <div class="measured-bars">
     <div class="bar-row" style="--d:0.45s">
-      <span class="bar-label a">{{Базовый подход}}</span>
-      <span class="bar-track"><i class="bar-fill" data-bar="baseline_metric"></i></span>
-      <span class="bar-value num count" data-num="baseline_metric"></span>
+      <span class="bar-label a">Правила и словари</span>
+      <span class="bar-track"><i class="bar-fill" data-bar="f1_baseline"></i></span>
+      <span class="bar-value num count" data-num="f1_baseline"></span>
     </div>
     <div class="bar-row is-ours" style="--d:0.75s">
-      <span class="bar-label a">{{PRODUCT}}</span>
-      <span class="bar-track"><i class="bar-fill" data-bar="ours_metric"></i></span>
-      <span class="bar-value num count" data-num="ours_metric"></span>
+      <span class="bar-label a">Атрибут</span>
+      <span class="bar-track"><i class="bar-fill" data-bar="f1_final"></i></span>
+      <span class="bar-value num count" data-num="f1_final"></span>
     </div>
   </div>
-  <p class="measured-limit limit" data-s="1"><b>Граница.</b> {{Где метод ошибается, с числом}}</p>
-  <p class="measured-source source f" style="--d:1.2s">Источник: <span data-source="ours_metric"></span></p>
+  <p class="measured-limit limit" data-s="1"><b>Граница.</b> На категориях вне обучения правила дают <span class="num" data-num="f1_new_baseline"></span>, каскад <span class="num" data-num="f1_new_final"></span></p>
+  <p class="measured-source source f" style="--d:1.2s">Источник: <span data-source="f1_final"></span></p>
 </section>
