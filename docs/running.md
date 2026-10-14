@@ -168,18 +168,16 @@ uv run final --data $D/processed --out $D/predictions --reports ../reports --mod
 «базлайн → ранжировщик → + Jev → + двойники → сборка», правило выбора, калибровка) и модель сборки в
 `data/models/fusion/` (`rules.json` и isotonic-калибровка каждого источника).
 
-Файл по всем карточкам с текстом — ранжировщик по сохранённой модели на частях `cards.parquet`
-(не больше трёх процессов одновременно, ~1 ГБ памяти на процесс), затем склейка:
+Файл по всем карточкам с текстом — тот же шардированный скрипт, что и для базлайна, в режиме
+`STAGE=final`: ранжировщик по сохранённой модели на частях `cards.parquet` (не больше трёх процессов
+одновременно, ~0,9 ГБ памяти на процесс; категории карточек вне каталога берутся из
+`inferred_categories.parquet`), затем склейка сборкой:
 
 ```bash
-uv run ranker --data $D/shards/0 --out $D/shards/rk_0 --name ranker_final \
-  --load-model $D/models/ranker_final --threads 1
-uv run final --all-cards --shards $D/shards/rk_0 $D/shards/rk_1 --out $D/predictions \
-  --reports ../reports --model $D/models/fusion
+STAGE=final WORK=../data/fusion_shards bash scripts/predict-all.sh ../data/processed ../data/predictions
 ```
 
-`data/shards/<i>/` — часть `cards.parquet` по `sku_id % N` и ссылки на остальные таблицы
-`data/processed/`. Результат — `data/predictions/final_all.predictions.jsonl`: формат базлайна,
+На этой машине — около 23 минут для 1 177 200 карточек. Результат — `data/predictions/final_all.predictions.jsonl`: формат базлайна,
 `confidence_calibrated: true`, у каждого значения `stage` — источник (`baseline`, `ranker`,
 `decision_model`, `catalog_twin`), `category_mode` — известная или новая категория; сводка —
 `reports/final_all.json`. Decision-модель для всех карточек не вызывается: её ответы есть только у
