@@ -4,6 +4,8 @@ from enum import StrEnum
 
 from app.adapter.decision.system_one import TYPESAFE_URL
 
+DEFAULT_STAND_PACK = "data/stand/pack.json.gz"
+
 
 class DecisionProvider(StrEnum):
     LEXICAL = "lexical"
@@ -27,6 +29,7 @@ class Settings:
     decision_api_key: str | None = None
     decision_timeout_s: float = 10.0
     language_provider: LanguageProvider = LanguageProvider.NONE
+    stand_pack: str = DEFAULT_STAND_PACK
 
 
 def load_settings(env: Mapping[str, str]) -> Settings:
@@ -38,6 +41,7 @@ def load_settings(env: Mapping[str, str]) -> Settings:
         decision_api_key=env.get("DECISION_MODEL_API_KEY") or None,
         decision_timeout_s=_positive(env, "DECISION_MODEL_TIMEOUT_S", 10.0),
         language_provider=_choice(env, "LANGUAGE_MODEL", LanguageProvider, LanguageProvider.NONE),
+        stand_pack=env.get("STAND_PACK") or DEFAULT_STAND_PACK,
     )
 
 

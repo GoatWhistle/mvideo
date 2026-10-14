@@ -2,16 +2,23 @@ import os
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from dataclasses import dataclass
+from pathlib import Path
 
 from fastapi import FastAPI
 
+from app.adapter.dataset.stand_pack_file import StandPackFile
 from app.adapter.decision.lexical import LexicalDecisionModel
 from app.adapter.decision.system_one import SystemOneModel
 from app.adapter.log.stdlib import StdlibLogger
+from app.adapter.system.clock import SystemClock, UuidIds
 from app.controller.errors import ErrorHandlers
 from app.controller.router import api_router_v1
+from app.repository.memory.review import MemoryAliasRepository, MemoryReviewRepository
 from app.settings import ConfigError, DecisionProvider, LanguageProvider, Settings, load_settings
+from app.usecase.extract_card import BaselineChooser, ExtractCard
 from app.usecase.interface import DecisionModel, LanguageModel, Logger
+from app.usecase.review_queue import ReviewQueue
+from app.usecase.stand_catalog import StandCatalog
 
 
 @dataclass(frozen=True, slots=True)
@@ -22,6 +29,28 @@ class Providers:
 
     async def aclose(self) -> None:
         await self.decision.aclose()
+
+
+@dataclass(frozen=True, slots=True)
+class StandServices:
+    extract: ExtractCard
+    review: ReviewQueue
+    catalog: StandCatalog
+
+
+def build_stand(settings: Settings, logger: Logger) -> StandServices:
+    pack = StandPackFile(Path(settings.stand_pack)).load()
+    if pack is None:
+        logger.warning("stand_pack_missing", path=settings.stand_pack)
+    else:
+        logger.info("stand_pack_loaded", categories=len(pack.categories),
+                    examples=len(pack.examples))
+    reviews, aliases, clock = MemoryReviewRepository(), MemoryAliasRepository(), SystemClock()
+    return StandServices(
+        extract=ExtractCard(pack, aliases, reviews, BaselineChooser(), clock, UuidIds()),
+        review=ReviewQueue(reviews, aliases, clock),
+        catalog=StandCatalog(pack),
+    )
 
 
 def build_decision_model(settings: Settings) -> DecisionModel:
@@ -72,6 +101,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             decision=build_decision_model(config), language=language, logger=logger
         )
         app.state.providers = providers
+        app.state.stand = build_stand(config, logger)
         try:
             yield
         finally:
