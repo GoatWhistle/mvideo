@@ -1,4 +1,6 @@
+import json
 from collections.abc import Mapping, Sequence
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
@@ -7,6 +9,8 @@ from catboost import CatBoostClassifier, Pool
 from app.usecase.ranker_ports import FeatureTable
 
 ITERATIONS = 400
+MODEL_FILE = "ranker.cbm"
+COLUMNS_FILE = "ranker_columns.json"
 DEPTH = 6
 LEARNING_RATE = 0.1
 SEED = 42
@@ -45,3 +49,16 @@ class CatBoostScoreModel:
         values = self._model.get_feature_importance()
         return {name: float(v) for name, v in zip(self._names + self._categorical, values,
                                                   strict=True)}
+
+    def save(self, directory: Path) -> None:
+        directory.mkdir(parents=True, exist_ok=True)
+        self._model.save_model(str(directory / MODEL_FILE))
+        columns = {"numeric": self._names, "categorical": self._categorical}
+        (directory / COLUMNS_FILE).write_text(json.dumps(columns, ensure_ascii=False),
+                                              encoding="utf-8")
+
+    def load(self, directory: Path) -> None:
+        self._model.load_model(str(directory / MODEL_FILE))
+        columns = json.loads((directory / COLUMNS_FILE).read_text(encoding="utf-8"))
+        self._names = list(columns["numeric"])
+        self._categorical = list(columns["categorical"])
