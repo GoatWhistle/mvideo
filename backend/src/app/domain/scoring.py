@@ -25,6 +25,9 @@ SLOT_BONUS = 0.2
 RAM_STEMS = frozenset({"опера", "ram"})
 ROM_STEMS = frozenset({"встро", "rom", "накоп", "памят"})
 MAX_CONFIDENCE = 0.99
+MULTI_VALUE_SELLER = 0.3
+LENGTH_BONUS = 0.03
+MAX_LENGTH_BONUS = 0.15
 
 
 @dataclass(frozen=True, slots=True)
@@ -47,6 +50,10 @@ def slot_bonus(candidate: Candidate, profile: AttributeProfile) -> float:
 
 def candidate_score(candidate: Candidate, profile: AttributeProfile) -> float:
     base = BASE.get((candidate.source, candidate.zone), 0.2)
+    if candidate.source == Source.SELLER and "/" in candidate.key:
+        base = MULTI_VALUE_SELLER
+    if candidate.source == Source.DICTIONARY:
+        base += min(MAX_LENGTH_BONUS, LENGTH_BONUS * candidate.key.count(" "))
     return (
         base
         + AFFINITY_WEIGHT * candidate.affinity

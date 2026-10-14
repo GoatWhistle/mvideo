@@ -6,7 +6,7 @@ from pathlib import Path
 import pyarrow as pa
 import pyarrow.parquet as pq
 
-from app.usecase.baseline_ports import CandidateRow, CardPrediction
+from app.usecase.baseline_ports import CandidateRow, CardPrediction, PredictedValue
 
 CANDIDATE_SCHEMA = pa.schema(
     [
@@ -29,25 +29,26 @@ CANDIDATE_SCHEMA = pa.schema(
 )
 
 
-def prediction_json(prediction: CardPrediction) -> str:
-    attributes = {
-        v.attribute: {
-            "value": v.value,
-            "confidence": v.confidence,
-            "source": v.source,
-            "sources": list(v.sources),
-            "evidence": v.evidence,
-            "start": v.start,
-            "end": v.end,
-        }
-        for v in prediction.values
+def value_json(value: PredictedValue) -> dict[str, object]:
+    return {
+        "value": value.value,
+        "confidence": value.confidence,
+        "source": value.source,
+        "sources": list(value.sources),
+        "evidence": value.evidence,
+        "start": value.start,
+        "end": value.end,
     }
+
+
+def prediction_json(prediction: CardPrediction) -> str:
     record = {
         "sku_id": prediction.sku_id,
         "category_id": prediction.category_id,
         "split": prediction.split,
         "confidence_calibrated": False,
-        "attributes": attributes,
+        "attributes": {v.attribute: value_json(v) for v in prediction.values},
+        "review": {v.attribute: value_json(v) for v in prediction.review},
     }
     return json.dumps(record, ensure_ascii=False, sort_keys=True)
 

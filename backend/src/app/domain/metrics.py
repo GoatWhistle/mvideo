@@ -1,7 +1,9 @@
 from collections import defaultdict
 from dataclasses import dataclass, field
 
+from app.domain.candidate import is_range
 from app.domain.card_text import CardText
+from app.domain.extractors import KEY_VALUE
 from app.domain.lexicon import match_token, value_tokens
 from app.domain.profile import AttributeProfile
 from app.domain.values import format_number, leading_quantity
@@ -105,11 +107,21 @@ def value_in_text(
         quantity = leading_quantity(value, unit)
         if quantity is not None:
             target = format_number(quantity.number)
-            return any(t.text[0].isdigit() and format_number(float(match_token(t.text))) == target
-                       for t in card.tokens)
+            if any(t.start < card.seller_start and t.text[0].isdigit()
+                   and format_number(float(match_token(t.text))) == target for t in card.tokens):
+                return True
+            return any(_exact_seller_number(line.group(2)) == target
+                       for line in KEY_VALUE.finditer(card.text[card.seller_start:]))
     wanted = value_tokens(value)
     if not wanted:
         return False
     normalized = [match_token(t.text) for t in card.tokens]
     size = len(wanted)
     return any(tuple(normalized[i:i + size]) == wanted for i in range(len(normalized) - size + 1))
+
+
+def _exact_seller_number(value: str) -> str | None:
+    if is_range(value):
+        return None
+    quantity = leading_quantity(value)
+    return format_number(quantity.number) if quantity is not None else None

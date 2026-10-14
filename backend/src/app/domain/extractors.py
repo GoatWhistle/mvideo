@@ -5,6 +5,7 @@ from app.domain.candidate import (
     Candidate,
     SellerRange,
     Source,
+    best_attributes,
     is_range,
     name_affinity,
     nearby_affinity,
@@ -30,9 +31,6 @@ QUANTITY = re.compile(rf"(?<![\d.,])({NUMBER})[\s-]*({UNIT})(?![a-zа-я])")
 SLASH_MEMORY = re.compile(r"(?<![\d.,])(\d+)\s*/\s*(\d+)\s*(гб|gb|тб|tb)(?![a-zа-я])")
 KEY_VALUE = re.compile(r"^[ \t]*[•\-–*]?[ \t]*([^:\n]{2,60}?)[ \t]*:[ \t]*([^\n]{1,120}?)[ \t]*$",
                        re.MULTILINE)
-MODEL_STOP = re.compile(
-    r"\d+\s*/\s*\d+\s*(?:gb|гб|tb|тб)|\d+\s*(?:gb|гб|tb|тб)(?![a-zа-я])|[,(\[]|\s-\s"
-)
 MIN_AFFINITY = 0.5
 
 
@@ -50,8 +48,8 @@ def seller_ranges(
     ranges: dict[str, SellerRange] = {}
     seller = card.text[card.seller_start:]
     for line in KEY_VALUE.finditer(seller):
-        for name, profile in profiles.items():
-            if profile.numeric and name_affinity(profile, line.group(1)) >= MIN_AFFINITY:
+        for name in best_attributes(profiles, line.group(1), MIN_AFFINITY):
+            if profiles[name].numeric:
                 parsed = parse_range(line.group(2))
                 if parsed is not None:
                     ranges.setdefault(name, parsed)
@@ -67,10 +65,9 @@ def key_value_candidates(
         start, end = line.start(2), line.end(2)
         zone = card.zone(line.start())
         source = Source.SELLER if zone == "seller" else Source.KEY_VALUE
-        for name, profile in profiles.items():
+        for name in best_attributes(profiles, key, MIN_AFFINITY):
+            profile = profiles[name]
             affinity = name_affinity(profile, key)
-            if affinity < MIN_AFFINITY:
-                continue
             if profile.numeric:
                 quantity = leading_quantity(value, profile.unit)
                 if quantity is None or is_range(value):
@@ -134,10 +131,7 @@ def title_model_candidates(
     if not in_title:
         return
     brand = min(in_title, key=lambda b: b.start)
-    rest = card.match[brand.end:card.title_end]
-    stop = MODEL_STOP.search(rest)
-    cut = stop.start() if stop else len(rest)
-    raw = card.text[brand.end:brand.end + cut]
+    raw = card.text[brand.end:card.title_end]
     lead = len(raw) - len(raw.lstrip(" -"))
     value = raw.strip(" -")
     if len(value) < 2:

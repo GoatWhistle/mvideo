@@ -49,6 +49,7 @@ class CardPrediction:
     category_id: int | None
     split: str | None
     values: tuple[PredictedValue, ...]
+    review: tuple[PredictedValue, ...] = ()
 
 
 @dataclass(frozen=True, slots=True)

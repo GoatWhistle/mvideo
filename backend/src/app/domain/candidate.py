@@ -1,14 +1,15 @@
 import math
 import re
+from collections.abc import Mapping
 from dataclasses import dataclass
 
 from app.domain.card_text import CardText, match_form
-from app.domain.profile import STEM, AttributeProfile, keyword_overlap
+from app.domain.profile import STEM, AttributeProfile, name_similarity
 from app.domain.values import NUMBER, parse_number
 
 NEAR_WINDOW = 60
-RANGE_WORDS_OPEN = re.compile(r"(?:более|больше|свыше|от)\s")
-RANGE_WORDS_CLOSED = re.compile(r"(?:менее|меньше|до)\s")
+RANGE_WORDS_OPEN = re.compile(r"(?:более|больше|свыше|выше)|(?:^|\s)от\s")
+RANGE_WORDS_CLOSED = re.compile(r"(?:менее|меньше|ниже)|(?:^|\s)до\s")
 RANGE_PAIR = re.compile(rf"{NUMBER}\s*(?:-|–|—|до)\s*{NUMBER}")
 NUMBER_RE = re.compile(NUMBER)
 NEAR_WORD = re.compile(r"[a-zа-я]+")
@@ -76,4 +77,12 @@ def nearby_affinity(card: CardText, profile: AttributeProfile, start: int) -> fl
 
 
 def name_affinity(profile: AttributeProfile, key: str) -> float:
-    return keyword_overlap(profile.keywords, key)
+    return name_similarity(profile.keywords, key)
+
+
+def best_attributes(profiles: Mapping[str, AttributeProfile], key: str, minimum: float) -> list[str]:
+    scored = [(name_affinity(p, key), n) for n, p in profiles.items()]
+    top = max((s for s, _ in scored), default=0.0)
+    if top < minimum:
+        return []
+    return [n for s, n in scored if s == top]

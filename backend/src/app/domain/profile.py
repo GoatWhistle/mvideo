@@ -66,8 +66,14 @@ def name_keywords(name: str) -> tuple[str, ...]:
 def keyword_overlap(keywords: tuple[str, ...], text: str) -> float:
     if not keywords:
         return 0.0
-    stems = {w[:STEM] for w in NAME_WORD.findall(match_form(text)) if len(w) >= 3}
+    stems = set(name_keywords(text))
     return sum(1 for k in keywords if k in stems) / len(keywords)
+
+
+def name_similarity(keywords: tuple[str, ...], text: str) -> float:
+    stems = set(name_keywords(text))
+    union = stems | set(keywords)
+    return len(stems & set(keywords)) / len(union) if union else 0.0
 
 
 def profile_attribute(name: str, values: Counter[tuple[str, str | None]]) -> AttributeProfile:

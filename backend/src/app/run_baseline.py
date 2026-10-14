@@ -20,13 +20,17 @@ def main(argv: list[str] | None = None) -> None:
     parser.add_argument("--reports", type=Path, default=DEFAULT_REPORTS)
     parser.add_argument("--all-cards", action="store_true",
                         help="predict every card with text instead of the evaluation splits")
+    parser.add_argument("--splits", default=",".join(sorted(EVAL_SPLITS)),
+                        help="comma-separated splits to predict and evaluate, e.g. val")
     parser.add_argument("--no-candidates", action="store_true")
     parser.add_argument("--batch", type=int, default=2000)
     args = parser.parse_args(argv)
     configure()
-    name = "baseline_all" if args.all_cards else "baseline"
+    splits = frozenset(s.strip() for s in args.splits.split(",") if s.strip())
+    name = "baseline_all" if args.all_cards else (
+        "baseline" if splits == EVAL_SPLITS else "baseline_" + "_".join(sorted(splits)))
     config = BaselineConfig(
-        splits=None if args.all_cards else EVAL_SPLITS,
+        splits=None if args.all_cards else splits,
         evaluate=not args.all_cards,
         batch=args.batch,
     )

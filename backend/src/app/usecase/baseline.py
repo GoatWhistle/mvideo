@@ -2,7 +2,7 @@ import time
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
 
-from app.domain.candidate import name_affinity
+from app.domain.candidate import best_attributes
 from app.domain.extractors import MIN_AFFINITY
 from app.domain.metrics import MetricsBook, Observation, value_in_text
 from app.domain.profile import TZ_REQUIRED
@@ -35,6 +35,7 @@ class BaselineConfig:
     splits: frozenset[str] | None = EVAL_SPLITS
     evaluate: bool = True
     batch: int = 2000
+    min_confidence: float = 0.35
     head_categories: int = 50
     large_seller: int = 1000
     small_seller: int = 100
@@ -96,7 +97,7 @@ class RunBaseline:
         for batch in self._source.cards(config.splits, config.batch):
             predictions, rows = [], []
             for card in batch:
-                extraction = extract_card(card, required, lexicon)
+                extraction = extract_card(card, required, lexicon, config.min_confidence)
                 predictions.append(prediction_of(card, extraction))
                 rows.extend(candidate_rows(card, extraction))
                 if config.evaluate:
@@ -132,7 +133,8 @@ def observe(
             expected = canonical_key(truth.value, truth.unit, profile.numeric)
             correct = pick is not None and pick.candidate.key == expected
             reachable = value_in_text(extraction.text, truth.value, truth.unit, profile)
-        filled = any(name_affinity(profile, s) >= MIN_AFFINITY for s in seller_names)
+        filled = any(name in best_attributes(extraction.profiles, s, MIN_AFFINITY)
+                     for s in seller_names)
         weight = segments.pair_weight(card.category_id, weights.get(name, 1.0))
         observation = Observation(name, truth is not None, pick is not None, correct, reachable,
                                   filled, weight)

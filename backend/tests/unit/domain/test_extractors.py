@@ -58,3 +58,21 @@ def test_no_text_no_candidates() -> None:
     lexicon = build_lexicon(lexicon_rows())
     card = build_card_text("Товар", "Описание без характеристик", ())
     assert extract_candidates(card, dict(lexicon.profiles), lexicon, PHONE) == []
+
+
+def test_seller_name_feeds_only_the_closest_attribute() -> None:
+    rows = lexicon_rows() + [
+        TrainValue(PHONE, "Процессор", "Qualcomm Snapdragon 8 Gen 2", None),
+        TrainValue(PHONE, "Производитель процессора", "Qualcomm", None),
+    ] * 2
+    lexicon = build_lexicon(rows)
+    card = build_card_text("Смартфон", "", (SellerParam("Производитель процессора", "Qualcomm"),))
+    candidates = extract_candidates(card, dict(lexicon.profiles), lexicon, PHONE)
+    assert {c.attribute for c in candidates if c.source == "seller"} == {"Производитель процессора"}
+
+
+def test_open_range_words_mark_seller_value_as_range() -> None:
+    lexicon = build_lexicon(lexicon_rows())
+    card = build_card_text("Смартфон", "", (SellerParam("Диагональ экрана", '6.6" и более'),))
+    found = extract_candidates(card, dict(lexicon.profiles), lexicon, PHONE)
+    assert not [c for c in found if c.attribute == "Диагональ"]
