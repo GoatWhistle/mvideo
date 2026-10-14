@@ -41,12 +41,12 @@ def value_json(value: PredictedValue) -> dict[str, object]:
     }
 
 
-def prediction_json(prediction: CardPrediction) -> str:
+def prediction_json(prediction: CardPrediction, calibrated: bool = False) -> str:
     record = {
         "sku_id": prediction.sku_id,
         "category_id": prediction.category_id,
         "split": prediction.split,
-        "confidence_calibrated": False,
+        "confidence_calibrated": calibrated,
         "attributes": {v.attribute: value_json(v) for v in prediction.values},
         "review": {v.attribute: value_json(v) for v in prediction.review},
     }
@@ -54,7 +54,10 @@ def prediction_json(prediction: CardPrediction) -> str:
 
 
 class FilePredictionSink:
-    def __init__(self, out_dir: Path, name: str, candidates: bool = True) -> None:
+    def __init__(
+        self, out_dir: Path, name: str, candidates: bool = True, calibrated: bool = False
+    ) -> None:
+        self._calibrated = calibrated
         out_dir.mkdir(parents=True, exist_ok=True)
         self._predictions = (out_dir / f"{name}.predictions.jsonl").open("w", encoding="utf-8")
         self._writer = (
@@ -66,7 +69,7 @@ class FilePredictionSink:
         self, predictions: Sequence[CardPrediction], candidates: Sequence[CandidateRow]
     ) -> None:
         for prediction in predictions:
-            self._predictions.write(prediction_json(prediction) + "\n")
+            self._predictions.write(prediction_json(prediction, self._calibrated) + "\n")
         if self._writer is not None and candidates:
             rows = [asdict(c) for c in candidates]
             self._writer.write_table(pa.Table.from_pylist(rows, schema=CANDIDATE_SCHEMA))
