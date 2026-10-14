@@ -4,7 +4,7 @@ from collections.abc import Iterable, Sequence
 from dataclasses import dataclass
 from enum import StrEnum
 
-TEXT_DESCRIPTION_CHARS = 200
+TEXT_DESCRIPTION_CHARS = 120
 _TAGS = re.compile(r"<[^>]{0,200}>")
 _SPACES = re.compile(r"\s+")
 

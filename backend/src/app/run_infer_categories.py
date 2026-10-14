@@ -21,7 +21,7 @@ def main(argv: list[str] | None = None) -> None:
     parser.add_argument("--reports", type=Path, default=DEFAULT_REPORTS)
     parser.add_argument("--target-precision", type=float,
                         default=CategoryConfig().target_precision)
-    parser.add_argument("--jobs", type=int, default=5)
+    parser.add_argument("--jobs", type=int, default=3)
     parser.add_argument("--seed", type=int, default=0)
     args = parser.parse_args(argv)
     configure()

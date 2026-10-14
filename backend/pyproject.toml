@@ -19,6 +19,7 @@ ranker = "app.run_ranker:main"
 decide = "app.run_decision:main"
 twins = "app.run_twins:main"
 infer-categories = "app.run_infer_categories:main"
+shard-cards = "app.run_shard_cards:main"
 
 [dependency-groups]
 llm = [
