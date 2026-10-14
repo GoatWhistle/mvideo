@@ -21,6 +21,7 @@ from app.usecase.baseline_ports import (
     PredictionSink,
     ReportSink,
 )
+from app.usecase.decision_markdown import render_decision_markdown
 from app.usecase.decision_ports import CategoryTree, DecisionCache
 from app.usecase.decision_report import (
     BUDGET_SKIP,
@@ -28,7 +29,6 @@ from app.usecase.decision_report import (
     ReportMeta,
     UsageBook,
     build_decision_report,
-    render_decision_markdown,
 )
 from app.usecase.decision_slots import SlotBook
 from app.usecase.decision_stage import (
