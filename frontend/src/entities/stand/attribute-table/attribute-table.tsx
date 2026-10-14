@@ -10,6 +10,7 @@ export const SOURCE_KEY: Readonly<Record<string, MessageKey>> = {
   number: "stand:source.number",
   title_model: "stand:source.title_model",
   review: "stand:source.review",
+  catalog_twin: "stand:source.catalog_twin",
 }
 
 export function sourceKey(source: string): MessageKey {
