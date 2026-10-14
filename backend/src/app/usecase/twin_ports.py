@@ -1,4 +1,4 @@
-from collections.abc import Mapping, Sequence
+from collections.abc import Iterator, Mapping, Sequence
 from dataclasses import dataclass
 from typing import Protocol
 
@@ -22,8 +22,15 @@ class StageRecord:
     values: Mapping[str, StageValue]
 
 
+GoldRow = tuple[int, str, str, str | None]
+
+
 class TwinSource(RankerSource, Protocol):
     def stage_records(self, name: str) -> Mapping[int, StageRecord]: ...
+
+    def gold_rows(
+        self, splits: frozenset[str], attributes: frozenset[str]
+    ) -> Iterator[Sequence[GoldRow]]: ...
 
 
 class TitleIndex(Protocol):

@@ -61,6 +61,12 @@ class FakeSource:
         if chosen:
             yield chosen
 
+    def gold_rows(
+        self, splits: frozenset[str], attributes: frozenset[str]
+    ) -> Iterator[Sequence[tuple[int, str, str, str | None]]]:
+        for sku, gold in self.gold_where(splits, attributes, 1).items():
+            yield [(sku, g.attribute, g.value, g.unit) for g in gold]
+
     def stage_records(self, name: str) -> Mapping[int, StageRecord]:
         brand = StageValue("Samsung", 0.9, "title_model", ("title_model",), 9, 16)
         return {30: StageRecord({"sku_id": 30, "attributes": {}, "review": {}}, {"Бренд": brand})}

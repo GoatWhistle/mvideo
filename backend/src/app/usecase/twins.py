@@ -15,8 +15,8 @@ from app.usecase.interface import Logger
 from app.usecase.lexicon_builder import build_lexicon
 from app.usecase.ranker_ports import Calibrator
 from app.usecase.twin_pass import (
+    IndexBuilder,
     TwinIndexData,
-    entry_of,
     numeric_of,
     open_slots,
     query_of,
@@ -92,14 +92,14 @@ class RunTwins:
         head = frozenset(sorted(stats, key=lambda c: -stats[c][0])[: config.baseline.head_categories])
         cards_of = {c: max(1, s[1]) for c, s in stats.items()}
         segments = Segments(head, self._source.seller_cards(), config.baseline, cards_of)
-        data = TwinIndexData()
+        builder = IndexBuilder(lexicon)
         train = frozenset({"train"})
-        gold = self._source.gold_where(train, names, 1)
         for batch in self._source.cards(train, config.batch):
             for card in batch:
-                entry = entry_of(card, gold.get(card.sku_id, ()), lexicon)
-                if entry is not None:
-                    data.entries.append(entry)
+                builder.add_card(card)
+        for rows in self._source.gold_rows(train, names):
+            builder.add_rows(rows)
+        data = builder.build()
         return _Context(required, lexicon, names, segments, data)
 
     def _neighbors(
