@@ -58,6 +58,27 @@ def curve(
     return points
 
 
+def histogram(values: Sequence[float], bins: int = 10) -> list[int]:
+    counts = [0] * bins
+    for value in values:
+        counts[min(int(value * bins), bins - 1)] += 1
+    return counts
+
+
+def rejection_threshold(values: Sequence[float], reject_share: float, step: float = 0.01) -> float:
+    if not values:
+        return 0.0
+    for i in range(int(1 / step) + 1):
+        threshold = round(i * step, 4)
+        if sum(1 for v in values if v < threshold) / len(values) >= reject_share:
+            return threshold
+    return 1.0
+
+
+def acceptance(values: Sequence[float], threshold: float) -> float:
+    return sum(1 for v in values if v >= threshold) / len(values) if values else 0.0
+
+
 def pick_threshold(
     truth: Sequence[int], ranked: Sequence[Ranked], target_precision: float, step: float = 0.01
 ) -> float:

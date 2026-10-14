@@ -1,4 +1,4 @@
-from collections.abc import Iterator
+from collections.abc import Iterator, Mapping
 from pathlib import Path
 
 import pyarrow as pa
@@ -29,6 +29,10 @@ class ParquetCategoryCorpus:
     def required_categories(self) -> frozenset[int]:
         table = pq.read_table(self._dir / "required_attributes.parquet", columns=["category_id"])
         return frozenset(pc.unique(table["category_id"]).to_pylist())
+
+    def category_names(self) -> Mapping[int, str]:
+        table = pq.read_table(self._dir / "categories.parquet", columns=["category_id", "path"])
+        return dict(zip(table["category_id"].to_pylist(), table["path"].to_pylist(), strict=True))
 
     def labelled(self, splits: frozenset[str]) -> Iterator[CategoryCard]:
         for batch in self._batches(100_000, catalog_only=True):

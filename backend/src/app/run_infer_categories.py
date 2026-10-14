@@ -21,6 +21,8 @@ def main(argv: list[str] | None = None) -> None:
     parser.add_argument("--reports", type=Path, default=DEFAULT_REPORTS)
     parser.add_argument("--target-precision", type=float,
                         default=CategoryConfig().target_precision)
+    parser.add_argument("--ood-reject-share", type=float,
+                        default=CategoryConfig().ood_reject_share)
     parser.add_argument("--jobs", type=int, default=3)
     parser.add_argument("--seed", type=int, default=0)
     args = parser.parse_args(argv)
@@ -31,9 +33,10 @@ def main(argv: list[str] | None = None) -> None:
         sink=ParquetCategorySink(args.data, args.reports),
         logger=StdlibLogger("categories"),
     )
-    report = usecase.run(CategoryConfig(target_precision=args.target_precision))
+    report = usecase.run(CategoryConfig(target_precision=args.target_precision,
+                                        ood_reject_share=args.ood_reject_share, seed=args.seed))
     peak_mb = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss // 1024
-    summary = {k: v for k, v in report.items() if k != "classifier_test"}
+    summary = {k: v for k, v in report.items() if k not in {"classifier_test", "coverage"}}
     print(json.dumps({**summary, "peak_rss_mb": peak_mb}, ensure_ascii=False, indent=2))
 
 

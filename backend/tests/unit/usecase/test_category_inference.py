@@ -18,6 +18,7 @@ CARDS = [
     card(11, PHONES, "val", "смартфон xiaomi"),
     card(12, LAPTOPS, "val", "ноутбук asus"),
     card(15, LAPTOPS, "val", "непонятное"),
+    card(16, 555, "new_category", "непонятная швейная машина"),
     card(13, PHONES, "test", "смартфон apple"),
     card(14, LAPTOPS, "test", "ноутбук hp"),
     card(20, None, None, "смартфон honor"),
@@ -29,6 +30,9 @@ CARDS = [
 class FakeCorpus:
     def required_categories(self) -> frozenset[int]:
         return frozenset({PHONES, LAPTOPS})
+
+    def category_names(self) -> Mapping[int, str]:
+        return {PHONES: "Смартфоны", LAPTOPS: "Ноутбуки"}
 
     def labelled(self, splits: frozenset[str]) -> Iterator[CategoryCard]:
         return (c for c in CARDS if c.catalog_category is not None and c.split in splits)
@@ -100,10 +104,18 @@ def test_infer_categories_end_to_end() -> None:
     assert by_sku[20].source is CategorySource.CLASSIFIER and by_sku[20].category_id == PHONES
     assert 21 not in by_sku
     assert report["threshold"] == 0.31
+    selection = report["threshold_selection"]
+    assert isinstance(selection, dict)
+    assert selection["by_new_category_rejection"] == 0.31
+    assert selection["new_category_rejected"] == 1.0
     test = report["classifier_test"]
     assert isinstance(test, dict) and test["top1"] == 1.0
     clicks = report["clicks"]
     assert isinstance(clicks, dict) and clicks["test_accuracy"] == 1.0
     coverage = report["coverage"]
-    assert isinstance(coverage, dict) and coverage["with_category"] == 17
+    assert isinstance(coverage, dict) and coverage["with_category"] == 18
+    assert coverage["outside_catalog_without_clicks"] == 2
+    assert coverage["classifier_accepted"] == 1
+    samples = coverage["samples"]
+    assert isinstance(samples, list) and len(samples) == 2
     assert sink.reports == [report]

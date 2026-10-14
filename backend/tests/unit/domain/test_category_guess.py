@@ -5,7 +5,25 @@ from app.domain.category_guess import (
     majority_mapping,
     resolve,
 )
-from app.domain.category_metrics import curve, macro_f1, pick_threshold, top_k_accuracy
+from app.domain.category_metrics import (
+    acceptance,
+    curve,
+    histogram,
+    macro_f1,
+    pick_threshold,
+    rejection_threshold,
+    top_k_accuracy,
+)
+
+
+def test_ood_threshold_rejects_requested_share() -> None:
+    unseen = [0.1, 0.2, 0.3, 0.4, 0.95]
+    threshold = rejection_threshold(unseen, 0.8)
+    assert threshold == 0.41
+    assert acceptance(unseen, threshold) == 0.2
+    assert rejection_threshold([], 0.8) == 0.0
+    assert rejection_threshold([1.0, 1.0], 0.8) == 1.0
+    assert histogram([0.05, 0.15, 0.99, 1.0], 10) == [1, 1, 0, 0, 0, 0, 0, 0, 0, 2]
 
 
 def test_category_text_strips_html_and_normalizes() -> None:

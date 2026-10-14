@@ -1,0 +1,84 @@
+{
+  "required_categories": 1107,
+  "train_cards": 185011,
+  "target_precision": 0.9,
+  "threshold": 0.0,
+  "classifier_test": {
+    "cards": 22936,
+    "top1": 0.9809,
+    "top3": 0.9973,
+    "macro_f1": 0.9048,
+    "coverage_at_threshold": 1.0,
+    "precision_at_threshold": 0.9809,
+    "curve": [
+      {
+        "threshold": 0.0,
+        "coverage": 1.0,
+        "precision": 0.9808597837460761
+      },
+      {
+        "threshold": 0.1,
+        "coverage": 0.9948988489710499,
+        "precision": 0.9829089793593059
+      },
+      {
+        "threshold": 0.2,
+        "coverage": 0.9896668991977677,
+        "precision": 0.9845808185382616
+      },
+      {
+        "threshold": 0.3,
+        "coverage": 0.9829525636553889,
+        "precision": 0.9867819915724108
+      },
+      {
+        "threshold": 0.4,
+        "coverage": 0.9715730728985001,
+        "precision": 0.9890953150242326
+      },
+      {
+        "threshold": 0.5,
+        "coverage": 0.9532176491105685,
+        "precision": 0.9929561359374285
+      },
+      {
+        "threshold": 0.6,
+        "coverage": 0.9244855249389606,
+        "precision": 0.9958026787398604
+      },
+      {
+        "threshold": 0.7,
+        "coverage": 0.8566881757935124,
+        "precision": 0.9980151661662171
+      },
+      {
+        "threshold": 0.8,
+        "coverage": 0.5736396930589467,
+        "precision": 0.9991639431481341
+      },
+      {
+        "threshold": 0.9,
+        "coverage": 0.25662713637949075,
+        "precision": 0.9996602106693849
+      }
+    ]
+  },
+  "clicks": {
+    "test_cards": 10062,
+    "test_mapped": 10013,
+    "test_accuracy": 0.9788,
+    "direct_id_match": 0.9757,
+    "click_categories": 2451
+  },
+  "coverage": {
+    "cards": 1177200,
+    "with_category": 1177200,
+    "by_source": {
+      "catalog": 241355,
+      "classifier": 883768,
+      "clicks": 52077
+    },
+    "share_with_category": 1.0
+  },
+  "seconds": 2375.1
+}
