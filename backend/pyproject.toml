@@ -16,6 +16,7 @@ prepare-data = "app.prepare_data:main"
 baseline = "app.run_baseline:main"
 stand-pack = "app.build_stand_pack:main"
 ranker = "app.run_ranker:main"
+decide = "app.run_decision:main"
 
 [dependency-groups]
 llm = [
