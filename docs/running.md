@@ -77,6 +77,33 @@ uv run prepare-data --raw ../data/raw --out ../data/processed
 строк и падает на любом опкоде, который может исполнить код. Параметры `*_search` попадают только в
 `gold.parquet`, это проверяет юнит-тест.
 
+## Как получить предсказания и отчёт метрик?
+
+После подготовки данных базлайн (справочники + правила) строится и оценивается одной командой:
+
+```bash
+cd backend
+uv run baseline --data ../data/processed --out ../data/predictions --reports ../reports
+```
+
+Команда без сети и ключей строит справочники по `train`, извлекает атрибуты для карточек `test` и
+`new_category` и пишет (`--splits val` — тот же прогон на настроечном сплите, отчёт `reports/baseline_val.md`):
+
+| Файл | Что внутри |
+|---|---|
+| `data/predictions/baseline.predictions.jsonl` | По строке на карточку: `sku_id`, `category_id`, `split`, `confidence_calibrated: false`, `attributes: {атрибут: {value, confidence, source, sources, evidence, start, end}}` — значения с уверенностью от 0,35; `review` — то же для значений ниже порога, очередь проверки |
+| `data/predictions/baseline.candidates.parquet` | Все кандидаты для следующих ступеней: `sku_id`, `attribute`, `key`, `value`, `evidence`, `start`, `end`, `source`, `zone`, `affinity`, `prior`, `seller_fit`, `slot`, `score`, `chosen` |
+| `reports/baseline.md`, `reports/baseline.json` | Метрики по [плану валидации](validation-plan.md): сводка по срезам и таблицы по атрибутам |
+
+Предсказания для всех 1,18 млн карточек с текстом, без оценки:
+
+```bash
+uv run baseline --data ../data/processed --out ../data/predictions --all-cards --no-candidates
+```
+
+Пишет `data/predictions/baseline_all.predictions.jsonl`. У карточек вне каталога категории нет, для
+них извлекаются только бренд и цвет.
+
 ## Какие переменные читает бэкенд?
 
 Все необязательны: без них работает офлайн-реализация.

@@ -165,7 +165,9 @@ docker compose up
 
 Данные: `unzip brief/sources/dataset.zip -d data/raw`, затем
 `cd backend && uv run prepare-data --raw ../data/raw --out ../data/processed` — подробнее в
-[запуске и проверках](docs/running.md#как-подготовить-данные).
+[запуске и проверках](docs/running.md#как-подготовить-данные). Предсказания и отчёт метрик базлайна:
+`uv run baseline --data ../data/processed --out ../data/predictions --reports ../reports` →
+`data/predictions/baseline.predictions.jsonl` и [`reports/baseline.md`](reports/baseline.md).
 
 Интерфейс шаблона — http://localhost:8080, Swagger бэкенда — http://localhost:8000/docs.
 У бэкенда пока один метод — `GET /api/v1/health`; сценарии, база и засев данных появятся при реализации
