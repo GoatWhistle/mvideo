@@ -144,6 +144,45 @@ uv run twins --data ../data/processed --out ../data/predictions --reports ../rep
 батчами разреженного умножения (`--knn-batch`, по умолчанию 256 запросов ≈ 200 МБ на батч), `--stage`
 — файл предсказаний, поверх которого переносить.
 
+### Итоговая сборка и файл предсказаний по всем карточкам
+
+Сборка выбирает источник значения для каждого атрибута (базлайн, ранжировщик, decision-модель,
+двойники) по правилу, подобранному на `val`, и калибрует уверенность каждого источника. Ей нужны
+предсказания ступеней и на `val`, и на `test` + `new_category`:
+
+```bash
+D=../data
+uv run ranker --data $D/processed --out $D/predictions --reports ../reports --name ranker_final \
+  --threads 3 --write-val --save-model $D/models/ranker_final
+cat $D/predictions/ranker_final.predictions.jsonl $D/predictions/ranker_final_val.predictions.jsonl \
+  > $D/predictions/ranker_final_valtest.predictions.jsonl
+uv run twins --data $D/processed --out $D/predictions --reports /tmp/twins_final \
+  --stage ranker_final_valtest --splits val,test,new_category --name twins_final
+uv run decide --splits val --sample 1000 --mix-k 8 --dictionary --override 0.0 --drop 0.6 \
+  --name decision_jev_val_final --data $D/processed --out $D/predictions --cache $D/decision_cache
+uv run final --data $D/processed --out $D/predictions --reports ../reports --model $D/models/fusion
+```
+
+`decide` на `val` с этими параметрами отвечает из кэша `data/decision_cache/` и не платит; без кэша и
+ключа сборка работает без decision-модели. `final` пишет `reports/final.md`/`.json` (абляция
+«базлайн → ранжировщик → + Jev → + двойники → сборка», правило выбора, калибровка) и модель сборки в
+`data/models/fusion/` (`rules.json` и isotonic-калибровка каждого источника).
+
+Файл по всем карточкам с текстом — тот же шардированный скрипт, что и для базлайна, в режиме
+`STAGE=final`: ранжировщик по сохранённой модели на частях `cards.parquet` (не больше трёх процессов
+одновременно, ~0,9 ГБ памяти на процесс; категории карточек вне каталога берутся из
+`inferred_categories.parquet`), затем склейка сборкой:
+
+```bash
+STAGE=final WORK=../data/fusion_shards bash scripts/predict-all.sh ../data/processed ../data/predictions
+```
+
+На этой машине — около 23 минут для 1 177 200 карточек. Результат — `data/predictions/final_all.predictions.jsonl`: формат базлайна,
+`confidence_calibrated: true`, у каждого значения `stage` — источник (`baseline`, `ranker`,
+`decision_model`, `catalog_twin`), `category_mode` — известная или новая категория; сводка —
+`reports/final_all.json`. Decision-модель для всех карточек не вызывается: её ответы есть только у
+карточек выборки из кэша.
+
 ## Как поднять стенд?
 
 Стенд работает на том же коде извлечения, что и офлайн-базлайн, но не читает гигабайты parquet при
@@ -174,6 +213,19 @@ docker compose up
 cd backend && STAND_PACK=../data/stand/pack.json.gz uv run uvicorn app.main:create_app --factory
 cd frontend && npm run dev
 ```
+
+Стенд выбирает значения той же сборкой, если рядом с пакетом лежат модели
+(`STAND_MODELS`, по умолчанию `data/stand/models`):
+
+```bash
+mkdir -p data/stand/models
+cp -r data/models/ranker_final data/stand/models/ranker
+cp -r data/models/fusion data/stand/models/fusion
+```
+
+Без них стенд пишет в лог `stand_models_missing` и выбирает значения эвристикой базлайна. На стенде
+работают базлайн и ранжировщик; двойники (индекс на гигабайты) и decision-модель (платные вызовы) в
+стенд не подключены.
 
 Без пакета бэкенд стартует, но методы стенда отвечают `503 stand_unavailable`, а страница показывает
 ошибку с подсказкой собрать пакет. Очередь проверки и алиасы хранятся в памяти: перезапуск бэкенда их

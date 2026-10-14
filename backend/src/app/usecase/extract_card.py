@@ -52,7 +52,8 @@ class CardResult:
 
 
 class BaselineChooser:
-    async def choose(self, extraction: CardExtraction, threshold: float) -> CardExtraction:
+    async def choose(self, extraction: CardExtraction, threshold: float, category_id: int | None,
+                     known: frozenset[str]) -> CardExtraction:
         return extraction
 
 
@@ -79,7 +80,10 @@ class ExtractCard:
         record = CardRecord(0, card.category_id, None, card.title, card.description,
                             card.seller_params, None)
         extraction = extract_card(record, required, lexicon, pack.threshold)
-        extraction = await self._chooser.choose(extraction, pack.threshold)
+        known = frozenset(a for a in extraction.profiles
+                          if lexicon.category_values(card.category_id, a))
+        extraction = await self._chooser.choose(extraction, pack.threshold, card.category_id,
+                                                known)
         confirmed = {(a.attribute, evidence_form(a.evidence)): a for a in aliases}
         values = []
         for name in sorted(extraction.profiles):

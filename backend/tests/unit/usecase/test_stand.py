@@ -4,6 +4,7 @@ from datetime import UTC, datetime
 import pytest
 
 from app.domain.card_text import SellerParam
+from app.domain.fusion import BASELINE, KNOWN, NEW, RANKER, FusionRules, Rule
 from app.domain.review import (
     REVIEW_CONFIDENCE,
     REVIEW_SOURCE,
@@ -17,8 +18,10 @@ from app.usecase.baseline_ports import CardRecord, GoldRecord, RequiredRecord
 from app.usecase.extract_card import BaselineChooser, ExtractCard
 from app.usecase.interface import LogValue
 from app.usecase.lexicon_builder import TrainValue
+from app.usecase.ranker_ports import FeatureTable
 from app.usecase.review_queue import ReviewQueue
 from app.usecase.stand_catalog import StandCatalog
+from app.usecase.stand_chooser import FusedChooser, FusionPolicy
 from app.usecase.stand_pack import BuildStandPack, StandPackConfig
 from app.usecase.stand_ports import CardInput, StandPack
 
@@ -174,3 +177,50 @@ def test_catalog_lists_required_attributes_per_category() -> None:
     phone = info.categories[0]
     assert phone.name == "Смартфоны"
     assert {"Бренд", "Цвет", "Емкость аккумулятора"} <= set(phone.attributes)
+
+
+class ConstantModel:
+    def fit(self, train: FeatureTable, names: Sequence[str], categorical: Sequence[str]) -> None:
+        pass
+
+    def predict(self, table: FeatureTable) -> Sequence[float]:
+        return [0.9] * table.rows
+
+    def importances(self) -> Mapping[str, float]:
+        return {}
+
+
+class Identity:
+    def fit(self, scores: Sequence[float], labels: Sequence[bool]) -> None:
+        pass
+
+    def transform(self, scores: Sequence[float]) -> Sequence[float]:
+        return list(scores)
+
+
+def fused(threshold: float) -> ExtractCard:
+    rules = FusionRules({KNOWN: Rule(RANKER, False), NEW: Rule(RANKER, False)},
+                        {("Цвет", KNOWN): Rule(BASELINE, False)})
+    chooser = FusedChooser(ConstantModel(), Identity(), 0.3,
+                           FusionPolicy(rules, lambda _, c: c, threshold))
+    return ExtractCard(build_pack(threshold=0.35), MemoryAliasRepository(),
+                       MemoryReviewRepository(), chooser, FixedClock(), CountingIds())
+
+
+@pytest.mark.anyio
+async def test_fused_chooser_marks_the_stage_that_supplied_each_value() -> None:
+    result = await fused(0.5).execute(card())
+
+    brand = next(v for v in result.values if v.attribute == "Бренд")
+    assert (brand.value, brand.confidence, brand.sources[-1]) == ("Samsung", 0.9, RANKER)
+    assert result.text[brand.start:brand.end] == brand.evidence
+    color = next(v for v in result.values if v.attribute == "Цвет")
+    assert color.sources[-1] == BASELINE
+
+
+@pytest.mark.anyio
+async def test_values_below_the_fused_threshold_go_to_review() -> None:
+    result = await fused(0.95).execute(card())
+
+    brand = next(v for v in result.values if v.attribute == "Бренд")
+    assert brand.in_review and brand.review_id is not None

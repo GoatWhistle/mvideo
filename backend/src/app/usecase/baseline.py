@@ -119,10 +119,11 @@ class RunBaseline:
 def observe(
     card: CardRecord, extraction: CardExtraction, gold: Sequence[GoldRecord],
     required: RequiredAttributes, segments: Segments, books: tuple[MetricsBook, MetricsBook],
+    extra_groups: Sequence[str] = (),
 ) -> None:
     by_attribute = {g.attribute: g for g in gold}
     seller_names = [p.name for p in card.seller_params]
-    groups = segments.of(card)
+    groups = [*segments.of(card), *extra_groups]
     weights = required.weights(card.category_id)
     for name, profile in extraction.profiles.items():
         truth = by_attribute.get(name)

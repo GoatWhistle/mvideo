@@ -9,6 +9,7 @@ services:
         required: false
     environment:
       STAND_PACK: /srv/data/stand/pack.json.gz
+      STAND_MODELS: /srv/data/stand/models
     volumes:
       - ./data/stand:/srv/data/stand:ro
     ports:

@@ -1,5 +1,5 @@
 import time
-from collections.abc import Iterator, Mapping
+from collections.abc import Iterator, Mapping, Sequence
 from dataclasses import dataclass, field
 
 from app.domain.calibration import ScoredPick, ThresholdPoint, best_threshold, threshold_curve
@@ -7,7 +7,7 @@ from app.domain.lexicon import Lexicon
 from app.domain.metrics import MetricsBook
 from app.domain.ranker_features import CATEGORICAL_FEATURES, NUMERIC_FEATURES
 from app.usecase.baseline import EVAL_SPLITS, BaselineConfig, Segments, extra_attributes, observe
-from app.usecase.baseline_ports import PredictionSink, ReportSink
+from app.usecase.baseline_ports import CardPrediction, PredictionSink, ReportSink
 from app.usecase.extraction import RequiredAttributes, prediction_of
 from app.usecase.interface import Logger
 from app.usecase.lexicon_builder import build_lexicon
@@ -36,7 +36,7 @@ class RankerConfig:
 
 
 @dataclass(slots=True)
-class _Context:
+class RankerContext:
     required: RequiredAttributes
     lexicon: Lexicon
     names: frozenset[str]
@@ -48,6 +48,7 @@ class RunRanker:
         self, source: RankerSource, model: ScoreModel, calibrator: Calibrator,
         sink: PredictionSink, reports: ReportSink, logger: Logger,
         baseline_report: Mapping[str, object] | None = None,
+        val_sink: PredictionSink | None = None,
     ) -> None:
         self._source = source
         self._model = model
@@ -56,6 +57,7 @@ class RunRanker:
         self._reports = reports
         self._logger = logger
         self._baseline_report = baseline_report
+        self._val_sink = val_sink
 
     def run(self, config: RankerConfig) -> Mapping[str, object]:
         started = time.monotonic()
@@ -65,6 +67,7 @@ class RunRanker:
         self._logger.info("ranker_fitted", rows=train.rows, seconds=round(time.monotonic() - started))
         threshold, curve = self._tune(context, config)
         plain, weighted, log, cards = self._evaluate(context, config, threshold)
+        self._write_val(context, config, threshold)
         report = build_ranker_report(
             plain, weighted, cards=cards, lexicon_entries=context.lexicon.size,
             attributes=len(context.lexicon.profiles), train=train, threshold=threshold, curve=curve,
@@ -75,28 +78,23 @@ class RunRanker:
         self._logger.info("ranker_done", cards=cards, seconds=round(time.monotonic() - started))
         return report
 
-    def _context(self, config: RankerConfig) -> _Context:
-        records = self._source.required()
-        names = frozenset(r.attribute for r in records) | extra_attributes()
-        lexicon = build_lexicon(self._source.train_values(names), config.baseline.lexicon)
-        required = RequiredAttributes(records, lexicon)
-        stats = self._source.category_stats()
-        head = frozenset(sorted(stats, key=lambda c: -stats[c][0])[: config.baseline.head_categories])
-        cards_of = {c: max(1, s[1]) for c, s in stats.items()}
-        segments = Segments(head, self._source.seller_cards(), config.baseline, cards_of)
-        return _Context(required, lexicon, names, segments)
+    def _context(self, config: RankerConfig) -> RankerContext:
+        return ranker_context(self._source, config)
 
     def _scored(
-        self, context: _Context, splits: frozenset[str], config: RankerConfig, simulate: bool
+        self, context: RankerContext, splits: frozenset[str], config: RankerConfig, simulate: bool
     ) -> Iterator[list[Scored]]:
-        gold = self._source.gold_where(splits, context.names, 1)
-        for batch in self._source.cards(splits, config.batch):
-            items = [card_options(c, gold.get(c.sku_id, ()), context.required, context.lexicon,
-                                  simulate and _blind(c.sku_id, config))
-                     for c in batch]
-            yield score_items(items, self._model)
+        return scored_batches(self._source, self._model, context, splits, config, simulate)
 
-    def _train(self, context: _Context, config: RankerConfig) -> FeatureTable:
+    def _write_val(self, context: RankerContext, config: RankerConfig, threshold: float) -> None:
+        if self._val_sink is None:
+            return
+        for scored_batch in self._scored(context, frozenset({"val"}), config, simulate=True):
+            self._val_sink.write(calibrated_predictions(scored_batch, self._calibrator, threshold),
+                                 [])
+        self._val_sink.close()
+
+    def _train(self, context: RankerContext, config: RankerConfig) -> FeatureTable:
         table = FeatureTable(len(NUMERIC_FEATURES))
         splits = frozenset({"train"})
         gold = self._source.gold_where(splits, context.names, config.train_modulo)
@@ -109,7 +107,7 @@ class RunRanker:
             self._logger.info("ranker_train_rows", rows=table.rows)
         return table
 
-    def _tune(self, context: _Context, config: RankerConfig) -> tuple[float, list[ThresholdPoint]]:
+    def _tune(self, context: RankerContext, config: RankerConfig) -> tuple[float, list[ThresholdPoint]]:
         picks: list[tuple[float, bool, bool]] = []
         pairs = gold = 0
         for scored_batch in self._scored(context, frozenset({"val"}), config, simulate=True):
@@ -131,7 +129,7 @@ class RunRanker:
         return best.threshold, curve
 
     def _evaluate(
-        self, context: _Context, config: RankerConfig, threshold: float
+        self, context: RankerContext, config: RankerConfig, threshold: float
     ) -> tuple[MetricsBook, MetricsBook, CalibrationLog, int]:
         plain, weighted = MetricsBook(weighted=False), MetricsBook(weighted=True)
         log = CalibrationLog()
@@ -154,6 +152,43 @@ class RunRanker:
             self._logger.info("ranker_batch_done", cards=cards)
         self._sink.close()
         return plain, weighted, log, cards
+
+
+def ranker_context(source: RankerSource, config: RankerConfig) -> RankerContext:
+    records = source.required()
+    names = frozenset(r.attribute for r in records) | extra_attributes()
+    lexicon = build_lexicon(source.train_values(names), config.baseline.lexicon)
+    required = RequiredAttributes(records, lexicon)
+    stats = source.category_stats()
+    head = frozenset(sorted(stats, key=lambda c: -stats[c][0])[: config.baseline.head_categories])
+    cards_of = {c: max(1, s[1]) for c, s in stats.items()}
+    segments = Segments(head, source.seller_cards(), config.baseline, cards_of)
+    return RankerContext(required, lexicon, names, segments)
+
+
+def scored_batches(
+    source: RankerSource, model: ScoreModel, context: RankerContext,
+    splits: frozenset[str] | None, config: RankerConfig, simulate: bool,
+) -> Iterator[list[Scored]]:
+    gold = source.gold_where(splits, context.names, 1) if splits is not None else {}
+    for batch in source.cards(splits, config.batch):
+        items = [card_options(c, gold.get(c.sku_id, ()), context.required, context.lexicon,
+                              simulate and _blind(c.sku_id, config))
+                 for c in batch]
+        yield score_items(items, model)
+
+
+def calibrated_predictions(
+    scored_batch: Sequence[Scored], calibrator: Calibrator, threshold: float
+) -> list[CardPrediction]:
+    raws = [c.raw for s in scored_batch for c in s.choices.values()]
+    calibrated = iter(calibrator.transform(raws) if raws else [])
+    predictions = []
+    for scored in scored_batch:
+        confidences = {name: float(next(calibrated)) for name in scored.choices}
+        extraction = ranked_extraction(scored, confidences, threshold)
+        predictions.append(prediction_of(scored.item.card, extraction))
+    return predictions
 
 
 def _blind(sku_id: int, config: RankerConfig) -> bool:

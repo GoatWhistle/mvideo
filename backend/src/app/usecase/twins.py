@@ -38,6 +38,7 @@ class TwinConfig:
     floor: float = 0.5
     batch: int = 2000
     grid: tuple[float, ...] = GRID
+    splits: frozenset[str] = EVAL_SPLITS
     baseline: BaselineConfig = field(default_factory=BaselineConfig)
 
 
@@ -138,10 +139,10 @@ class RunTwins:
         books = (MetricsBook(weighted=False), MetricsBook(weighted=True),
                  MetricsBook(weighted=False), MetricsBook(weighted=True))
         records = self._source.stage_records(config.stage)
-        gold = self._source.gold_where(EVAL_SPLITS, context.names, 1)
+        gold = self._source.gold_where(config.splits, context.names, 1)
         log = TwinLog()
         cards = 0
-        for batch in self._source.cards(EVAL_SPLITS, config.batch):
+        for batch in self._source.cards(config.splits, config.batch):
             extractions = [extract_card(c, context.required, context.lexicon,
                                         config.baseline.min_confidence) for c in batch]
             picks = [stage_picks(e, records.get(c.sku_id)) for c, e in zip(batch, extractions,

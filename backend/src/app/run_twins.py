@@ -29,17 +29,22 @@ def main(argv: list[str] | None = None) -> None:
     parser.add_argument("--k", type=int, default=TwinConfig().k)
     parser.add_argument("--knn-batch", type=int, default=256)
     parser.add_argument("--batch", type=int, default=2000)
+    parser.add_argument("--name", default=NAME)
+    parser.add_argument("--splits", default=",".join(sorted(TwinConfig().splits)),
+                        help="comma-separated splits to transfer onto and evaluate")
     args = parser.parse_args(argv)
     configure()
     usecase = RunTwins(
         source=ParquetTwinSource(args.data, args.out),
         index=TfidfTitleIndex(batch=args.knn_batch),
         calibrator=IsotonicCalibrator(),
-        sink=FileTwinPredictionSink(args.out, NAME),
-        reports=FileReportSink(args.reports, NAME),
+        sink=FileTwinPredictionSink(args.out, args.name),
+        reports=FileReportSink(args.reports, args.name),
         logger=StdlibLogger("twins"),
     )
-    report = usecase.run(TwinConfig(stage=args.stage, k=args.k, batch=args.batch))
+    splits = frozenset(s.strip() for s in args.splits.split(",") if s.strip())
+    report = usecase.run(TwinConfig(stage=args.stage, k=args.k, batch=args.batch,
+                                    splits=splits))
     peak_mb = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss // 1024
     rows = cast(Sequence[Mapping[str, object]], report["ablation"])
     summary = next((r for r in rows if r["group"] == "all"), None)
