@@ -122,7 +122,7 @@ F1 не ниже 0,9.
 ## Как воспроизвести?
 
 ```bash
-unzip brief/sources/dataset.zip -d data/raw
+unzip dataset.zip -d data/raw
 cd backend
 uv run prepare-data --raw ../data/raw --out ../data/processed
 uv run baseline --data ../data/processed --out ../data/predictions --reports ../reports

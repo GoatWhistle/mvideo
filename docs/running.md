@@ -55,11 +55,12 @@ uv run uvicorn app.main:create_app --factory --reload
 
 ## Как подготовить данные?
 
-Архив организаторов в git не хранится: 1,1 ГБ. Положите `dataset.zip` в `brief/sources/`, сверьте
-SHA-256 с таблицей в `brief/sources/README.md` и распакуйте:
+Архив организаторов в git не хранится: 1,1 ГБ. Положите `dataset.zip` в корень репозитория, сверьте
+SHA-256 (`28758293f1174b2f19adcf2c99a86a9b5d2094aa22f3bbc92538af7180b59043`) и распакуйте:
 
 ```bash
-unzip brief/sources/dataset.zip -d data/raw
+sha256sum dataset.zip
+unzip dataset.zip -d data/raw
 cd backend
 uv run prepare-data --raw ../data/raw --out ../data/processed
 ```
