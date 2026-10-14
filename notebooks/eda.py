@@ -32,6 +32,8 @@ import re
 from collections import Counter
 from pathlib import Path
 
+from IPython.display import display
+
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -325,8 +327,141 @@ print(f"SKU с кликами, но без текста: {sku_clicks.num_rows - 
 # атрибуты по категориям.
 
 # %%
-processed = sorted(p.name for p in PROCESSED.glob("*")) if PROCESSED.exists() else []
-print("data/processed:", processed or "ещё не построено — запустите подготовку данных")
+offers = pq.read_table(PROCESSED / "cards.parquet", columns=["sku_id", "category_id", "seller"],
+                       filters=[("in_catalog", "=", True)])
+categories = pq.read_table(PROCESSED / "categories.parquet").to_pandas().set_index("category_id")
+splits = pq.read_table(PROCESSED / "splits.parquet")
+gold_file = pq.ParquetFile(PROCESSED / "gold.parquet")
+offer_ids = offers["sku_id"]
+with_text = pc.is_in(offer_ids, value_set=desc_ids)
+print(f"Офферов в каталоге: {len(offer_ids):,}; с текстом в sku_desc: {pc.sum(pc.cast(with_text, pa.int64())).as_py():,}")
+print(f"Строк эталона (SKU × атрибут): {gold_file.metadata.num_rows:,}")
+pd.DataFrame(pc.value_counts(splits["split"]).to_pylist()).set_axis(["сплит", "SKU"], axis=1)
+
+# %% [markdown]
+# ### Покрытие атрибутов эталоном
+#
+# Сколько атрибутов `*_search` у одного SKU и какие атрибуты заполнены чаще всего. Атрибуты из длинного
+# хвоста встречаются у единиц товаров — на них нельзя обучить отдельную модель, только правила,
+# справочники и LLM.
+
+# %%
+attr_parts, per_sku_parts = [], []
+for batch in gold_file.iter_batches(columns=["sku_id", "attribute"], batch_size=2_000_000):
+    t = pa.table({"sku_id": batch.column(0), "attribute": batch.column(1)})
+    attr_parts.append(t.group_by("attribute").aggregate([("sku_id", "count")]))
+    per_sku_parts.append(t.group_by("sku_id").aggregate([("attribute", "count")]))
+attr_cov = (pa.concat_tables(attr_parts).group_by("attribute").aggregate([("sku_id_count", "sum")])
+            .to_pandas().set_axis(["атрибут", "SKU"], axis=1).sort_values("SKU", ascending=False))
+per_sku = (pa.concat_tables(per_sku_parts).group_by("sku_id").aggregate([("attribute_count", "sum")])
+           .column(1).to_numpy())
+del attr_parts, per_sku_parts
+n_offers = len(offer_ids)
+attr_cov["% офферов"] = (attr_cov["SKU"] / n_offers * 100).round(2)
+print(f"Разных атрибутов: {len(attr_cov):,}; медиана атрибутов на SKU: {np.median(per_sku):.0f}; "
+      f"атрибутов, заполненных у < 100 SKU: {(attr_cov['SKU'] < 100).sum():,}")
+attr_cov.head(20).reset_index(drop=True)
+
+# %%
+fig, axes = plt.subplots(1, 2, figsize=(11, 3.6))
+axes[0].hist(np.clip(per_sku, 0, 80), bins=40, color="#3b6ea5")
+axes[0].set_title("Атрибутов эталона на один SKU (обрезано на 80)")
+axes[0].set_xlabel("атрибутов")
+axes[0].set_ylabel("SKU")
+axes[1].loglog(np.arange(1, len(attr_cov) + 1), attr_cov["SKU"].to_numpy(), color="#3b6ea5")
+axes[1].set_title("Длинный хвост атрибутов: SKU с атрибутом по рангу")
+axes[1].set_xlabel("ранг атрибута")
+axes[1].set_ylabel("SKU")
+axes[1].grid(alpha=0.3, which="both")
+save(fig, "gold_attribute_coverage")
+
+# %% [markdown]
+# ### Обязательные атрибуты: смартфоны и ноутбуки
+#
+# Подготовка данных выбирает обязательные атрибуты категории: бренд, модель и самые заполненные
+# атрибуты, ранжированные по кликам. `weight` — вес атрибута во взвешенных по трафику метриках.
+
+# %%
+required = pq.read_table(PROCESSED / "required_attributes.parquet").to_pandas()
+LEAVES = {761: "Смартфоны", 987: "Ноутбуки"}
+for cid, label in LEAVES.items():
+    r = required[required["category_id"] == cid].sort_values("rank")
+    print(f"{label} ({categories.loc[cid, 'path']}): {len(r)} обязательных атрибутов")
+    display(r[["attribute", "card_coverage", "click_coverage", "query_share", "weight"]].reset_index(drop=True))
+print(f"Категорий с обязательными атрибутами: {required['category_id'].nunique():,}; "
+      f"в среднем атрибутов на категорию: {required.groupby('category_id').size().mean():.1f}")
+
+# %% [markdown]
+# ### Есть ли значение эталона в тексте карточки
+#
+# Главный вопрос для каскада с цитатами: если значения нет в тексте, извлечь его честно нельзя.
+# Выборка 20 тысяч SKU из train с текстом; для каждого обязательного атрибута проверяем, встречается
+# ли значение эталона в `title` + `description` дословно (без учёта регистра и «ё»). Это верхняя
+# граница recall для извлечения без выдумывания. Второй режим — то же, но с вырезанным блоком
+# «Характеристики:».
+
+# %%
+def norm(s):
+    return re.sub(r"\s+", " ", (s or "").lower().replace("ё", "е"))
+
+
+spec_block = re.compile(r"Характеристики:.*", re.S)
+train_ids = pc.filter(splits["sku_id"], pc.equal(splits["split"], "train"))
+train_text = pc.filter(train_ids, pc.is_in(train_ids, value_set=desc_ids)).to_numpy()
+sample_ids = np.random.default_rng(7).choice(train_text, size=min(20_000, len(train_text)), replace=False)
+sample_set = pa.array(sample_ids)
+texts = pq.read_table(RAW / "sku_desc.parquet", filters=[("sku_id", "in", sample_set)]).to_pandas()
+texts["full"] = (texts["title"].fillna("") + " \n " + texts["description"].fillna("")).map(norm)
+texts["no_block"] = (texts["title"].fillna("") + " \n "
+                     + texts["description"].fillna("").map(lambda d: spec_block.sub("", d))).map(norm)
+texts = texts.set_index("sku_id")
+gold_s = pq.read_table(PROCESSED / "gold.parquet", filters=[("sku_id", "in", sample_set)]).to_pandas()
+cat_of = offers.to_pandas().set_index("sku_id")["category_id"]
+gold_s["category_id"] = gold_s["sku_id"].map(cat_of)
+req_pairs = set(zip(required["category_id"], required["attribute"]))
+gold_s = gold_s[[(c, a) in req_pairs for c, a in zip(gold_s["category_id"], gold_s["attribute"])]]
+gold_s = gold_s[gold_s["sku_id"].isin(texts.index)]
+vals = gold_s["value"].map(norm)
+gold_s["в тексте"] = [v in texts.at[s, "full"] for v, s in zip(vals, gold_s["sku_id"])]
+gold_s["в тексте без блока"] = [v in texts.at[s, "no_block"] for v, s in zip(vals, gold_s["sku_id"])]
+grounding = (gold_s.groupby("attribute")[["в тексте", "в тексте без блока"]].mean().mul(100).round(1)
+             .join(gold_s.groupby("attribute").size().rename("пар")).sort_values("пар", ascending=False))
+print(f"Пар SKU × обязательный атрибут: {len(gold_s):,}; значение найдено в тексте: "
+      f"{gold_s['в тексте'].mean():.1%}; без блока «Характеристики:»: {gold_s['в тексте без блока'].mean():.1%}")
+grounding.head(20)
+
+# %%
+top = grounding.head(15).iloc[::-1]
+fig, ax = plt.subplots(figsize=(8, 5.5))
+y = np.arange(len(top))
+ax.barh(y + 0.2, top["в тексте"], height=0.4, color="#3b6ea5", label="весь текст")
+ax.barh(y - 0.2, top["в тексте без блока"], height=0.4, color="#a5c3e0", label="без блока «Характеристики:»")
+ax.set_yticks(y, top.index)
+ax.set_xlabel("% пар, где значение эталона дословно есть в тексте")
+ax.set_title("Значение эталона в тексте карточки (выборка 20 тыс. SKU)")
+ax.legend(loc="lower right", fontsize=8)
+save(fig, "gold_value_in_text")
+
+# %% [markdown]
+# ### Продавец ↔ эталон: сколько нормализации нужно
+#
+# Для атрибутов, которые есть и у продавца, и в эталоне под тем же именем, — доля точных совпадений
+# значения. Несовпадение — работа для справочника алиасов и правил единиц.
+
+# %%
+seller = pq.read_table(PROCESSED / "cards.parquet", columns=["sku_id", "seller_params"],
+                       filters=[("sku_id", "in", sample_set)]).to_pandas()
+rows = [(r.sku_id, p["name"], p["value"]) for r in seller.itertuples() for p in (r.seller_params if r.seller_params is not None else [])]
+seller_long = pd.DataFrame(rows, columns=["sku_id", "attribute", "seller_value"])
+gold_all = pq.read_table(PROCESSED / "gold.parquet", filters=[("sku_id", "in", sample_set)]).to_pandas()
+pairs_sg = seller_long.merge(gold_all, on=["sku_id", "attribute"])
+pairs_sg["совпадает"] = pairs_sg["seller_value"].map(norm) == pairs_sg["value"].map(norm)
+mismatch = (pairs_sg.groupby("attribute")["совпадает"].agg(["mean", "size"])
+            .rename(columns={"mean": "доля совпадений", "size": "пар"}).sort_values("пар", ascending=False))
+mismatch["доля совпадений"] = (mismatch["доля совпадений"] * 100).round(1)
+print(f"Пар продавец ↔ эталон: {len(pairs_sg):,}; совпадают дословно: {pairs_sg['совпадает'].mean():.1%}")
+display(mismatch.head(15))
+pairs_sg.loc[~pairs_sg["совпадает"], ["attribute", "seller_value", "value", "unit"]].head(15)
 
 # %% [markdown]
 # ## 6. Выводы для пайплайна
@@ -336,9 +471,10 @@ print("data/processed:", processed or "ещё не построено — зап
 # 1. **Текст есть всегда, но грязный.** Пустых `title`/`description` нет, зато почти половина описаний
 #    содержит HTML, а у четверти `title` пустая модель («Брелок UNIMALL -»). Препроцессинг: снять HTML,
 #    не доверять `title` как источнику модели.
-# 2. **Треть атрибутов уже лежит в тексте.** Около 29% описаний содержат блок «Характеристики:»
-#    и 30% — строки «• ключ: значение». Парсер «ключ: значение» — первая ступень каскада; метрики
-#    обязательно считаются ещё и на описаниях с вырезанным блоком, иначе хвост не виден.
+# 2. **Блок «Характеристики:» есть почти только у карточек вне каталога.** Среди всех описаний он
+#    встречается у ~29%, но среди 241 тыс. карточек с эталоном — лишь у ~8 тыс.: каталожные описания
+#    написаны свободным текстом. Парсер «ключ: значение» полезен для 1,2 млн карточек без эталона
+#    (файл предсказаний), а качество на эталоне держится на словарях, единицах и модели.
 # 3. **Нормализация — не косметика.** Только у ключа «цвет» в выборке больше сотни разных записей
 #    одного базового цвета («черный», «чёрный», «черный матовый», «черное», «black»). Справочник
 #    канонических значений с алиасами нужен до любой модели.
@@ -352,3 +488,15 @@ print("data/processed:", processed or "ещё не построено — зап
 # 6. **Связка файлов.** Клики есть у 13% карточек с текстом; эталон (`*_search`) — у 241 тыс. карточек
 #    с текстом (пересечение `skus.pkl` и `sku_desc`), из них ~103 тыс. ещё и с кликами. Этого хватает
 #    на обучение, валидацию и отложенные категории.
+# 7. **Не всё из эталона есть в тексте.** Для обязательных атрибутов значение эталона дословно
+#    встречается в `title` + `description` в ~58% пар: бренд и модель — 96–99%, высота и ширина —
+#    ~70%, цвет — ~26%, вес — ~3%. Часть расхождения — формат (запятая вместо точки, единицы), часть —
+#    значения, которых в тексте действительно нет. Каскад с обязательной цитатой честно ограничен этим
+#    потолком; recall считаем и относительно него, а недостающее берём из атрибутов продавца.
+# 8. **Атрибуты продавца — это фасеты-диапазоны, а эталон — точные значения.** Дословно совпадает
+#    ~62% пар; у числовых атрибутов совпадений нет вовсе: продавец пишет «2 - 2.99 кг», эталон — «2.3 кг».
+#    Диапазон продавца — ограничение для кандидатов из текста, а не готовый ответ.
+# 9. **Список обязательных по трафику расходится с ТЗ.** Для смартфонов по кликам выходят бренд,
+#    модель, серия, процессор, диагональ, память; ёмкости батареи и цвета нет. Для ноутбуков нет RAM,
+#    накопителя и диагонали. ТЗ называет эти поля явно (раздел 6), поэтому для двух примерных категорий
+#    список ТЗ добавляется к списку по трафику.
