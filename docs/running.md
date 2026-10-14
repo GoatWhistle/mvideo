@@ -103,8 +103,30 @@ uv run baseline --data ../data/processed --out ../data/predictions --reports ../
 uv run baseline --data ../data/processed --out ../data/predictions --all-cards --no-candidates
 ```
 
-Пишет `data/predictions/baseline_all.predictions.jsonl`. У карточек вне каталога категории нет, для
-них извлекаются только бренд и цвет.
+Пишет `data/predictions/baseline_all.predictions.jsonl`. Без категории карточка получает только бренд
+и цвет, поэтому сначала стоит восстановить категорию для карточек вне каталога:
+
+```bash
+uv run infer-categories --data ../data/processed --raw ../data/raw --reports ../reports
+```
+
+Команда без сети и ключей (~40 мин, пик ~3 ГБ, 3 ядра): берёт категорию из кликов (`sku_seo_id`), а
+где кликов нет — из классификатора по названию; пишет `data/processed/inferred_categories.parquet`
+(`sku_id`, `category_id`, `source`: `catalog` / `clicks` / `classifier`, `confidence`) и отчёт
+`reports/category.md` с выбором порога, гистограммами уверенности и случайными примерами. Правила —
+в [решениях](design-decisions.md#откуда-берётся-категория-у-карточки-вне-каталога). Базлайн с
+`--all-cards` подхватывает эту таблицу сам; категория каталога всегда важнее.
+
+Полный файл по всем карточкам быстрее собирать параллельно — 5 частей по `sku_id`, не больше трёх
+процессов одновременно, под `nice`:
+
+```bash
+bash scripts/predict-all.sh ../data/processed ../data/predictions
+```
+
+Скрипт режет `cards.parquet` командой `uv run shard-cards` в `data/shards/`, считает части и склеивает
+`data/predictions/baseline_all.predictions.jsonl`; предыдущий файл остаётся рядом как `.bak`.
+`SHARDS` и `PARALLEL` в окружении меняют число частей и процессов.
 
 ### Двойники из каталога поверх ранжировщика
 

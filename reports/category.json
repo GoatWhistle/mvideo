@@ -1,0 +1,295 @@
+{
+  "required_categories": 1107,
+  "train_cards": 185011,
+  "target_precision": 0.9,
+  "ood_reject_share": 0.8,
+  "threshold": 0.06,
+  "threshold_selection": {
+    "by_val_precision": 0.0,
+    "by_new_category_rejection": 0.06,
+    "val_cards": 23246,
+    "new_category_cards": 1821,
+    "val_coverage": 0.9963,
+    "val_precision": 0.9807,
+    "new_category_rejected": 0.8144,
+    "val_histogram": [
+      139,
+      144,
+      174,
+      226,
+      416,
+      713,
+      1645,
+      6700,
+      7192,
+      5897
+    ],
+    "new_category_histogram": [
+      1584,
+      69,
+      29,
+      13,
+      4,
+      8,
+      17,
+      84,
+      13,
+      0
+    ]
+  },
+  "classifier_test": {
+    "cards": 22936,
+    "top1": 0.9809,
+    "top3": 0.9973,
+    "macro_f1": 0.9048,
+    "coverage_at_threshold": 0.9975,
+    "precision_at_threshold": 0.9822,
+    "curve": [
+      {
+        "threshold": 0.0,
+        "coverage": 1.0,
+        "precision": 0.9808597837460761
+      },
+      {
+        "threshold": 0.1,
+        "coverage": 0.9948988489710499,
+        "precision": 0.9829089793593059
+      },
+      {
+        "threshold": 0.2,
+        "coverage": 0.9896668991977677,
+        "precision": 0.9845808185382616
+      },
+      {
+        "threshold": 0.3,
+        "coverage": 0.9829525636553889,
+        "precision": 0.9867819915724108
+      },
+      {
+        "threshold": 0.4,
+        "coverage": 0.9715730728985001,
+        "precision": 0.9890953150242326
+      },
+      {
+        "threshold": 0.5,
+        "coverage": 0.9532176491105685,
+        "precision": 0.9929561359374285
+      },
+      {
+        "threshold": 0.6,
+        "coverage": 0.9244855249389606,
+        "precision": 0.9958026787398604
+      },
+      {
+        "threshold": 0.7,
+        "coverage": 0.8566881757935124,
+        "precision": 0.9980151661662171
+      },
+      {
+        "threshold": 0.8,
+        "coverage": 0.5736396930589467,
+        "precision": 0.9991639431481341
+      },
+      {
+        "threshold": 0.9,
+        "coverage": 0.25662713637949075,
+        "precision": 0.9996602106693849
+      }
+    ]
+  },
+  "clicks": {
+    "test_cards": 10062,
+    "test_mapped": 10013,
+    "test_accuracy": 0.9787,
+    "direct_id_match": 0.9757,
+    "click_categories": 2448
+  },
+  "coverage": {
+    "cards": 1177200,
+    "with_category": 991115,
+    "by_source": {
+      "catalog": 241355,
+      "classifier": 697679,
+      "clicks": 52081
+    },
+    "share_with_category": 0.8419,
+    "outside_catalog_without_clicks": 883764,
+    "classifier_accepted": 697679,
+    "classifier_accepted_share": 0.7894,
+    "outside_catalog_max_probability_histogram": [
+      231719,
+      72754,
+      51314,
+      45945,
+      48274,
+      52748,
+      75212,
+      172334,
+      122941,
+      10523
+    ],
+    "samples": [
+      {
+        "sku_id": 4081695,
+        "text": "набор ручного инструмента king tony 30206mr отвертки силовые (6 предметов) набор ручного и",
+        "category_id": 31766,
+        "category": "Ручной инструмент и наборы / Наборы ручного инструмента / Наборы инструментов для автомобиля",
+        "probability": 0.378,
+        "accepted": true
+      },
+      {
+        "sku_id": 401980155,
+        "text": "чехол для смартфона, телефона #n/a стильный чехол из кожи для samsung s25 bricase. стильны",
+        "category_id": 1189,
+        "category": "Аксессуары для телефонов / Чехлы для телефонов / Чехлы для смартфонов",
+        "probability": 0.846,
+        "accepted": true
+      },
+      {
+        "sku_id": 401866512,
+        "text": "чехол для смартфона, телефона gss - прозрачный ультратонкий жесткий чехол с блестками и ма",
+        "category_id": 1189,
+        "category": "Аксессуары для телефонов / Чехлы для телефонов / Чехлы для смартфонов",
+        "probability": 0.846,
+        "accepted": true
+      },
+      {
+        "sku_id": 402030181,
+        "text": "матрас sleepteam rest это анатомический матрас, который обеспечивает отличный уровень подд",
+        "category_id": 36480,
+        "category": "Мебель / Матрасы / Матрасы",
+        "probability": 0.873,
+        "accepted": true
+      },
+      {
+        "sku_id": 50143553,
+        "text": "наушники накладные bluetooth sudio regent ii (regwht) полноразмерные наушники sudio regent",
+        "category_id": 31607,
+        "category": "Наушники / Наушники / Наушники",
+        "probability": 0.795,
+        "accepted": true
+      },
+      {
+        "sku_id": 402082419,
+        "text": "подводка гибкая gigant p-300-gg gigant подводка гибкая для воды с оплеткой из нержавеющей ",
+        "category_id": 34361,
+        "category": "Сантехника / Смесители / Краны для питьевой воды",
+        "probability": 0.106,
+        "accepted": true
+      },
+      {
+        "sku_id": 401393509,
+        "text": "искусственное растение unimall - искусственный плющ unimall с 36 листьями. характеристики:",
+        "category_id": 36855,
+        "category": "Товары для дачи и сада / Уход за растениями / Подвязки и опоры для растений",
+        "probability": 0.014,
+        "accepted": false
+      },
+      {
+        "sku_id": 401551442,
+        "text": "коврик для мыши panin коврик для мыши 22x18 eidgsp29728 коврик для мыши — это не просто ак",
+        "category_id": 826,
+        "category": "Компьютерные аксессуары / Коврики для мыши / Коврики для мыши",
+        "probability": 0.817,
+        "accepted": true
+      },
+      {
+        "sku_id": 401796880,
+        "text": "сумка gss - сумка на пояс для мужчин и женщин, для повседневного ношения и занятий спортом",
+        "category_id": 34082,
+        "category": "Аксессуары / Сумки, портфели, рюкзаки и чемоданы / Сумки",
+        "probability": 0.538,
+        "accepted": true
+      },
+      {
+        "sku_id": 401977891,
+        "text": "фотошторы 365home фотошторы блэкаут fp4334453 комплект блэкаут фотоштор с 3d принтом: темн",
+        "category_id": 56758,
+        "category": "Товары для дома / Шторы и тюль / Фотошторы",
+        "probability": 0.888,
+        "accepted": true
+      },
+      {
+        "sku_id": 401371322,
+        "text": "форма для придания формы салатам, торту unimall - форма для выпечки из фольги 230 мл. хара",
+        "category_id": 1140,
+        "category": "Посуда / Формы для выпекания / Формы для запекания",
+        "probability": 0.201,
+        "accepted": true
+      },
+      {
+        "sku_id": 30050329,
+        "text": "системный блок apple mac pro w 24 core/348gb/4tb/2*rpro w5700x mac pro. просто монстр. mac",
+        "category_id": 1080,
+        "category": "Компьютерная техника / Системные блоки / Системные блоки",
+        "probability": 0.442,
+        "accepted": true
+      },
+      {
+        "sku_id": 400175065,
+        "text": "робот-пылесос viomi v3 max white робот-пылесос viomi v3 max white разработан для больших п",
+        "category_id": 2457,
+        "category": "Пылесосы и аксессуары / Роботы-пылесосы / Роботы-пылесосы",
+        "probability": 0.732,
+        "accepted": true
+      },
+      {
+        "sku_id": 402070222,
+        "text": "светодиодная лента feron ls530 48969 лента оснащена 512 светодиодами типа 2110 на каждый м",
+        "category_id": 9428,
+        "category": "Освещение / Ленты светодиодные / Ленты светодиодные",
+        "probability": 0.155,
+        "accepted": true
+      },
+      {
+        "sku_id": 400988058,
+        "text": "подушка декоративная printyfull подушка декоративная, 45x45см fp415496744 мягкая декоратив",
+        "category_id": 34350,
+        "category": "Товары для дома / Текстиль для сна / Подушки",
+        "probability": 0.77,
+        "accepted": true
+      },
+      {
+        "sku_id": 20067431,
+        "text": "вытяжка полностью встраиваемая премиум smeg ksg74b вытяжка smeg ksg74b встраивается в шкаф",
+        "category_id": 2355,
+        "category": "Встраиваемая техника / Встраиваемые вытяжки / Вытяжки кухонные",
+        "probability": 0.829,
+        "accepted": true
+      },
+      {
+        "sku_id": 4198382,
+        "text": "микрофон вокальный ritmix rwm-222 black вокальный микрофон ritmix rwm-222 black — конденса",
+        "category_id": 752,
+        "category": "Аудиотехника и DJ оборудование / Микрофоны / Микрофоны для компьютеров",
+        "probability": 0.417,
+        "accepted": true
+      },
+      {
+        "sku_id": 401497531,
+        "text": "контейнеры для игрушек unimall - креативная салфетница-конструктор маленькая утка от unima",
+        "category_id": 31047,
+        "category": "Игрушки, игры и творчество / Конструкторы / Конструктор Lego",
+        "probability": 0.03,
+        "accepted": false
+      },
+      {
+        "sku_id": 401735985,
+        "text": "кабель для смартфона, телефона fast кабель питания для vivo y21a. кабель для быстрой заряд",
+        "category_id": 57274,
+        "category": "Аксессуары для телефонов / Кабели и переходники для смартфонов / Кабели для смартфонов, телефонов",
+        "probability": 0.747,
+        "accepted": true
+      },
+      {
+        "sku_id": 401896999,
+        "text": "защитный кейс gss - чехол-подвес для rincoe jellybox v3. характеристики: • тип: чехол-подв",
+        "category_id": 1189,
+        "category": "Аксессуары для телефонов / Чехлы для телефонов / Чехлы для смартфонов",
+        "probability": 0.565,
+        "accepted": true
+      }
+    ]
+  },
+  "seconds": 2174.5
+}
