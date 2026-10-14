@@ -123,34 +123,69 @@ class ParquetDatasetStore:
 
     def attach_texts(self) -> TextStats:
         offers = pq.read_table(self._offers_path)
-        params = offers.column("seller_params")
-        scalar = offers.drop_columns(["seller_params"])
-        scalar = scalar.append_column("row", pa.array(range(scalar.num_rows), pa.int64()))
         texts = pq.read_table(self._descriptions, columns=["sku_id", "title", "description"])
-        texts = texts.set_column(0, "sku_id", pc.cast(texts.column("sku_id"), pa.int64()))
-        cards = scalar.join(texts, "sku_id", join_type="full outer").sort_by("sku_id")
-        rows = cards.column("row")
-        cards = cards.drop_columns(["row"]).append_column("seller_params", params.take(rows))
-        description = pc.fill_null(cards.column("description"), "")
-        header = pc.match_substring_regex(description, SPEC_HEADER_PATTERN)
-        lines = pc.count_substring_regex(description, SPEC_LINE_PATTERN)
-        has_spec = pc.or_(header, pc.greater_equal(lines, SPEC_MIN_LINES))
-        has_text = pc.or_(
-            pc.is_valid(cards.column("title")), pc.is_valid(cards.column("description"))
+        text_ids = pc.cast(texts.column("sku_id"), pa.int64())
+        description = pc.fill_null(texts.column("description"), "")
+        has_spec = pc.or_(
+            pc.match_substring_regex(description, SPEC_HEADER_PATTERN),
+            pc.greater_equal(
+                pc.count_substring_regex(description, SPEC_LINE_PATTERN), SPEC_MIN_LINES
+            ),
         )
-        in_catalog = pc.is_valid(rows)
-        cards = (
-            cards.append_column("in_catalog", in_catalog)
-            .append_column("has_text", has_text)
-            .append_column("has_spec_block", has_spec)
+        offer_keys = pa.table(
+            {"sku_id": offers.column("sku_id"), "offer_row": pa.array(range(offers.num_rows))}
         )
+        text_keys = pa.table({"sku_id": text_ids, "text_row": pa.array(range(texts.num_rows))})
+        keys = text_keys.join(offer_keys, "sku_id", join_type="full outer")
+        matched = keys.filter(pc.is_valid(keys.column("text_row"))).sort_by("text_row")
+        orphans = keys.filter(pc.is_null(keys.column("text_row")))
+        offer_columns = [n for n in offers.column_names if n != "sku_id"]
+
+        def part(
+            rows: pa.Table, sku: pa.Array, title: pa.Array, desc: pa.Array, spec: pa.Array
+        ) -> pa.Table:
+            taken = offers.select(offer_columns).take(rows.column("offer_row"))
+            return pa.table(
+                {
+                    "sku_id": sku,
+                    **{n: taken.column(n) for n in offer_columns},
+                    "title": title,
+                    "description": desc,
+                    "in_catalog": pc.is_valid(rows.column("offer_row")),
+                    "has_text": pc.or_(pc.is_valid(title), pc.is_valid(desc)),
+                    "has_spec_block": spec,
+                }
+            )
+
+        if matched.num_rows == texts.num_rows:
+            first = part(
+                matched, text_ids, texts.column("title"), texts.column("description"), has_spec
+            )
+        else:
+            idx = matched.column("text_row")
+            first = part(
+                matched,
+                text_ids.take(idx),
+                texts.column("title").take(idx),
+                texts.column("description").take(idx),
+                has_spec.take(idx),
+            )
+        n = orphans.num_rows
+        second = part(
+            orphans,
+            orphans.column("sku_id"),
+            pa.nulls(n, texts.schema.field("title").type),
+            pa.nulls(n, texts.schema.field("description").type),
+            pa.array([False] * n, pa.bool_()),
+        )
+        cards = pa.concat_tables([first, second.cast(first.schema)])
         pq.write_table(cards, self._out / "cards.parquet")
         self._offers_path.unlink()
         return TextStats(
             cards=cards.num_rows,
-            cards_with_text=int(pc.sum(has_text).as_py() or 0),
-            cards_in_catalog=int(pc.sum(in_catalog).as_py() or 0),
-            cards_with_spec_block=int(pc.sum(has_spec).as_py() or 0),
+            cards_with_text=int(pc.sum(cards.column("has_text")).as_py() or 0),
+            cards_in_catalog=int(pc.sum(cards.column("in_catalog")).as_py() or 0),
+            cards_with_spec_block=int(pc.sum(cards.column("has_spec_block")).as_py() or 0),
         )
 
     def write_stats(self, stats: Mapping[str, object]) -> None:

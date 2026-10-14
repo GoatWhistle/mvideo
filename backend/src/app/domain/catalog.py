@@ -8,8 +8,9 @@ MODEL = "Модель"
 SELLER_PARAM = "Продавец"
 SERVICE_PARAMS = frozenset({"Потратить бонусы", "Акции", "Подборки"})
 SERVICE_ATTRIBUTES = frozenset(
-    {"Гарантия", "Гарантия предоставляется", "Срок службы", MODEL, BRAND}
+    {"Гарантия", "Гарантия предоставляется", "Срок службы", "Страна", MODEL, BRAND}
 )
+SERVICE_PREFIXES = ("ЗД ",)
 SPEC_HEADER_PATTERN = r"(?i)характеристик[а-яё]*\s*:"
 SPEC_LINE_PATTERN = r"(?m)^\s*[•·\-–—*]\s*[^:\n]{2,80}:\s*\S"
 SPEC_MIN_LINES = 3
@@ -69,6 +70,10 @@ class SplitOffer:
 
 def is_gold_param(name: str) -> bool:
     return name.endswith(GOLD_SUFFIX)
+
+
+def is_service_attribute(attribute: str) -> bool:
+    return attribute in SERVICE_ATTRIBUTES or attribute.startswith(SERVICE_PREFIXES)
 
 
 def gold_attribute(name: str) -> str:

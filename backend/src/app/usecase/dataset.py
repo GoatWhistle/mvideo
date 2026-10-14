@@ -26,7 +26,7 @@ class PrepareConfig:
     new_category_max_cards: int = 3000
     protected_categories: tuple[str, ...] = ("Смартфоны", "Ноутбуки")
     min_category_cards: int = 30
-    candidates_per_category: int = 12
+    candidates_per_category: int = 40
     top_n: int = 6
     min_coverage: float = 0.3
     values_per_attribute: int = 300
@@ -92,6 +92,8 @@ class PrepareDataset:
                 self._logger.info("offers_progress", offers=offers)
         self._store.close_offers()
         self._logger.info("offers_loaded", offers=offers, categories=len(categories))
+        text = self._store.attach_texts()
+        self._logger.info("cards_written", cards=text.cards)
 
         paths = category_paths(categories)
         self._store.write_categories(categories, paths)
@@ -152,7 +154,6 @@ class PrepareDataset:
         }
         self._store.write_splits(splits)
 
-        text = self._store.attach_texts()
         offer_ids = set(sku_category)
         click_ids = set(sku_clicks)
         stats: dict[str, object] = {

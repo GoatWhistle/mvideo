@@ -1,7 +1,7 @@
 from collections.abc import Mapping
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 
-from app.domain.catalog import BRAND, MODEL, SERVICE_ATTRIBUTES
+from app.domain.catalog import BRAND, MODEL, is_service_attribute
 
 MENTION_SMOOTHING = 0.01
 
@@ -43,7 +43,7 @@ def candidate_attributes(
     usages: Mapping[str, AttributeUsage], category: CategoryUsage, limit: int
 ) -> list[str]:
     ranked = sorted(
-        (u for u in usages.values() if u.attribute not in SERVICE_ATTRIBUTES),
+        (u for u in usages.values() if not is_service_attribute(u.attribute)),
         key=lambda u: (-coverage(u, category)[1], -u.cards, u.attribute),
     )
     fixed = [a for a in (BRAND, MODEL) if a in usages]
@@ -75,11 +75,14 @@ def rank_required(
             weight=round(category.clicks * (MENTION_SMOOTHING + share), 4),
         )
 
-    fixed = [usages[a] for a in (BRAND, MODEL) if a in usages]
-    rest = [
-        usages[a]
-        for a in candidate_attributes(usages, category, len(usages))
-        if a not in (BRAND, MODEL) and coverage(usages[a], category)[1] >= min_coverage
-    ]
+    fixed = [build(usages[a], 0) for a in (BRAND, MODEL) if a in usages]
+    rest = sorted(
+        (
+            build(usages[a], 0)
+            for a in candidate_attributes(usages, category, len(usages))
+            if a not in (BRAND, MODEL) and coverage(usages[a], category)[1] >= min_coverage
+        ),
+        key=lambda r: (-r.query_share, -r.click_coverage, r.attribute),
+    )
     chosen = fixed + rest[:top_n]
-    return [build(usage, rank) for rank, usage in enumerate(chosen)]
+    return [replace(row, rank=rank) for rank, row in enumerate(chosen)]
