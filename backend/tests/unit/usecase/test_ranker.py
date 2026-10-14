@@ -143,3 +143,19 @@ def test_ranker_skips_train_cards_outside_the_modulo_sample() -> None:
     RunRanker(FakeRankerSource(), sampled, IdentityCalibrator(), MemorySink(), MemoryReports(),
               SilentLogger()).run(RankerConfig(train_modulo=4))
     assert 0 < model.rows < sampled.rows
+
+
+class CapturingModel(HeuristicModel):
+    def fit(self, train: FeatureTable, names: Sequence[str], categorical: Sequence[str]) -> None:
+        super().fit(train, names, categorical)
+        self.columns = {name: [train.numeric[r * train.width + i] for r in range(train.rows)]
+                        for i, name in enumerate(names)}
+
+
+def test_blind_cards_train_without_category_priors() -> None:
+    seen, blind = CapturingModel(), CapturingModel()
+    for model, remainder in ((seen, 3), (blind, 0)):
+        RunRanker(FakeRankerSource(), model, IdentityCalibrator(), MemorySink(), MemoryReports(),
+                  SilentLogger()).run(RankerConfig(blind_modulo=4, blind_remainder=remainder))
+    assert max(seen.columns["prior_known"]) == 1.0 and max(seen.columns["prior_max"]) > 0
+    assert max(blind.columns["prior_known"]) == 0.0 and max(blind.columns["prior_max"]) == 0.0

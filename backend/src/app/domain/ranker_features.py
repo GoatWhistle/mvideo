@@ -16,7 +16,7 @@ NUMERIC_FEATURES = (
     *(f"kind_{k.value}" for k in KINDS),
     "affinity_max", "prior_max", "seller_fit_max", "seller_fit_min", "slot_bonus",
     "first_position", "in_title_first", "key_chars", "key_tokens", "evidence_chars",
-    "options", "heuristic_rank", "heuristic_gap", "candidate_share",
+    "options", "heuristic_rank", "heuristic_gap", "candidate_share", "prior_known",
 )
 CATEGORICAL_FEATURES = ("attribute", "top_source", "top_zone")
 
@@ -58,7 +58,7 @@ def _flags(values: set[str], names: Iterable[str]) -> list[float]:
 
 def _option(
     group: _Group, profile: AttributeProfile, rank: int, best: float, total: int, options: int,
-    text_length: int,
+    text_length: int, known: bool,
 ) -> RankOption:
     top_score, top = group.scored[0]
     members = [c for _, c in group.scored]
@@ -76,13 +76,15 @@ def _option(
         first / max(1, text_length), 1.0 if top.zone == "title" else 0.0,
         float(len(group.key)), float(group.key.count(" ") + 1), float(len(top.evidence)),
         float(options), float(rank), best - agreement, len(members) / max(1, total),
+        1.0 if known else 0.0,
     )
     return RankOption(group.attribute, group.key, top, sources, agreement, numeric,
                       (group.attribute, top.source, top.zone))
 
 
 def rank_options(
-    candidates: Iterable[Candidate], profiles: Mapping[str, AttributeProfile], text_length: int
+    candidates: Iterable[Candidate], profiles: Mapping[str, AttributeProfile], text_length: int,
+    known: frozenset[str] = frozenset(),
 ) -> list[RankOption]:
     result: list[RankOption] = []
     for attribute, groups in _groups(candidates, profiles).items():
@@ -96,5 +98,5 @@ def rank_options(
         best = agreements[order[0]]
         for rank, index in enumerate(order):
             result.append(_option(groups[index], profile, rank, best, total, len(groups),
-                                  text_length))
+                                  text_length, attribute in known))
     return result

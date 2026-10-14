@@ -28,6 +28,8 @@ THRESHOLDS = tuple(round(0.05 * i, 2) for i in range(1, 20))
 @dataclass(frozen=True, slots=True)
 class RankerConfig:
     train_modulo: int = 4
+    blind_modulo: int = 5
+    blind_remainder: int = 1
     batch: int = 2000
     thresholds: tuple[float, ...] = THRESHOLDS
     baseline: BaselineConfig = field(default_factory=BaselineConfig)
@@ -85,12 +87,13 @@ class RunRanker:
         return _Context(required, lexicon, names, segments)
 
     def _scored(
-        self, context: _Context, splits: frozenset[str], config: RankerConfig, modulo: int = 1
+        self, context: _Context, splits: frozenset[str], config: RankerConfig, simulate: bool
     ) -> Iterator[list[Scored]]:
-        gold = self._source.gold_where(splits, context.names, modulo)
+        gold = self._source.gold_where(splits, context.names, 1)
         for batch in self._source.cards(splits, config.batch):
-            items = [card_options(c, gold.get(c.sku_id, ()), context.required, context.lexicon)
-                     for c in batch if c.sku_id % modulo == 0]
+            items = [card_options(c, gold.get(c.sku_id, ()), context.required, context.lexicon,
+                                  simulate and _blind(c.sku_id, config))
+                     for c in batch]
             yield score_items(items, self._model)
 
     def _train(self, context: _Context, config: RankerConfig) -> FeatureTable:
@@ -101,7 +104,7 @@ class RunRanker:
             for card in batch:
                 if card.sku_id % config.train_modulo == 0:
                     item = card_options(card, gold.get(card.sku_id, ()), context.required,
-                                        context.lexicon)
+                                        context.lexicon, _blind(card.sku_id, config))
                     add_training_rows(table, item)
             self._logger.info("ranker_train_rows", rows=table.rows)
         return table
@@ -109,7 +112,7 @@ class RunRanker:
     def _tune(self, context: _Context, config: RankerConfig) -> tuple[float, list[ThresholdPoint]]:
         picks: list[tuple[float, bool, bool]] = []
         pairs = gold = 0
-        for scored_batch in self._scored(context, frozenset({"val"}), config):
+        for scored_batch in self._scored(context, frozenset({"val"}), config, simulate=True):
             for scored in scored_batch:
                 expected = scored.item.expected
                 pairs += len(scored.item.extraction.profiles)
@@ -134,7 +137,7 @@ class RunRanker:
         log = CalibrationLog()
         cards = 0
         gold = self._source.gold_where(EVAL_SPLITS, context.names, 1)
-        for scored_batch in self._scored(context, EVAL_SPLITS, config):
+        for scored_batch in self._scored(context, EVAL_SPLITS, config, simulate=False):
             raws = [c.raw for s in scored_batch for c in s.choices.values()]
             calibrated = iter(self._calibrator.transform(raws) if raws else [])
             predictions = []
@@ -151,3 +154,7 @@ class RunRanker:
             self._logger.info("ranker_batch_done", cards=cards)
         self._sink.close()
         return plain, weighted, log, cards
+
+
+def _blind(sku_id: int, config: RankerConfig) -> bool:
+    return sku_id % config.blind_modulo == config.blind_remainder

@@ -33,10 +33,18 @@ class Scored:
 
 
 def card_options(
-    card: CardRecord, gold: Sequence[GoldRecord], required: RequiredAttributes, lexicon: Lexicon
+    card: CardRecord, gold: Sequence[GoldRecord], required: RequiredAttributes, lexicon: Lexicon,
+    blind: bool = False,
 ) -> CardOptions:
     extraction = extract_card(card, required, lexicon, 0.0)
-    options = rank_options(extraction.candidates, extraction.profiles, len(extraction.text.text))
+    if blind:
+        candidates = tuple(replace(c, prior=0.0) for c in extraction.candidates)
+        known: frozenset[str] = frozenset()
+    else:
+        candidates = extraction.candidates
+        known = frozenset(a for a in extraction.profiles
+                          if lexicon.category_values(card.category_id, a))
+    options = rank_options(candidates, extraction.profiles, len(extraction.text.text), known)
     expected = {
         g.attribute: canonical_key(g.value, g.unit, extraction.profiles[g.attribute].numeric)
         for g in gold
