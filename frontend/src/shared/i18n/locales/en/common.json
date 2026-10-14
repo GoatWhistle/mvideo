@@ -1,10 +1,10 @@
 {
   "app": {
-    "name": "Product",
-    "tagline": "Product interface skeleton"
+    "name": "mvideo",
+    "tagline": "Automatic product attributes"
   },
   "meta": {
-    "description": "Product interface skeleton: shell, themes, languages and shared states."
+    "description": "Paste a description. We identify the category and extract attributes, with a source quote for every value."
   },
   "shell": {
     "skip": "Skip to content"

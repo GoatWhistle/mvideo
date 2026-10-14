@@ -4,6 +4,12 @@ export {
   type SegmentedOption,
   type SegmentedProps,
 } from "./forms/segmented/segmented"
+export {
+  Textarea,
+  type TextareaProps,
+  TextField,
+  type TextFieldProps,
+} from "./forms/textarea/textarea"
 export { Card, type CardProps } from "./layout/card/card"
 export { PageHeader, type PageHeaderProps } from "./layout/page-header/page-header"
 export {

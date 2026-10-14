@@ -42,3 +42,9 @@
   text-align: center;
   animation: var(--motion-fade-in);
 }
+
+.wrappingText {
+  white-space: normal;
+  overflow-wrap: anywhere;
+  text-align: start;
+}

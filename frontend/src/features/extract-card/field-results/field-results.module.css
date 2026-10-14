@@ -1,0 +1,51 @@
+.fields {
+  display: grid;
+}
+.row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.5fr);
+  gap: var(--space-16);
+  padding-block: var(--space-16);
+  border-bottom: var(--hairline) solid var(--border-subtle);
+}
+.name {
+  font-size: var(--font-size-body-sm);
+  color: var(--text-secondary);
+  overflow-wrap: anywhere;
+}
+.detail {
+  display: grid;
+  justify-items: start;
+  gap: var(--space-4);
+  min-width: 0;
+}
+.value {
+  font-weight: var(--weight-semibold);
+  overflow-wrap: anywhere;
+}
+.status {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  color: var(--text-secondary);
+  font-size: var(--font-size-body-sm);
+}
+.row[data-state="accepted"] .status {
+  color: var(--text-success);
+}
+.row[data-state="review"] .status {
+  color: var(--text-warning);
+}
+.quote {
+  composes: wrappingText from "../../../shared/styles/compose.module.css";
+}
+.reason {
+  font-size: var(--font-size-body-sm);
+  color: var(--text-secondary);
+}
+@media (max-width: 30rem) {
+  .row {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-8);
+  }
+}

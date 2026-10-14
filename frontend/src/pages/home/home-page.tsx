@@ -1,7 +1,6 @@
-import { HealthCard } from "@/entities/health"
+import { ExtractWorkspace } from "@/features/extract-card"
 import { useDocumentTitle, useTranslation } from "@/shared/i18n"
-import { Card, EmptyState, PageHeader } from "@/shared/ui"
-import { FormatSamples } from "./format-samples/format-samples"
+import { PageHeader } from "@/shared/ui"
 import styles from "./home-page.module.css"
 
 export function HomePage() {
@@ -10,17 +9,7 @@ export function HomePage() {
   return (
     <div className={styles.page}>
       <PageHeader title={t("home:title")} description={t("home:description")} />
-      <div className={styles.panels}>
-        <FormatSamples motionIndex={0} />
-        <HealthCard motionIndex={1} />
-        <Card as="div" motionIndex={2}>
-          <EmptyState
-            icon="empty"
-            title={t("home:empty.title")}
-            description={t("home:empty.description")}
-          />
-        </Card>
-      </div>
+      <ExtractWorkspace />
     </div>
   )
 }

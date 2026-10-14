@@ -1,0 +1,18 @@
+.evidence {
+  margin-top: var(--space-24);
+}
+.source {
+  margin-top: var(--space-12);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-size: var(--font-size-body-sm);
+}
+.source mark {
+  background: var(--surface-selected);
+  color: var(--text-accent);
+  outline: var(--hairline) solid var(--focus-ring);
+}
+.source:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring);
+  outline-offset: var(--focus-ring-offset);
+}

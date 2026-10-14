@@ -1,0 +1,18 @@
+.actions {
+  display: grid;
+  gap: var(--space-12);
+  margin-top: var(--space-8);
+  width: 100%;
+}
+.scope {
+  composes: secondaryText from "../../../shared/styles/compose.module.css";
+  overflow-wrap: anywhere;
+}
+.option {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-8);
+}
+.choice {
+  composes: wrappingText from "../../../shared/styles/compose.module.css";
+}

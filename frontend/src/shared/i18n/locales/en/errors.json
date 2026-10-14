@@ -11,7 +11,9 @@
   },
   "api": {
     "server_unavailable": "The server is unavailable right now. Try again in a minute.",
-    "network_unavailable": "No connection to the server. Check the network and try again."
+    "network_unavailable": "No connection to the server. Check the network and try again.",
+    "invalid_correction": "Check the value and exact quote from the source.",
+    "correction_conflict": "The correction changed or conflicts with a saved one. Run extraction again."
   },
   "boundary": {
     "title": "The page failed to open",

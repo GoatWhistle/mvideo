@@ -1,0 +1,24 @@
+.progress {
+  min-height: var(--control-height);
+  font-weight: var(--weight-medium);
+}
+.category {
+  padding-block: var(--space-12);
+  font-size: var(--font-size-subheading);
+  font-weight: var(--weight-semibold);
+}
+.categories {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-12);
+}
+.categories > p {
+  flex-basis: 100%;
+}
+.notice {
+  display: flex;
+  gap: var(--space-8);
+  margin-top: var(--space-16);
+  font-size: var(--font-size-body-sm);
+  color: var(--text-secondary);
+}
