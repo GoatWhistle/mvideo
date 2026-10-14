@@ -12,6 +12,7 @@ from app.usecase.extraction import UNKNOWN_CATEGORY_ATTRIBUTES, RequiredAttribut
 from app.usecase.interface import Logger
 from app.usecase.lexicon_builder import LexiconConfig, TrainValue, attribute_entries
 from app.usecase.stand_ports import StandCategory, StandExample, StandPack, StandPackSink
+from app.usecase.stand_twin_pack import TwinRows, build_stand_twins
 
 FOCUS = (761, 987)
 
@@ -28,6 +29,7 @@ class StandPackConfig:
     max_examples: int = 40
     threshold: float = 0.35
     min_description: int = 200
+    twins_per_category: int = 1500
 
 
 @dataclass(slots=True)
@@ -38,11 +40,12 @@ class Counts:
 
 class BuildStandPack:
     def __init__(self, source: BaselineSource, names: CategoryNames, sink: StandPackSink,
-                 logger: Logger) -> None:
+                 logger: Logger, twin_rows: TwinRows | None = None) -> None:
         self._source = source
         self._names = names
         self._sink = sink
         self._logger = logger
+        self._twin_rows = twin_rows
 
     def run(self, config: StandPackConfig, now: datetime) -> int:
         records = self._source.required()
@@ -61,9 +64,12 @@ class BuildStandPack:
         names = self._names.names()
         categories = [StandCategory(category_id=c, name=names.get(c, ("", ""))[0],
                                     path=names.get(c, ("", ""))[1]) for c in sorted(chosen)]
+        twins = build_stand_twins(self._twin_rows, lexicon, required, chosen,
+                                  config.twins_per_category) if self._twin_rows else []
+        self._logger.info("stand_twins", entries=len(twins))
         pack = StandPack(built_at=now.isoformat(timespec="seconds"), threshold=config.threshold,
                          profiles=profiles, entries=entries, priors=priors, required=required,
-                         categories=categories, examples=examples)
+                         categories=categories, examples=examples, twins=twins)
         size = self._sink.save(pack)
         self._logger.info("stand_pack_saved", bytes=size, examples=len(examples),
                           categories=len(categories))

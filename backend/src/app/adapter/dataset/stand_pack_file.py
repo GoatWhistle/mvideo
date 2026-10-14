@@ -10,7 +10,7 @@ from app.domain.card_text import SellerParam
 from app.domain.lexicon import LexiconEntry
 from app.domain.profile import AttributeProfile, Kind
 from app.usecase.baseline_ports import RequiredRecord
-from app.usecase.stand_ports import StandCategory, StandExample, StandPack
+from app.usecase.stand_ports import StandCategory, StandExample, StandPack, StandTwin
 
 FORMAT = 1
 
@@ -61,6 +61,8 @@ def encode(pack: StandPack) -> dict[str, Any]:
              "seller_params": [[p.name, p.value, p.unit] for p in e.seller_params]}
             for e in pack.examples
         ],
+        "twins": [[t.sku_id, t.title, t.brand, t.model,
+                   [[a, k, v] for a, (k, v) in t.values.items()]] for t in pack.twins],
     }
 
 
@@ -85,4 +87,7 @@ def decode(raw: dict[str, Any]) -> StandPack:
                                              for n, v, u in e["seller_params"]))
             for e in raw["examples"]
         ],
+        twins=tuple(StandTwin(sku_id=int(s), title=t, brand=b, model=m,
+                              values={a: (k, v) for a, k, v in values})
+                    for s, t, b, m, values in raw.get("twins", [])),
     )
