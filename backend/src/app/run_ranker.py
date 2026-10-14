@@ -57,7 +57,9 @@ def train(args: argparse.Namespace) -> dict[str, object]:
     )
     report = dict(usecase.run(RankerConfig(train_modulo=args.train_modulo, batch=args.batch)))
     if args.save_model is not None:
-        save_ranker(model, calibrator, float(str(report["threshold"])), args.save_model)
+        threshold = report["threshold"]
+        value = threshold.get("value") if isinstance(threshold, dict) else threshold
+        save_ranker(model, calibrator, float(str(value)), args.save_model)
     groups = report.get("groups", {})
     summary = groups.get("all", {}) if isinstance(groups, dict) else {}
     return {"cards": report["cards"], "all": summary}
