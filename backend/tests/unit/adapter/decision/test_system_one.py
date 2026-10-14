@@ -184,3 +184,54 @@ async def test_failures_become_decision_failure(outcome: httpx.Response | Except
 
     with pytest.raises(DecisionFailure):
         await model.decide(REQUEST)
+
+
+@pytest.mark.anyio
+async def test_reads_reported_cost_and_configured_model_name() -> None:
+    seen: list[httpx.Request] = []
+    payload = PAYLOAD | {"model": "typesafe/jev-1.13-20260917",
+                         "usage": {"input_tokens": 598, "output_tokens": 154, "cost": 0.000025}}
+
+    def handle(request: httpx.Request) -> httpx.Response:
+        seen.append(request)
+        return httpx.Response(200, json=payload)
+
+    name = "typesafe/jev-1.13"
+    model = SystemOneModel(base_url="https://openrouter.test/api",
+                           models={Tier.FAST: name, Tier.SMART: name},
+                           transport=httpx.MockTransport(handle))
+
+    decision = await model.decide(REQUEST)
+
+    assert json.loads(seen[0].content)["model"] == name
+    assert str(seen[0].url) == "https://openrouter.test/api/v1/systemone"
+    assert decision.usage.cost_usd == 0.000025
+    assert decision.usage.model == "typesafe/jev-1.13-20260917"
+
+
+@pytest.mark.anyio
+async def test_retries_rate_limits_then_succeeds() -> None:
+    replies = [httpx.Response(429, text="slow down"), httpx.Response(200, json=PAYLOAD)]
+
+    def handle(request: httpx.Request) -> httpx.Response:
+        return replies.pop(0)
+
+    model = SystemOneModel(base_url="http://decider.test", transport=httpx.MockTransport(handle),
+                           retries=2, retry_base_s=0.0)
+
+    decision = await model.decide(REQUEST)
+
+    assert replies == []
+    assert decision.usage.input_tokens == 120
+
+
+@pytest.mark.anyio
+async def test_gives_up_after_retries() -> None:
+    def handle(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(529, text="overloaded")
+
+    model = SystemOneModel(base_url="http://decider.test", transport=httpx.MockTransport(handle),
+                           retries=1, retry_base_s=0.0)
+
+    with pytest.raises(DecisionFailure, match="529"):
+        await model.decide(REQUEST)
