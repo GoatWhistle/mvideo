@@ -13,6 +13,7 @@ from app.adapter.log.stdlib import StdlibLogger
 from app.adapter.system.clock import SystemClock, UuidIds
 from app.controller.errors import ErrorHandlers
 from app.controller.router import api_router_v1
+from app.domain.inference import Tier
 from app.repository.memory.review import MemoryAliasRepository, MemoryReviewRepository
 from app.settings import ConfigError, DecisionProvider, LanguageProvider, Settings, load_settings
 from app.usecase.extract_card import BaselineChooser, ExtractCard
@@ -53,15 +54,18 @@ def build_stand(settings: Settings, logger: Logger) -> StandServices:
     )
 
 
-def build_decision_model(settings: Settings) -> DecisionModel:
+def build_decision_model(settings: Settings, retries: int = 0) -> DecisionModel:
     match settings.decision_provider:
         case DecisionProvider.LEXICAL:
             return LexicalDecisionModel()
         case DecisionProvider.SYSTEM_ONE:
+            name = settings.decision_model_name
             return SystemOneModel(
                 base_url=settings.decision_url,
                 api_key=settings.decision_api_key,
+                models={Tier.FAST: name, Tier.SMART: name},
                 timeout_s=settings.decision_timeout_s,
+                retries=retries,
             )
 
 
