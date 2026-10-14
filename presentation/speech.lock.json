@@ -1,18 +1,18 @@
 {
-  "total": "5:40",
+  "total": "4:50",
   "regulation": "6:00",
   "slides": {
-    "cover": "c835c53d155e",
-    "problem": "7a334df76837",
-    "solution": "a87b19b79b25",
-    "product": "7c933ec982e5",
-    "mechanic": "b9c82d454ab3",
-    "funnel": "438ed9128458",
-    "explain": "66601e6fc30a",
-    "measured": "8150632db0eb",
-    "architecture": "b6079aa1577e",
-    "impact": "796b4e7b573d",
-    "status": "47c4ebeda33b",
-    "final": "a1eeb3825975"
+    "cover": "74bcf1c0f328",
+    "problem": "a3dde5d99914",
+    "solution": "80500780e551",
+    "product": "c0be733ed97e",
+    "mechanic": "ca9101f1ca6e",
+    "funnel": "96838a53e3d5",
+    "explain": "340137723b46",
+    "measured": "d4f6b1fa7429",
+    "architecture": "6845da00bf00",
+    "impact": "ca88b848b259",
+    "risks": "315e26542334",
+    "final": "36c2122205b8"
   }
 }
