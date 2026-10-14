@@ -114,7 +114,7 @@ class ResolveCandidates:
         }
         payload = {"state": state, "options": {k: list(v.items()) for k, v in choices.items()},
                    "model": self._model_version, "threshold": self._minimum,
-                   "policy": INSTRUCTIONS}
+                   "policy": INSTRUCTIONS, "accepted": extraction.picks, "review": extraction.review}
         key = hashlib.sha256(json.dumps(payload, default=str, sort_keys=True).encode()).hexdigest()
         if key in self._cache:
             self._cache.move_to_end(key)

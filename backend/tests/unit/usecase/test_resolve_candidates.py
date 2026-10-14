@@ -1,4 +1,5 @@
 import asyncio
+from dataclasses import replace
 
 from app.domain.decision import ChoiceAnswer, Decision, DecisionRequest
 from app.domain.inference import Usage
@@ -124,3 +125,24 @@ def test_unresolved_choice_gets_one_automatic_context_recheck() -> None:
     assert result.calls == 2
     assert "Цвет" in result.picks
     assert not result.review
+
+
+def test_cached_resolution_cannot_replace_a_newly_corrected_field() -> None:
+    lexicon = build_lexicon([TrainValue(1, "Цвет", c, None)
+                             for c in ("черный", "белый") for _ in range(3)]
+                            + [TrainValue(1, "Бренд", "Samsung", None)])
+    required = RequiredAttributes([RequiredRecord(1, "Цвет", 1),
+                                   RequiredRecord(1, "Бренд", 1)], lexicon)
+    initial = extract_card(
+        CardRecord(1, 1, None, "Черный смартфон Samsung", "Цвет: белый", (), None),
+        required, lexicon, 0.35,
+    )
+    resolver = ResolveCandidates(SelectingModel(), enabled=True)
+    asyncio.run(resolver.run(initial, 1, "test"))
+    original = initial.picks["Бренд"]
+    corrected = replace(original, candidate=replace(original.candidate, source="human"))
+    updated = replace(initial, picks={**initial.picks, "Бренд": corrected})
+
+    result = asyncio.run(resolver.run(updated, 1, "test"))
+
+    assert result.picks["Бренд"].candidate.source == "human"
