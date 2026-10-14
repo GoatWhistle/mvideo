@@ -11,6 +11,7 @@ dependencies = [
 
 [project.scripts]
 prepare-data = "app.prepare_data:main"
+baseline = "app.run_baseline:main"
 
 [dependency-groups]
 llm = [
