@@ -7,7 +7,7 @@
 | Q3 | Is there a human gold set per category, or do we build it? | R12 evaluation, effort | Organizers | open |
 | Q4 | Exact list of mandatory attributes per category («точный перечень… вместе с датасетом» — not found in archive)? | Scope of extraction | Organizers | open |
 | Q5 | Format of the predictions file (CSV/JSON schema, one row per card or per attribute)? | Artifact 5 | Organizers | open |
-| Q7 | TypeSafe API key for Jev (or a running `laya-serve` URL)? Asked the user 2026-10-14 | Decision stage, calibrated confidence | User | open |
+| Q7 | TypeSafe API key for Jev? | Decision stage | User | answered 2026-10-14: OpenRouter key |
 | Q6 | May we use external LLM APIs, and is cost/latency measured by the jury? | Hybrid routing, R6 | Organizers | open |
 
 ## Assumptions pending answers
