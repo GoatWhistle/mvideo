@@ -49,3 +49,8 @@ var/
 brief/sources/dataset.zip
 /dataset.zip
 data/
+
+!/presentation/dist/
+/presentation/dist/*
+!/presentation/dist/deck.html
+!/presentation/dist/deck.pdf

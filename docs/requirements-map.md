@@ -50,7 +50,7 @@
 | EDA: поля, пропуски, распределения | [`notebooks/eda.ipynb`](../notebooks/eda.ipynb), графики — `docs/images/eda/` |
 | Пайплайн от текста карточки до атрибутов | `backend/src/app/` — те же модули в офлайн-командах и на стенде |
 | Файл с предсказанными атрибутами по каждой карточке | `data/predictions/final_all.predictions.jsonl`, 1 177 200 строк; около 1 ГБ, в git не хранится, собираются командой из [README](../README.md#запуск) |
-| Финальная презентация | `presentation/`, PDF — `presentation/dist/deck.pdf` после `npm run final` |
+| Презентация | [Продуктовый бриф, PDF](../presentation/dist/deck.pdf), [HTML](../presentation/dist/deck.html): 9 слайдов по пяти вопросам чекпоинта |
 
 ## Необязательные пункты и бонусы
 

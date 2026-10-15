@@ -1,4 +1,6 @@
-dist/
+dist/*
+!dist/deck.html
+!dist/deck.pdf
 node_modules/
 shots/
 thumbnail/out/
