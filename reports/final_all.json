@@ -1,15 +1,15 @@
 {
   "cards": 1177200,
-  "without_attributes": 131897,
+  "without_attributes": 131584,
   "new_or_unknown_category": 187906,
   "values_by_source": {
     "ranker": 3408647,
     "baseline": 186848,
+    "catalog_twin": 616427,
     "review": 1499,
-    "catalog_twin": 51203,
     "decision_model": 2531
   },
   "decision_cards": 8000,
-  "twin_cards": 49634,
-  "seconds": 212.2
+  "twin_cards": 1177200,
+  "seconds": 262.0
 }
