@@ -16,6 +16,8 @@ P0 scenario: paste a card → attributes with value, confidence, quote and sourc
 | Stand | approved | One page, no auth, real pipeline | docs/adr/0005 |
 | Data prep | implemented | `uv run prepare-data` → data/processed (cards, gold, splits, required_attributes); gold+text 241k cards; 661 s, 5.2 GB peak | docs/running.md |
 | EDA | verified | Gold value verbatim in text for 58% required pairs (brand/model 96–99%, color 26%, weight 3%); seller params are ranges; spec block only ~8k gold cards | notebooks/eda.ipynb |
+| Final metrics | verified | test+new_category micro F1 77.5 (baseline 66.8), weighted 80.6, coverage 79.0%, ECE 0.021 | reports/final.md, 2026-10-15 |
+| Artifacts | implemented | README, EDA, pipeline, predictions (data/predictions, outside git), deck (presentation/dist) | docs/requirements-map.md |
 | Tracker | approved | Spec and tickets in GitHub Issues of GoatWhistle/mvideo | .claude/tracker.md |
 
 ## Pointers
