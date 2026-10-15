@@ -338,3 +338,29 @@ uv run pytest tests/integration
 ---
 
 <sub>[Оглавление документации](README.md) · [README проекта](../README.md)</sub>
+
+## Как развернуть стенд за Caddy во внутренней сети?
+
+Стенд команды работает на docker-host homelab: https://mvideo.vm — интерфейс, https://api.mvideo.vm —
+API и Swagger (`/docs`). Сертификаты выпускает внутренний CA Caddy (`tls internal`), публичного
+доступа нет. Домены задают метки `caddy` в `deploy/compose.yml`; сеть `caddy` общая для всех
+сервисов и создана заранее. Фронтенд ходит в API по алиасу `mvideo-api` во внутренней сети проекта,
+а не по имени `backend`: в общей сети `caddy` есть контейнеры других проектов с таким именем.
+
+```bash
+TAG=$(git describe --tags --always --dirty)
+TAG=$TAG docker buildx bake --builder default homelab
+docker login registry.vm -u dev
+docker push registry.vm/dev/mvideo-backend:$TAG
+docker push registry.vm/dev/mvideo-frontend:$TAG
+docker logout registry.vm
+docker volume create mvideo_stand
+docker run --rm --user root -v "$PWD/data/stand:/src:ro" -v mvideo_stand:/dst \
+  --entrypoint sh registry.vm/dev/mvideo-frontend:$TAG -c 'cp -r /src/pack.json.gz /src/models /dst/'
+```
+
+На docker-host: `deploy/compose.yml` лежит в `/srv/mvideo/compose.yml`, рядом `.env` с `TAG=<тег>`;
+запуск — `docker compose up -d` в `/srv/mvideo`. Данные стенда (пакет и модели) живут в именованном
+томе `mvideo_stand` и в образы не попадают. Путь в `docker run -v` — путь на хосте: если команды
+выполняются из контейнера разработки с общим docker-сокетом, подставьте путь репозитория на хосте.
+Образ бэкенда весит около 1,5 ГБ из-за CatBoost, scikit-learn и pandas.

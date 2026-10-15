@@ -1,0 +1,62 @@
+name: mvideo
+
+services:
+  backend:
+    image: registry.vm/dev/mvideo-backend:${TAG:-latest}
+    restart: unless-stopped
+    mem_limit: 1g
+    environment:
+      STAND_PACK: /srv/data/stand/pack.json.gz
+      STAND_MODELS: /srv/data/stand/models
+    volumes:
+      - stand:/srv/data/stand:ro
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/v1/health', timeout=2)"
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 20s
+    labels:
+      caddy: api.mvideo.vm
+      caddy.reverse_proxy: "{{upstreams 8000}}"
+    networks:
+      internal:
+        aliases:
+          - mvideo-api
+      caddy: {}
+
+  frontend:
+    image: registry.vm/dev/mvideo-frontend:${TAG:-latest}
+    restart: unless-stopped
+    mem_limit: 128m
+    environment:
+      API_UPSTREAM: http://mvideo-api:8000
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1/"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+    labels:
+      caddy: mvideo.vm
+      caddy.reverse_proxy: "{{upstreams 80}}"
+    networks:
+      - internal
+      - caddy
+
+volumes:
+  stand:
+    name: mvideo_stand
+    external: true
+
+networks:
+  internal: {}
+  caddy:
+    external: true
