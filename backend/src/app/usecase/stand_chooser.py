@@ -1,11 +1,13 @@
 from collections.abc import Callable
 from dataclasses import dataclass, replace
 
-from app.domain.fusion import BASELINE, KNOWN, NEW, RANKER, FusionRules, resolve
+from app.domain.fusion import BASELINE, KNOWN, NEW, RANKER, TWIN, FusionRules, resolve
+from app.domain.profile import BRAND
 from app.domain.ranker_features import NUMERIC_FEATURES, rank_options
 from app.domain.scoring import Pick
 from app.usecase.extraction import CardExtraction
 from app.usecase.ranker_ports import Calibrator, FeatureTable, ScoreModel
+from app.usecase.stand_twins import StandTwins
 
 
 @dataclass(frozen=True, slots=True)
@@ -17,20 +19,25 @@ class FusionPolicy:
 
 class FusedChooser:
     def __init__(self, model: ScoreModel, ranker_calibrator: Calibrator, ranker_threshold: float,
-                 policy: FusionPolicy) -> None:
+                 policy: FusionPolicy, twins: StandTwins | None = None) -> None:
         self._model = model
         self._ranker_calibrator = ranker_calibrator
         self._ranker_threshold = ranker_threshold
         self._policy = policy
+        self._twins = twins
 
     async def choose(self, extraction: CardExtraction, threshold: float, category_id: int | None,
                      known: frozenset[str]) -> CardExtraction:
         ranked = self._ranked(extraction, known)
+        open_slots = [n for n in extraction.profiles if n not in ranked]
+        twins = self._twins.picks(extraction, open_slots, ranked.get(BRAND)) \
+            if self._twins is not None else {}
         mode = NEW if category_id is None else KNOWN
         picks: dict[str, Pick] = {}
         review: dict[str, Pick] = {}
         for name in extraction.profiles:
-            by_source = {BASELINE: extraction.picks.get(name), RANKER: ranked.get(name)}
+            by_source = {BASELINE: extraction.picks.get(name), RANKER: ranked.get(name),
+                         TWIN: twins.get(name)}
             options = {s: p.candidate.key for s, p in by_source.items() if p is not None}
             source = resolve(options, self._policy.rules.rule(name, mode))
             fallback = extraction.review.get(name)

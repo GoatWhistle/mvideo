@@ -102,5 +102,11 @@ def vote(
     return result
 
 
+def others(
+    neighbors: Sequence[tuple[TwinEntry, float]], sku_id: int
+) -> list[tuple[TwinEntry, float]]:
+    return [(e, s) for e, s in neighbors if e.sku_id != sku_id]
+
+
 def accepted(transfers: Mapping[str, Transfer], threshold: float) -> dict[str, Transfer]:
     return {name: t for name, t in transfers.items() if t.similarity >= threshold}

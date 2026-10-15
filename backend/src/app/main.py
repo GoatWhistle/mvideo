@@ -12,6 +12,8 @@ from app.adapter.decision.system_one import SystemOneModel
 from app.adapter.log.stdlib import StdlibLogger
 from app.adapter.ranker.fusion_store import has_fusion, has_ranker, load_fusion, load_ranker
 from app.adapter.system.clock import SystemClock, UuidIds
+from app.adapter.twin.tfidf_index import TfidfTitleIndex
+from app.adapter.twin.twin_store import has_twin_model, load_twin_model
 from app.controller.errors import ErrorHandlers
 from app.controller.router import api_router_v1
 from app.domain.inference import Tier
@@ -22,7 +24,8 @@ from app.usecase.interface import DecisionModel, LanguageModel, Logger
 from app.usecase.review_queue import ReviewQueue
 from app.usecase.stand_catalog import StandCatalog
 from app.usecase.stand_chooser import FusedChooser, FusionPolicy
-from app.usecase.stand_ports import CandidateChooser
+from app.usecase.stand_ports import CandidateChooser, StandPack
+from app.usecase.stand_twins import StandTwins, TwinSettings
 
 
 @dataclass(frozen=True, slots=True)
@@ -51,14 +54,27 @@ def build_stand(settings: Settings, logger: Logger) -> StandServices:
                     examples=len(pack.examples))
     reviews, aliases, clock = MemoryReviewRepository(), MemoryAliasRepository(), SystemClock()
     return StandServices(
-        extract=ExtractCard(pack, aliases, reviews, build_chooser(Path(settings.stand_models), logger),
+        extract=ExtractCard(pack, aliases, reviews,
+                            build_chooser(Path(settings.stand_models), logger, pack),
                             clock, UuidIds()),
         review=ReviewQueue(reviews, aliases, clock),
         catalog=StandCatalog(pack),
     )
 
 
-def build_chooser(models: Path, logger: Logger) -> CandidateChooser:
+def build_twins(models: Path, logger: Logger, pack: StandPack | None) -> StandTwins | None:
+    twin_dir = models / "twins"
+    if pack is None or not pack.twins or not has_twin_model(twin_dir):
+        logger.warning("stand_twins_missing", path=str(twin_dir))
+        return None
+    calibrator, threshold = load_twin_model(twin_dir)
+    logger.info("stand_twins_loaded", entries=len(pack.twins), threshold=threshold)
+    return StandTwins(pack.twins, TfidfTitleIndex(min_df=1), calibrator,
+                      TwinSettings(threshold=threshold))
+
+
+def build_chooser(models: Path, logger: Logger,
+                  pack: StandPack | None = None) -> CandidateChooser:
     ranker_dir, fusion_dir = models / "ranker", models / "fusion"
     if not (has_ranker(ranker_dir) and has_fusion(fusion_dir)):
         logger.warning("stand_models_missing", path=str(models))
@@ -67,7 +83,7 @@ def build_chooser(models: Path, logger: Logger) -> CandidateChooser:
     fusion = load_fusion(fusion_dir)
     logger.info("stand_models_loaded", path=str(models), threshold=fusion.threshold)
     policy = FusionPolicy(fusion.rules, fusion.calibrate, fusion.threshold)
-    return FusedChooser(model, calibrator, threshold, policy)
+    return FusedChooser(model, calibrator, threshold, policy, build_twins(models, logger, pack))
 
 
 def build_decision_model(settings: Settings, retries: int = 0) -> DecisionModel:

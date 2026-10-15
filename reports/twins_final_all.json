@@ -1,0 +1,9 @@
+{
+  "cards": 1177200,
+  "queried": 1093501,
+  "cards_with_transfer": 192904,
+  "transfers": 683948,
+  "threshold": 0.55,
+  "seconds": 6407.4,
+  "peak_rss_mb": 2842
+}

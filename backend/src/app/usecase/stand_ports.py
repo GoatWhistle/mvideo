@@ -28,6 +28,15 @@ class StandExample:
 
 
 @dataclass(frozen=True, slots=True, kw_only=True)
+class StandTwin:
+    sku_id: int
+    title: str
+    brand: str
+    model: str
+    values: Mapping[str, tuple[str, str]]
+
+
+@dataclass(frozen=True, slots=True, kw_only=True)
 class StandPack:
     built_at: str
     threshold: float
@@ -37,6 +46,7 @@ class StandPack:
     required: Sequence[RequiredRecord]
     categories: Sequence[StandCategory]
     examples: Sequence[StandExample]
+    twins: Sequence[StandTwin] = ()
 
 
 @dataclass(frozen=True, slots=True, kw_only=True)

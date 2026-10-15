@@ -14,7 +14,7 @@ Values = Mapping[str, Mapping[str, object]]
 
 
 class AllCardsSource(Protocol):
-    def pairs(self) -> Iterator[tuple[Raw, Raw]]: ...
+    def pairs(self) -> Iterator[tuple[Raw, Raw, Raw | None]]: ...
 
     def records(self, name: str) -> Mapping[int, Raw]: ...
 
@@ -108,9 +108,12 @@ class FuseAllCards:
         used: Counter[str] = Counter()
         cards = empty = new = 0
         buffer: list[Raw] = []
-        for ranker, baseline in self._source.pairs():
+        streamed = 0
+        for ranker, baseline, shard_twin in self._source.pairs():
             sku = int(str(ranker.get("sku_id")))
-            record = fuse_record(ranker, baseline, decided.get(sku), twin.get(sku), rules,
+            streamed += 1 if shard_twin is not None else 0
+            record = fuse_record(ranker, baseline, decided.get(sku),
+                                 shard_twin if shard_twin is not None else twin.get(sku), rules,
                                  calibrate, threshold, used)
             cards += 1
             empty += 0 if record["attributes"] else 1
@@ -124,5 +127,5 @@ class FuseAllCards:
         self._sink.close()
         return {"cards": cards, "without_attributes": empty, "new_or_unknown_category": new,
                 "values_by_source": dict(used), "decision_cards": len(decided),
-                "twin_cards": len(twin),
+                "twin_cards": streamed or len(twin),
                 "seconds": round(time.monotonic() - started, 1)}

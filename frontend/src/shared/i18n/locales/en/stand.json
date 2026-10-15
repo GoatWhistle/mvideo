@@ -48,6 +48,7 @@
     "number": "Number and unit",
     "title_model": "Model from the title",
     "review": "Confirmed by a person",
+    "catalog_twin": "Catalog twin",
     "other": "Other rule"
   },
   "review": {
