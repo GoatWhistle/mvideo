@@ -71,107 +71,109 @@ export function AttributeTable({
     (left, right) => REVIEW_ORDER[left.status] - REVIEW_ORDER[right.status],
   )
   return (
-    <table className={styles.table}>
-      <thead>
-        <tr className={styles.headRow}>
-          <th scope="col" className={styles.head}>
-            {t("stand:result.columns.attribute")}
-          </th>
-          <th scope="col" className={styles.head}>
-            {t("stand:result.columns.value")}
-          </th>
-          <th scope="col" className={styles.head}>
-            {hasRisk ? t("stand:risk.title") : t("stand:result.columns.confidence")}
-          </th>
-          <th scope="col" className={styles.head}>
-            {t("stand:result.columns.quote")}
-          </th>
-        </tr>
-      </thead>
-      {ordered.map((value, index) => (
-        <tbody
-          key={value.attribute}
-          className={styles.group}
-          data-active={value.attribute === activeAttribute}
-        >
-          <tr
-            className={styles.row}
-            data-status={value.status}
-            data-review-id={value.review_id ?? undefined}
-            data-active={value.attribute === activeAttribute}
-            data-thread-source={value.attribute}
-            onPointerEnter={() => onFocusAttribute?.(value.attribute)}
-            onPointerLeave={() => onFocusAttribute?.(null)}
-          >
-            <th scope="row" className={styles.attribute}>
-              {value.attribute}
+    <div className={styles.frame}>
+      <table className={styles.table}>
+        <thead>
+          <tr className={styles.headRow}>
+            <th scope="col" className={styles.head}>
+              {t("stand:result.columns.attribute")}
             </th>
-            <td className={styles.value} lang="ru">
-              {reviewSlots === undefined ? value.value : reviewSlots.value(value)}
-            </td>
-            <td className={styles.confidence}>
-              <div className={styles.toolbar}>
-                <AttributeAssessment value={value} compact />
-                {!value.risk?.reasons.length ? null : (
-                  <Button
-                    variant="ghost"
-                    icon="unknown"
-                    iconOnly
-                    className={styles.reasonToggle}
-                    title={t("stand:risk.explain", { attribute: value.attribute })}
-                    aria-expanded={expanded === value.attribute}
-                    aria-controls={
-                      expanded === value.attribute ? `${detailsId}-${index}` : undefined
-                    }
-                    onClick={() =>
-                      setExpanded(expanded === value.attribute ? null : value.attribute)
-                    }
-                  >
-                    <span className="visually-hidden">
-                      {t("stand:risk.explain", { attribute: value.attribute })}
-                    </span>
-                  </Button>
-                )}
-                {reviewSlots === undefined ? (
-                  <StatusCell value={value} />
-                ) : (
-                  reviewSlots.actions(value)
-                )}
-              </div>
-            </td>
-            <td className={styles.evidence}>
-              {onOpenEvidence === undefined ? (
-                <q className={styles.quote} lang="ru">
-                  {value.evidence}
-                </q>
-              ) : (
-                <Button
-                  variant="ghost"
-                  icon="quote"
-                  className={styles.quoteButton}
-                  aria-label={t("stand:evidence.openAttribute", { attribute: value.attribute })}
-                  aria-controls={evidencePanelId}
-                  aria-expanded={activeAttribute === value.attribute}
-                  onClick={(event) => onOpenEvidence(value.attribute, event.detail === 0)}
-                >
+            <th scope="col" className={styles.head}>
+              {t("stand:result.columns.value")}
+            </th>
+            <th scope="col" className={styles.head}>
+              {hasRisk ? t("stand:risk.title") : t("stand:result.columns.confidence")}
+            </th>
+            <th scope="col" className={styles.head}>
+              {t("stand:result.columns.quote")}
+            </th>
+          </tr>
+        </thead>
+        {ordered.map((value, index) => (
+          <tbody
+            key={value.attribute}
+            className={styles.group}
+            data-active={value.attribute === activeAttribute}
+          >
+            <tr
+              className={styles.row}
+              data-status={value.status}
+              data-review-id={value.review_id ?? undefined}
+              data-active={value.attribute === activeAttribute}
+              data-thread-source={value.attribute}
+              onPointerEnter={() => onFocusAttribute?.(value.attribute)}
+              onPointerLeave={() => onFocusAttribute?.(null)}
+            >
+              <th scope="row" className={styles.attribute}>
+                {value.attribute}
+              </th>
+              <td className={styles.value} lang="ru">
+                {reviewSlots === undefined ? value.value : reviewSlots.value(value)}
+              </td>
+              <td className={styles.confidence}>
+                <div className={styles.toolbar}>
+                  <AttributeAssessment value={value} compact />
+                  {!value.risk?.reasons.length ? null : (
+                    <Button
+                      variant="ghost"
+                      icon="unknown"
+                      iconOnly
+                      className={styles.reasonToggle}
+                      title={t("stand:risk.explain", { attribute: value.attribute })}
+                      aria-expanded={expanded === value.attribute}
+                      aria-controls={
+                        expanded === value.attribute ? `${detailsId}-${index}` : undefined
+                      }
+                      onClick={() =>
+                        setExpanded(expanded === value.attribute ? null : value.attribute)
+                      }
+                    >
+                      <span className="visually-hidden">
+                        {t("stand:risk.explain", { attribute: value.attribute })}
+                      </span>
+                    </Button>
+                  )}
+                  {reviewSlots === undefined ? (
+                    <StatusCell value={value} />
+                  ) : (
+                    reviewSlots.actions(value)
+                  )}
+                </div>
+              </td>
+              <td className={styles.evidence}>
+                {onOpenEvidence === undefined ? (
                   <q className={styles.quote} lang="ru">
                     {value.evidence}
                   </q>
-                </Button>
-              )}
-            </td>
-          </tr>
-          {expanded !== value.attribute ? null : (
-            <tr className={styles.detailRow}>
-              <td colSpan={4}>
-                <div id={`${detailsId}-${index}`} className={styles.details}>
-                  <AttributeReasons value={value} />
-                </div>
+                ) : (
+                  <Button
+                    variant="ghost"
+                    icon="quote"
+                    className={styles.quoteButton}
+                    aria-label={t("stand:evidence.openAttribute", { attribute: value.attribute })}
+                    aria-controls={evidencePanelId}
+                    aria-expanded={activeAttribute === value.attribute}
+                    onClick={(event) => onOpenEvidence(value.attribute, event.detail === 0)}
+                  >
+                    <q className={styles.quote} lang="ru">
+                      {value.evidence}
+                    </q>
+                  </Button>
+                )}
               </td>
             </tr>
-          )}
-        </tbody>
-      ))}
-    </table>
+            {expanded !== value.attribute ? null : (
+              <tr className={styles.detailRow}>
+                <td colSpan={4}>
+                  <div id={`${detailsId}-${index}`} className={styles.details}>
+                    <AttributeReasons value={value} />
+                  </div>
+                </td>
+              </tr>
+            )}
+          </tbody>
+        ))}
+      </table>
+    </div>
   )
 }

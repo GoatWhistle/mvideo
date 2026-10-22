@@ -1,3 +1,8 @@
+.frame {
+  container-type: inline-size;
+  min-inline-size: 0;
+}
+
 .table {
   composes: dataTable from "../../../shared/styles/compose.module.css";
   line-height: var(--line-height-body-sm);

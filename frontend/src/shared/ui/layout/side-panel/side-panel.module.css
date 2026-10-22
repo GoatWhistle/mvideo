@@ -66,7 +66,8 @@
     inset: auto;
     inset-block-start: calc(var(--header-height) + var(--space-24));
     z-index: var(--layer-sticky);
-    block-size: calc(100svh - var(--header-height) - var(--space-48));
+    block-size: auto;
+    max-block-size: calc(100svh - var(--header-height) - var(--space-48));
     min-inline-size: 0;
   }
 

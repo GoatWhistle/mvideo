@@ -7,7 +7,7 @@ import type {
   StandCategory,
 } from "@/entities/stand"
 import { useTranslation } from "@/shared/i18n"
-import { Button, Card, Spinner } from "@/shared/ui"
+import { Button, Card, Skeleton, Spinner } from "@/shared/ui"
 import { CardCompletion } from "./card-completion/card-completion"
 import styles from "./card-extraction.module.css"
 import { CardSources } from "./card-sources/card-sources"
@@ -165,11 +165,16 @@ function WorkspaceResults({
   return (
     <div className={styles.results}>
       {ranking ? (
-        <ExtractionProgress
-          candidates={rankedCandidates}
-          pending={pending}
-          selected={reveal === "ranking" ? undefined : (result?.category?.category_id ?? null)}
-        />
+        <>
+          <ExtractionProgress
+            candidates={rankedCandidates}
+            pending={pending}
+            selected={reveal === "ranking" ? undefined : (result?.category?.category_id ?? null)}
+          />
+          <Card title={t("stand:result.title")} motionIndex={1}>
+            <Skeleton lines={6} />
+          </Card>
+        </>
       ) : !pending || failed ? (
         <ExtractionResult
           result={result}

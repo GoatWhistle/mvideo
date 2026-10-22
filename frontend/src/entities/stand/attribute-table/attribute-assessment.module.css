@@ -26,8 +26,8 @@
   overflow-wrap: break-word;
 }
 
-@media (max-width: 48rem) {
-  .meter {
+@container (max-width: 64rem) {
+  .scoreLine .meter {
     display: none;
   }
 }
