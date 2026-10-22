@@ -66,14 +66,13 @@
   --motion-conceal: kf-conceal var(--dur-exit) var(--ease-out) both;
   --motion-drawer-in: kf-drawer-in var(--dur-drawer) var(--ease-drawer) both;
   --motion-drawer-out: kf-drawer-out var(--dur-drawer-exit) var(--ease-drawer) both;
+  --motion-flow-draw: kf-thread-draw var(--dur-draw) var(--ease-out) both;
+  --motion-flow-ping: kf-flow-ping var(--dur-draw) var(--ease-out) 2 both;
+  --motion-drawer-dismiss: kf-drawer-out var(--dur-fast-exit) var(--ease-out) both;
   --motion-thread-draw: kf-thread-draw var(--dur-base) var(--ease-out) both;
   --motion-stage-out: kf-stage-out var(--dur-exit) var(--ease-out) both;
   --motion-stage-in: kf-stage-in var(--dur-panel) var(--ease-out) var(--dur-instant) both;
   --motion-scan: kf-scan var(--dur-breathe) var(--ease-linear) infinite;
-  --motion-flow-highlight: kf-flow-highlight calc(var(--dur-breathe) * 3) var(--ease-out) infinite;
-  --motion-flow-thread: kf-flow-thread calc(var(--dur-breathe) * 3) var(--ease-out) infinite;
-  --motion-flow-values: kf-flow-values calc(var(--dur-breathe) * 3) var(--ease-out) infinite;
-  --motion-flow-paper: kf-flow-paper calc(var(--dur-breathe) * 3) var(--ease-in-out) infinite;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -106,12 +105,10 @@
     --shift-stage: 0px;
     --stage-scale: 1;
     --motion-spin: none;
+    --motion-flow-draw: none;
+    --motion-flow-ping: none;
     --motion-shimmer: none;
     --motion-scan: none;
-    --motion-flow-highlight: none;
-    --motion-flow-thread: none;
-    --motion-flow-values: none;
-    --motion-flow-paper: none;
   }
 
   [data-motion="fade"] {

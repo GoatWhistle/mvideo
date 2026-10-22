@@ -1,0 +1,115 @@
+.figure {
+  display: grid;
+  gap: var(--space-12);
+  margin: 0;
+}
+
+.figure * {
+  animation-play-state: inherit;
+}
+
+.scene {
+  display: block;
+  inline-size: 100%;
+  block-size: auto;
+  overflow: visible;
+}
+
+.grid {
+  fill: none;
+  stroke: var(--border-subtle);
+  stroke-width: var(--hairline);
+  stroke-dasharray: 2 6;
+}
+
+.stroke,
+.leader {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 1;
+}
+
+.stroke {
+  stroke: var(--text-secondary);
+  stroke-width: var(--thread-width);
+  animation: var(--motion-flow-draw);
+  animation-delay: calc(var(--i) * var(--stagger) * 3);
+}
+
+.callout {
+  --callout-delay: calc(var(--dur-draw) + var(--i) * var(--dur-draw));
+}
+
+.leader,
+.ping {
+  fill: none;
+  stroke: var(--mark-thread);
+  stroke-width: var(--hairline);
+}
+
+.leader {
+  animation: var(--motion-flow-draw);
+  animation-delay: var(--callout-delay);
+}
+
+.anchor {
+  fill: var(--mark-thread);
+  animation: var(--motion-fade-in);
+  animation-delay: var(--callout-delay);
+}
+
+.ping {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: var(--motion-flow-ping);
+  animation-delay: var(--callout-delay);
+}
+
+.label,
+.value,
+.quote {
+  animation: var(--motion-fade-in);
+  animation-delay: calc(var(--callout-delay) + var(--dur-slow));
+}
+
+.label {
+  fill: var(--text-secondary);
+  font-size: var(--font-size-caption);
+}
+
+.value {
+  fill: var(--text-primary);
+  font-size: var(--font-size-subheading);
+  font-weight: var(--weight-semibold);
+}
+
+.quote {
+  fill: var(--text-accent);
+  font-size: var(--font-size-caption);
+}
+
+.tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-16);
+  color: var(--text-muted);
+  font-size: var(--font-size-caption);
+}
+
+.tab {
+  padding-block-end: var(--space-4);
+  border-block-end: var(--thread-width) solid transparent;
+  transition: var(--transition-control);
+}
+
+.tab[data-active="true"] {
+  color: var(--text-primary);
+  border-color: var(--mark-thread);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .figure * {
+    animation: none;
+  }
+}

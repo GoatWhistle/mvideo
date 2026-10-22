@@ -172,7 +172,6 @@ export function CardForm({ categories, examples, pending, onSubmit }: CardFormPr
           />
         </Disclosure>
         <div className={styles.submit}>
-          <span className={styles.shortcut}>{t("stand:form.submitHint")}</span>
           <Button type="submit" icon="extract" pending={pending} disabled={title.trim() === ""}>
             {t("stand:form.submit")}
           </Button>

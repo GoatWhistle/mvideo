@@ -126,18 +126,20 @@ samp {
   pointer-events: none;
 }
 
-:root[data-view-transition^="evidence-"]::view-transition-old(root),
+:root[data-view-transition^="evidence-"]::view-transition-old(root) {
+  display: none;
+}
+
 :root[data-view-transition^="evidence-"]::view-transition-new(root) {
   animation: none;
 }
 
 :root[data-view-transition^="evidence-"]::view-transition-group(*) {
-  animation-duration: var(--dur-drawer);
-  animation-timing-function: var(--ease-drawer);
+  animation: none;
 }
 
-:root[data-view-transition="evidence-close"]::view-transition-group(*) {
-  animation-duration: var(--dur-drawer-exit);
+:root[data-view-transition^="evidence-"]::view-transition-image-pair(evidence-results) {
+  overflow: clip;
 }
 
 :root[data-view-transition^="evidence-"]::view-transition-old(evidence-results),
@@ -145,12 +147,14 @@ samp {
   block-size: 100%;
   object-fit: none;
   object-position: top left;
-  animation-duration: var(--dur-drawer);
 }
 
-:root[data-view-transition="evidence-close"]::view-transition-old(evidence-results),
-:root[data-view-transition="evidence-close"]::view-transition-new(evidence-results) {
-  animation-duration: var(--dur-drawer-exit);
+:root[data-view-transition^="evidence-"]::view-transition-old(evidence-results) {
+  animation: var(--motion-fade-out);
+}
+
+:root[data-view-transition^="evidence-"]::view-transition-new(evidence-results) {
+  animation: var(--motion-fade-in);
 }
 
 :root[data-view-transition="evidence-open"]::view-transition-new(evidence-source) {
@@ -158,5 +162,5 @@ samp {
 }
 
 :root[data-view-transition="evidence-close"]::view-transition-old(evidence-source) {
-  animation: var(--motion-drawer-out);
+  animation: var(--motion-drawer-dismiss);
 }

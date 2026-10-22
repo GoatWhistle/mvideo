@@ -6,11 +6,14 @@ export function useEvidenceDisclosure() {
   const [open, setOpen] = useState(false)
   const [instant, setInstant] = useState(false)
   const keyboardOpened = useRef(false)
+  const shown = useRef(false)
   const panel = usePresence(open, "--dur-drawer-exit", instant)
   const change = useCallback((next: boolean, keyboard: boolean, attribute: string | null) => {
-    const snapshot = !keyboard && typeof document.startViewTransition === "function"
+    const toggles = shown.current !== next
+    shown.current = next
+    const snapshot = toggles && !keyboard && typeof document.startViewTransition === "function"
     const update = () => {
-      setInstant(keyboard || snapshot)
+      if (toggles) setInstant(keyboard || snapshot)
       if (next) setFocused(attribute)
       setOpen(next)
     }

@@ -10,6 +10,7 @@ export {
 export { type StaggerStyle, staggerStyle } from "./stagger"
 export { Swap, type SwapPhase, type SwapProps } from "./swap/swap"
 export { ThreadLayer, type ThreadLayerProps } from "./thread-layer/thread-layer"
+export { useCycle } from "./use-cycle"
 export { type InputModality, useInputModality } from "./use-input-modality"
 export { useLatched } from "./use-latched"
 export {

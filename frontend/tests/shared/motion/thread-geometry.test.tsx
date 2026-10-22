@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it } from "vitest"
-import { measureThread } from "@/shared/motion/thread-layer/thread-geometry"
+import { measureThread, routePath } from "@/shared/motion/thread-layer/thread-geometry"
 
-const METRICS = { lead: 12, rowAnchor: 22 }
+const METRICS = { lead: 12, rowAnchor: 22, radius: 10 }
 
 function box(element: Element, left: number, top: number, width: number, height: number) {
   const rect = DOMRect.fromRect({ x: left, y: top, width, height })
@@ -31,11 +31,11 @@ describe("measureThread", () => {
     document.body.innerHTML = ""
   })
 
-  it("runs from the text lane edge at the quote line to the row lane edge", () => {
+  it("runs from the text lane edge at the quote line to the middle of the row", () => {
     const thread = measureThread(board(0, 448), "Color", METRICS)
-    expect(thread?.path.startsWith("M 388 110 H 400 C")).toBe(true)
-    expect(thread?.path.endsWith("448 322")).toBe(true)
-    expect([thread?.knotX, thread?.knotY]).toEqual([448, 322])
+    expect([thread?.startX, thread?.startY]).toEqual([400, 110])
+    expect([thread?.endX, thread?.endY]).toEqual([448, 332])
+    expect(thread?.path).toBe("M 400 110 H 414 Q 424 110 424 120 V 322 Q 424 332 434 332 H 448")
   })
 
   it("draws nothing when the lanes are stacked or the key is unknown", () => {
@@ -45,8 +45,17 @@ describe("measureThread", () => {
 
   it("points from a source panel on the right back to the selected row", () => {
     const thread = measureThread(board(548, 0), "Color", METRICS)
-    expect(thread?.path.startsWith("M 560 110 H 548 C")).toBe(true)
-    expect(thread?.path.endsWith("500 322")).toBe(true)
-    expect(thread?.arrow).toBe("M 506 316 L 500 322 L 506 328")
+    expect([thread?.startX, thread?.endX]).toEqual([548, 500])
+    expect(thread?.path).toBe("M 548 110 H 534 Q 524 110 524 120 V 322 Q 524 332 514 332 H 500")
+  })
+})
+
+describe("routePath", () => {
+  it("draws a level line without corners", () => {
+    expect(routePath(0, 50, 40, 50, 10)).toBe("M 0 50 H 20 Q 20 50 20 50 V 50 Q 20 50 20 50 H 40")
+  })
+
+  it("shrinks the corners to fit a short rise", () => {
+    expect(routePath(0, 0, 40, 6, 10)).toBe("M 0 0 H 17 Q 20 0 20 3 V 3 Q 20 6 23 6 H 40")
   })
 })

@@ -17,7 +17,11 @@ export {
 } from "./forms/segmented/segmented"
 export { Select, type SelectOption, type SelectProps } from "./forms/select/select"
 export { TextField, type TextFieldProps } from "./forms/text-field/text-field"
-export { CardFlow, type CardFlowProps } from "./illustrations/card-flow/card-flow"
+export {
+  type BlueprintProduct,
+  SpecBlueprint,
+  type SpecBlueprintProps,
+} from "./illustrations/spec-blueprint/spec-blueprint"
 export { BrandLockup, type BrandLockupProps } from "./layout/brand-lockup/brand-lockup"
 export { BrandMark } from "./layout/brand-lockup/brand-mark"
 export { Card, type CardProps } from "./layout/card/card"

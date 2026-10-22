@@ -28,17 +28,12 @@ test("fill an example inline and keep manual edits after reload", async ({ page,
 test("pause the illustration while typing and respect reduced motion", async ({ page }) => {
   await page.goto("/")
   const art = page.locator("[data-card-flow]")
-  const thread = art.locator("[pathLength]").first()
+  const thread = art.locator("[data-signal]").first()
   await expect(art).toBeVisible()
   await expect(thread).toHaveCSS("animation-play-state", "running")
   await page.getByRole("textbox", { name: copy.form.titleField, exact: true }).focus()
   await expect(thread).toHaveCSS("animation-play-state", "paused")
-  await page.getByRole("button", { name: copy.landing.pause, exact: true }).click()
-  await expect(thread).toHaveCSS("animation-play-state", "paused")
-  await page.getByRole("button", { name: copy.landing.resume, exact: true }).click()
-  await expect(thread).toHaveCSS("animation-play-state", "running")
   await page.emulateMedia({ reducedMotion: "reduce" })
-  await expect(page.getByRole("button", { name: copy.landing.pause, exact: true })).toBeHidden()
   await expect
     .poll(() => art.evaluate((element) => element.getAnimations({ subtree: true }).length))
     .toBe(0)

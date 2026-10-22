@@ -92,6 +92,7 @@
   from {
     opacity: 0;
     clip-path: inset(0 0 100% 0);
+    transform: translateY(calc(var(--shift-rise) * -1));
   }
 }
 
@@ -99,6 +100,7 @@
   to {
     opacity: 0;
     clip-path: inset(0 0 100% 0);
+    transform: translateY(calc(var(--shift-rise) * -1));
   }
 }
 
@@ -133,59 +135,14 @@
   }
 }
 
-@keyframes kf-flow-highlight {
-  0%,
-  5%,
-  100% {
-    opacity: 0;
-  }
-  18%,
-  88% {
+@keyframes kf-flow-ping {
+  from {
     opacity: 1;
+    transform: scale(1);
   }
-}
-
-@keyframes kf-flow-thread {
-  0%,
-  18% {
-    stroke-dashoffset: 1;
+  to {
     opacity: 0;
-  }
-  20% {
-    opacity: 1;
-  }
-  46%,
-  88% {
-    stroke-dashoffset: 0;
-    opacity: 1;
-  }
-  100% {
-    stroke-dashoffset: 0;
-    opacity: 0;
-  }
-}
-
-@keyframes kf-flow-values {
-  0%,
-  38%,
-  100% {
-    opacity: 0;
-    clip-path: inset(0 0 100% 0);
-  }
-  65%,
-  88% {
-    opacity: 1;
-    clip-path: inset(0);
-  }
-}
-
-@keyframes kf-flow-paper {
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(calc(var(--shift-anchor) * -1));
+    transform: scale(3.5);
   }
 }
 

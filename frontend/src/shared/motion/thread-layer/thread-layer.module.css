@@ -1,24 +1,24 @@
 .layer {
-  position: absolute;
-  inset: 0;
+  composes: overlay from "../../styles/compose.module.css";
   z-index: var(--layer-raised);
-  inline-size: 100%;
-  block-size: 100%;
-  overflow: visible;
-  pointer-events: none;
-}
-
-.thread,
-.arrow {
-  composes: threadStroke from "../../styles/compose.module.css";
 }
 
 .thread {
+  composes: threadStroke from "../../styles/compose.module.css";
   stroke-dasharray: 1;
   animation: var(--motion-thread-draw);
 }
 
-.arrow {
+.start,
+.end {
+  fill: var(--mark-thread);
+}
+
+.start {
+  animation: var(--motion-fade-in);
+}
+
+.end {
   animation: var(--motion-fade-in);
   animation-delay: var(--dur-base);
 }

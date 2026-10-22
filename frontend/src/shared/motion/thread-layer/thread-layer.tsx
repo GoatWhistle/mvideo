@@ -23,6 +23,7 @@ export function ThreadLayer({ root, activeKey, instant = false }: ThreadLayerPro
       measureThread(element, activeKey, {
         lead: readPixels("--thread-lead"),
         rowAnchor: readPixels("--target-min") / 2,
+        radius: readPixels("--thread-radius"),
       }),
     )
   }, [root, activeKey, layout])
@@ -47,10 +48,18 @@ export function ThreadLayer({ root, activeKey, instant = false }: ThreadLayerPro
   }, [root])
 
   if (thread === null) return null
+  const knot = readPixels("--thread-knot")
   return (
-    <svg className={styles.layer} data-instant={instant} aria-hidden="true" focusable="false">
-      <path key={thread.key} className={styles.thread} d={thread.path} pathLength={1} />
-      <path key={`${thread.key}-arrow`} className={styles.arrow} d={thread.arrow} />
+    <svg
+      key={thread.key}
+      className={styles.layer}
+      data-instant={instant}
+      aria-hidden="true"
+      focusable="false"
+    >
+      <path className={styles.thread} d={thread.path} pathLength={1} />
+      <circle className={styles.start} cx={thread.startX} cy={thread.startY} r={knot} />
+      <circle className={styles.end} cx={thread.endX} cy={thread.endY} r={knot} />
     </svg>
   )
 }

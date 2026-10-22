@@ -21,7 +21,6 @@
     "categoryAuto": "Detect from card",
     "details": "Category and seller attributes",
     "detailsHint": "Optional",
-    "submitHint": "Ctrl+Enter",
     "back": "Back",
     "useExample": "Use example: {{title}}",
     "sellerErrors": {
@@ -184,11 +183,68 @@
   "landing": {
     "title": "Turn descriptions into product cards",
     "description": "Paste the seller’s text. Admit finds attributes and links each value to its source, ready for your review.",
-    "sourceTitle": "Product description",
-    "resultTitle": "Attributes",
-    "caption": "From a phrase in the text to a filled field",
-    "pause": "Pause",
-    "resume": "Resume"
+    "products": {
+      "phone": {
+        "name": "Smartphone",
+        "c0Label": "Screen",
+        "c0Value": "6.5 in",
+        "c0Quote": "“6.5-inch display”",
+        "c1Label": "Storage",
+        "c1Value": "256 GB",
+        "c1Quote": "“256 GB storage”",
+        "c2Label": "Battery",
+        "c2Value": "5000 mAh",
+        "c2Quote": "“5000 mAh battery”",
+        "c3Label": "Colour",
+        "c3Value": "black",
+        "c3Quote": "“colour black”"
+      },
+      "laptop": {
+        "name": "Laptop",
+        "c0Label": "Screen",
+        "c0Value": "15.6 in",
+        "c0Quote": "“15.6\" IPS”",
+        "c1Label": "CPU",
+        "c1Value": "Core i5",
+        "c1Quote": "“Intel Core i5-1240P”",
+        "c2Label": "Keyboard",
+        "c2Value": "backlit",
+        "c2Quote": "“backlit keys”",
+        "c3Label": "SSD",
+        "c3Value": "512 GB",
+        "c3Quote": "“512GB SSD”"
+      },
+      "kettle": {
+        "name": "Kettle",
+        "c0Label": "Volume",
+        "c0Value": "1.7 l",
+        "c0Quote": "“holds 1.7 l”",
+        "c1Label": "Body",
+        "c1Value": "glass",
+        "c1Quote": "“glass body”",
+        "c2Label": "Light",
+        "c2Value": "yes",
+        "c2Quote": "“LED light”",
+        "c3Label": "Power",
+        "c3Value": "2200 W",
+        "c3Quote": "“2200W”"
+      },
+      "vacuum": {
+        "name": "Robot vacuum",
+        "c0Label": "Navigation",
+        "c0Value": "lidar",
+        "c0Quote": "“LDS laser sensor”",
+        "c1Label": "Run time",
+        "c1Value": "120 min",
+        "c1Quote": "“up to 120 minutes”",
+        "c2Label": "Dust bin",
+        "c2Value": "0.5 l",
+        "c2Quote": "“0.5 l container”",
+        "c3Label": "Cleaning",
+        "c3Value": "wet",
+        "c3Quote": "“wet mopping”"
+      }
+    }
   },
   "export": {
     "download": "Download JSON",

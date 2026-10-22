@@ -1,14 +1,16 @@
 export interface Thread {
   readonly key: string
   readonly path: string
-  readonly knotX: number
-  readonly knotY: number
-  readonly arrow: string
+  readonly startX: number
+  readonly startY: number
+  readonly endX: number
+  readonly endY: number
 }
 
 export interface ThreadMetrics {
   readonly lead: number
   readonly rowAnchor: number
+  readonly radius: number
 }
 
 const LANE = "[data-thread-lane]"
@@ -21,6 +23,32 @@ function byKey(root: HTMLElement, attribute: string, key: string): HTMLElement |
   return [...root.querySelectorAll<HTMLElement>(`[${attribute}]`)].find(
     (element) => element.getAttribute(attribute) === key,
   )
+}
+
+function round(value: number): number {
+  return Math.round(value * 10) / 10
+}
+
+export function routePath(
+  fromX: number,
+  fromY: number,
+  toX: number,
+  toY: number,
+  radius: number,
+): string {
+  const midX = (fromX + toX) / 2
+  const rise = toY - fromY
+  const across = Math.sign(toX - fromX)
+  const down = Math.sign(rise)
+  const r = Math.min(radius, Math.abs(rise) / 2, Math.abs(midX - fromX))
+  return [
+    `M ${round(fromX)} ${round(fromY)}`,
+    `H ${round(midX - across * r)}`,
+    `Q ${round(midX)} ${round(fromY)} ${round(midX)} ${round(fromY + down * r)}`,
+    `V ${round(toY - down * r)}`,
+    `Q ${round(midX)} ${round(toY)} ${round(midX + across * r)} ${round(toY)}`,
+    `H ${round(toX)}`,
+  ].join(" ")
 }
 
 export function measureThread(root: HTMLElement, key: string, metrics: ThreadMetrics) {
@@ -44,16 +72,15 @@ export function measureThread(root: HTMLElement, key: string, metrics: ThreadMet
     scroll.bottom - box.top - metrics.rowAnchor,
   )
   const toX = (direction === 1 ? rowLane.left : rowLane.right) - box.left
-  const toY = row.top + Math.min(row.height / 2, metrics.rowAnchor) - box.top
+  const toY = row.top + row.height / 2 - box.top
   if (Math.abs(toX - fromX) < metrics.lead) return null
-  const bend = (toX - fromX) / 2
-  const tip = metrics.lead / 2
   const thread: Thread = {
     key,
-    path: `M ${fromX - direction * metrics.lead} ${fromY} H ${fromX} C ${fromX + bend} ${fromY} ${toX - bend} ${toY} ${toX} ${toY}`,
-    knotX: toX,
-    knotY: toY,
-    arrow: `M ${toX - direction * tip} ${toY - tip} L ${toX} ${toY} L ${toX - direction * tip} ${toY + tip}`,
+    path: routePath(fromX, fromY, toX, toY, metrics.radius),
+    startX: round(fromX),
+    startY: round(fromY),
+    endX: round(toX),
+    endY: round(toY),
   }
   return thread
 }
