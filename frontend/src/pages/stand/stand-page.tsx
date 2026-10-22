@@ -1,3 +1,4 @@
+import { useLocation } from "react-router"
 import { CardExtraction } from "@/features/card-extraction"
 import { ExportCard } from "@/features/export-card"
 import { RunHistory } from "@/features/run-history"
@@ -8,12 +9,14 @@ import styles from "./stand-page.module.css"
 export function StandPage() {
   const { t } = useTranslation()
   useDocumentTitle(null)
+  const location = useLocation()
   return (
     <div className={styles.page}>
       <div className="visually-hidden">
         <PageHeader title={t("stand:title")} />
       </div>
       <CardExtraction
+        homeKey={location.key}
         exportSlot={(input, result) => <ExportCard source={{ input, result }} />}
         historySlot={(onOpen) => (
           <RunHistory

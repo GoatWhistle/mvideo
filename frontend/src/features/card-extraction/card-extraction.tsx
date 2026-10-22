@@ -21,14 +21,16 @@ import { useCardWorkspace } from "./use-card-workspace"
 import { WorkspaceBar } from "./workspace-bar/workspace-bar"
 
 export interface CardExtractionProps {
+  readonly homeKey?: string
   readonly historySlot: (onOpen: (run: RunDetail) => void) => ReactNode
   readonly exportSlot: (input: ExtractInput, result: ExtractResult) => ReactNode
 }
 
-export function CardExtraction({ historySlot, exportSlot }: CardExtractionProps) {
+export function CardExtraction({ homeKey, historySlot, exportSlot }: CardExtractionProps) {
   const { t } = useTranslation()
   const state = useCardWorkspace()
   const { started, pending, restored, runId, input, result, run, retry } = state
+  useHomeReset(homeKey, started, state.openDraft)
   const { startRef, titleRef } = useWorkspaceFocus(started, runId)
   const reviewSlots = useInlineReview(
     state.reviews.data,
@@ -96,6 +98,17 @@ export function CardExtraction({ historySlot, exportSlot }: CardExtractionProps)
       ) : null}
     </div>
   )
+}
+
+function useHomeReset(homeKey: string | undefined, started: boolean, openDraft: () => void) {
+  const seen = useRef(homeKey)
+  const reset = useRef<(() => void) | null>(null)
+  reset.current = started ? openDraft : null
+  useEffect(() => {
+    if (seen.current === homeKey) return
+    seen.current = homeKey
+    reset.current?.()
+  }, [homeKey])
 }
 
 function useWorkspaceFocus(started: boolean, runId: number) {

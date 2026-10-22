@@ -64,7 +64,7 @@ export function RunHistory({ onOpen, exportSlot }: RunHistoryProps) {
           <div className={styles.pages}>
             <Button
               variant="ghost"
-              icon="chevron-right"
+              icon="chevron-left"
               disabled={offset === 0 || query.isFetching}
               onClick={() => setOffset(offset - RUN_PAGE_SIZE)}
             >
@@ -73,6 +73,7 @@ export function RunHistory({ onOpen, exportSlot }: RunHistoryProps) {
             <Button
               variant="ghost"
               icon="chevron-right"
+              iconEnd
               disabled={offset + query.data.items.length >= query.data.total || query.isFetching}
               onClick={() => setOffset(offset + RUN_PAGE_SIZE)}
             >

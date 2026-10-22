@@ -19,14 +19,20 @@ export const SIZE_CLASS: Readonly<Record<ButtonSize, string | undefined>> = {
 
 export interface ButtonContentProps {
   readonly icon?: IconName | undefined
+  readonly iconEnd?: boolean
   readonly pending?: boolean
   readonly children: ReactNode
 }
 
-export function ButtonContent({ icon, pending = false, children }: ButtonContentProps) {
+export function ButtonContent({
+  icon,
+  iconEnd = false,
+  pending = false,
+  children,
+}: ButtonContentProps) {
   return (
     <>
-      <span className={styles.content} data-pending={pending}>
+      <span className={styles.content} data-pending={pending} data-icon-end={iconEnd}>
         {icon === undefined ? null : <Icon name={icon} size="sm" />}
         <span>{children}</span>
       </span>
@@ -40,6 +46,7 @@ export interface ButtonProps
   readonly variant?: ButtonVariant
   readonly size?: ButtonSize
   readonly icon?: IconName | undefined
+  readonly iconEnd?: boolean
   readonly pending?: boolean
   readonly iconOnly?: boolean
   readonly type?: "button" | "submit"
@@ -51,6 +58,7 @@ export function Button({
   variant = "primary",
   size = "regular",
   icon,
+  iconEnd = false,
   pending = false,
   iconOnly = false,
   type = "button",
@@ -81,7 +89,7 @@ export function Button({
       aria-disabled={pending || undefined}
       onClick={handleClick}
     >
-      <ButtonContent icon={icon} pending={pending}>
+      <ButtonContent icon={icon} iconEnd={iconEnd} pending={pending}>
         {children}
       </ButtonContent>
     </button>

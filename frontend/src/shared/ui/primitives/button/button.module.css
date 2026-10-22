@@ -94,6 +94,10 @@
   transition: var(--transition-fade);
 }
 
+.content[data-icon-end="true"] {
+  flex-direction: row-reverse;
+}
+
 .content[data-pending="true"] {
   opacity: 0;
 }
