@@ -129,7 +129,7 @@ async def execute(args: argparse.Namespace, protocol: Row) -> None:
         if not env.get("GATEWAY_API_KEY"):
             raise ValueError("GATEWAY_API_KEY is missing")
         gateway = GatewayModel(
-            env.get("GATEWAY_URL", "https://ai.goatwhistle.ru/v1"),
+            env.get("GATEWAY_URL", "https://api.openai.com/v1"),
             protocol["requested_model"],
             env["GATEWAY_API_KEY"],
             timeout_s=protocol["timeout_s"],

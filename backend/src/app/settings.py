@@ -7,7 +7,7 @@ from pathlib import Path
 @dataclass(frozen=True, slots=True)
 class Settings:
     database: Path = Path("var/app.db")
-    gateway_url: str = "https://ai.goatwhistle.ru/v1"
+    gateway_url: str = "https://api.openai.com/v1"
     gateway_key: str = field(default="", repr=False)
     gateway_model: str = "default"
     gateway_timeout: float = 120
@@ -49,7 +49,7 @@ def load_settings() -> Settings:
     )
     return Settings(
         database=Path(os.environ.get("DATABASE_PATH", "var/app.db")).resolve(),
-        gateway_url=gateway_url or "https://ai.goatwhistle.ru/v1",
+        gateway_url=gateway_url or "https://api.openai.com/v1",
         gateway_key=gateway_key,
         gateway_model=os.environ.get("GATEWAY_MODEL")
         or os.environ.get("OPENAI_MODEL")

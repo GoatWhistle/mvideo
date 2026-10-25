@@ -5,6 +5,7 @@
 одни сценарии валидации, принятия и ручной обратной связи.
 
 ```mermaid
+%%{init: {"theme":"base","themeVariables":{"primaryColor":"#ffffff","primaryTextColor":"#1d1e1f","primaryBorderColor":"#e0002c","secondaryColor":"#e9eaee","tertiaryColor":"#f3f3f5","lineColor":"#62666f","textColor":"#1d1e1f","noteBkgColor":"#e9eaee","noteTextColor":"#4e525a","actorBkg":"#ffffff","actorBorder":"#e0002c","fontFamily":"Onest"}}}%%
 flowchart LR
   A[Текст карточки] --> B[Regex и поиск категории]
   B --> C{Правил достаточно?}

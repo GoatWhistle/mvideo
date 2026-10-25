@@ -17,7 +17,7 @@ def isolate_gateway_environment(monkeypatch: pytest.MonkeyPatch) -> None:
         monkeypatch.delenv(name, raising=False)
 
 
-def test_hackathon_environment_configures_gateway(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_environment_configures_gateway(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("OPENAI_BASE_URL", "https://example.test/v1")
     monkeypatch.setenv("OPENAI_API_KEY", "test-key")
     monkeypatch.setenv("OPENAI_MODEL", "test-model")
@@ -44,9 +44,9 @@ def test_explicit_gateway_settings_override_openai_aliases(monkeypatch: pytest.M
     assert settings.gateway_model == "m"
 
 
-def test_default_gateway_is_preserved_without_hackathon_environment() -> None:
+def test_default_gateway_is_preserved_without_environment() -> None:
     settings = load_settings()
-    assert settings.gateway_url == "https://ai.goatwhistle.ru/v1"
+    assert settings.gateway_url == "https://api.openai.com/v1"
     assert settings.gateway_key == ""
     assert settings.gateway_model == "default"
 
